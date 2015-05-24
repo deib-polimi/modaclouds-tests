@@ -1,0 +1,89 @@
+{
+    "eClass": "net.cloudml.core:CloudMLModel",
+    "name": "MiC2AWS",
+    "providers": [
+        {
+            "credentials": "resources/credentialsAmazon.properties",
+            "eClass": "net.cloudml.core:Provider",
+            "name": "aws-ec2"
+        }
+    ],
+    "internalComponents": [
+        {
+            "eClass": "net.cloudml.core:InternalComponent",
+            "name": "app",
+            "requiredExecutionPlatform" : {
+                "eClass" : "net.cloudml.core:RequiredExecutionPlatform",
+                "name" : "appRequired",
+                "owner" : "internalComponents[app]"
+            }
+        }
+    ],
+    "internalComponentInstances": [
+        {
+            "eClass": "net.cloudml.core:InternalComponentInstance",
+            "name": "appInstance",
+            "type": "internalComponents[app]",
+            "requiredExecutionPlatformInstance" : {
+                "eClass" : "net.cloudml.core:RequiredExecutionPlatformInstance",
+                "name" : "appRequiredInstance",
+                "owner" : "internalComponentInstances[appInstance]",
+                "type" : "internalComponents[app]/requiredExecutionPlatform[appRequired]"
+            }
+        }
+    ],
+    "vms": [
+        {
+            "eClass": "net.cloudml.core:VM",
+            "imageId": "eu-west-1/ami-37790e40",
+            "is64os": true,
+            "location": "eu-west-1",
+            "providerSpecificTypeName": "m3.large",
+            "maxStorage": "50",
+            "minStorage": "50",
+            "name": "MIC",
+            "os": "ubuntu",
+            "privateKey": "resources/desantis-ireland.pem",
+            "providedExecutionPlatforms": [
+                {
+                    "eClass": "net.cloudml.core:ProvidedExecutionPlatform",
+                    "name": "MICTIER",
+                    "offers": [
+                        {
+                            "eClass": "net.cloudml.core:Property",
+                            "name": "OS",
+                            "value": "Ubuntu"
+                        }
+                    ],
+                    "owner": "vms[MIC]"
+                }
+            ],
+            "provider": "providers[aws-ec2]",
+            "securityGroup": "default",
+            "sshKey": "desantis-ireland"
+        }
+    ],
+    "vmInstances": [
+        {
+            "eClass": "net.cloudml.core:NodeInstance",
+            "name": "micInstance%1$s",
+            "type": "vms[MIC]",
+            "providedExecutionPlatformInstances": [
+                {
+                    "eClass": "net.cloudml.core:ProvidedExecutionPlatformInstance",
+                    "name": "mictier",
+                    "owner": "vmInstances[micInstance%1$s]",
+                    "type": "vms[MIC]/providedExecutionPlatforms[MICTIER]"
+                }
+            ]
+        }
+    ],
+    "executesInstances": [
+        {
+            "eClass": "net.cloudml.core:ExecuteInstance",
+            "name": "runApp",
+            "providedExecutionPlatformInstance": "vmInstances[micInstance%1$s]/providedExecutionPlatformInstances[mictier]",
+            "requiredExecutionPlatformInstance": "internalComponentInstances[appInstance]/requiredExecutionPlatformInstance[appRequiredInstance]"
+        }
+    ]
+}

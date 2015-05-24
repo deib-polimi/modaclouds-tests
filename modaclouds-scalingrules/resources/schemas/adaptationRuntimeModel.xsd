@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2013 sp1 (http://www.altova.com) by ﻿Riccardo Desantis (Deadware) -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" jaxb:version="2.0"
+    elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jaxb:schemaBindings>
+				<jaxb:package
+					name="it.polimi.modaclouds.scalingrules.schemas.adaptationRuntime" />
+			</jaxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+
+	<xs:element name="containers">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" name="container" type="container" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="container">
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" name="applicationTier"
+				type="applicationTier" />
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required" />
+		<xs:attribute name="capacity" type="xs:float" use="required" />
+		<xs:attribute name="maxReserved" type="xs:int" use="required" />
+		<xs:attribute name="reservedCost" type="xs:float" use="required" />
+		<xs:attribute name="onDemandCost" type="xs:float" use="required" />
+	</xs:complexType>
+	<xs:complexType name="applicationTier">
+		<xs:sequence>
+			<xs:element maxOccurs="24" name="responseTimeThreshold"
+				type="responseTimeThreshold" />
+			<xs:element maxOccurs="unbounded" name="functionality"
+				type="functionality" />
+			<xs:element maxOccurs="unbounded" name="workloadForecast"
+				type="workloadForecast" />
+		</xs:sequence>
+		<xs:attribute name="demand" type="xs:float" />
+		<xs:attribute name="delay" type="xs:float" />
+		<xs:attribute name="id" type="xs:string" />
+		<xs:attribute name="initialNumberOfVMs" use="required" type="xs:int" />
+	</xs:complexType>
+	<xs:complexType name="functionality">
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" name="workloadForecast"
+				type="workloadForecast" />
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required" />
+		<xs:attribute name="demand" type="xs:float" />
+	</xs:complexType>
+	<xs:complexType name="responseTimeThreshold">
+		<xs:attribute name="hour" type="xs:int" use="required" />
+		<xs:attribute name="value" type="xs:float" use="required" />
+	</xs:complexType>
+	<xs:complexType name="workloadForecast">
+		<xs:attribute name="timeStepAhead" type="xs:int" use="required" />
+		<xs:attribute name="value" type="xs:float" use="required" />
+	</xs:complexType>
+</xs:schema>

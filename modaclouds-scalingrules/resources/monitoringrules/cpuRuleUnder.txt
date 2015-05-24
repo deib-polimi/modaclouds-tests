@@ -1,0 +1,20 @@
+<monitoringRule id="cpuRule" timeStep="3" timeWindow="3">
+  <monitoredTargets>
+    <monitoredTarget class="VM" type="Frontend"/>
+  </monitoredTargets>
+  <collectedMetric metricName="CpuUtilizationUnder">
+    <parameter name="samplingProbability">1</parameter>
+    <parameter name="samplingTime">3</parameter>
+  </collectedMetric>
+  <metricAggregation aggregateFunction="Average" groupingClass="VM"/>
+  <condition>METRIC &lt;= %f</condition>
+  <actions>
+    <action name="CloudMLCall">
+      <parameter name="ip">%s</parameter>
+      <parameter name="port">%d</parameter>
+      <parameter name="command">SCALE</parameter>
+      <parameter name="tier">MIC</parameter>
+      <parameter name="n">-1</parameter>
+    </action>
+  </actions>
+</monitoringRule>
