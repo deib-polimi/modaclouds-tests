@@ -1,0 +1,32 @@
+#!/bin/sh
+
+export SDATEST_HOME="${SDATEST_HOME:-$PWD}"
+
+if [ ! -e "$SDATEST_HOME" ]
+then
+    echo "$SDATEST_HOME does not exist" 1>&2
+    exit 1
+fi
+
+JAR="$SDATEST_HOME/sdatests.jar"
+CLASS="it.polimi.modaclouds.sdatests.Main"
+if [ ! -e "$JAR" ]
+then
+    echo "Can't find jarfile to run"
+    exit 1
+fi
+
+# Deal with Cygwin path issues
+cygwin=false
+case "`uname`" in
+    CYGWIN*) cygwin=true;;
+esac
+if [ "$cygwin" = "true" ]
+then
+    JAR=`cygpath -w "$JAR"`
+    SDATEST_HOME=`cygpath -w "$SDATEST_HOME"`
+fi
+
+JVM_ARGS=${JVM_ARGS:--Xmx1200M}
+
+exec java  $JVM_ARGS -jar "$JAR" "$@"
