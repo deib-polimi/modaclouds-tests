@@ -13,7 +13,3 @@ ssh -i $2 -o StrictHostKeyChecking=no $3@"$1" 'nohup java -jar testObserver-0.0.
 ssh -i $2 -o StrictHostKeyChecking=no $3@"$1" 'nohup java -jar testObserver-0.0.1-SNAPSHOT-jar-with-dependencies.jar 8183 > wlforFifth.out 2>&1 &'
 ssh -i $2 -o StrictHostKeyChecking=no $3@"$1" 'nohup java -jar testObserver-0.0.1-SNAPSHOT-jar-with-dependencies.jar 8174 > wl.out 2>&1 &'
 ssh -i $2 -o StrictHostKeyChecking=no $3@"$1" 'nohup java -jar testObserver-0.0.1-SNAPSHOT-jar-with-dependencies.jar 8184 > thresholds.out 2>&1 &'
-
-
-ssh -i $2 -o StrictHostKeyChecking=no $3@"$1" 'nohup java -jar testObserver-0.0.1-SNAPSHOT-jar-with-dependencies.jar 8177 > thresholds.out 2>&1 &'
-ssh -i $2 -o StrictHostKeyChecking=no $3@"$1" 'nohup java -jar testObserver-0.0.1-SNAPSHOT-jar-with-dependencies.jar 8178 > thresholds.out 2>&1 &'

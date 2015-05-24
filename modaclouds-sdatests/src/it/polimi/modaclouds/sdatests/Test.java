@@ -13,12 +13,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,6 +176,8 @@ public class Test {
 	public static String LOAD_MODEL_COMMAND = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE) + " %s %s";
 	public static String OBSERVER_LAUNCH_COMMAND = "bash " + Configuration.getPathToFile(OBSERVER_LAUNCH_FILE) + " %s %s %s";
 	
+	public static final String SDA_CONFIG = "sdaconfig.properties";
+	
 	private List<Thread> otherThreads;
 	
 	public void initSystem() throws Exception {
@@ -216,6 +220,8 @@ public class Test {
 				sda.getParameter("SSH_USER")));
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
+		
+		isda.sendFile(createModifiedSDAConfigFile().toString(), "/home/ubuntu/modaclouds-sda-1.2.2/config.properties");
 		
 		otherThreads.add(Ssh.execInBackground(isda, String.format(
 				sda.getParameter("STARTER"),
@@ -274,6 +280,18 @@ public class Test {
 			}
 		} catch (Exception e) { }
 		return peak;
+	}
+	
+	private Path createModifiedSDAConfigFile() throws Exception {
+		if (!running)
+			throw new RuntimeException("The system isn't running yet!");
+		
+		Instance impl = mpl.getInstances().get(0);
+		
+		String file = FileUtils.readFileToString(Configuration.getPathToFile(SDA_CONFIG).toFile());
+		Path p = Files.createTempFile("config", ".properties");
+		FileUtils.writeStringToFile(p.toFile(), String.format(file, impl.getIp()));
+		return p;
 	}
 	
 	public void runTest(Path baseJmx, String data, String loadBalancerDNS) throws Exception {
