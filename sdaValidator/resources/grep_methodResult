@@ -2,27 +2,27 @@ mkdir -p %1$s/method1
 mkdir -p %1$s/method2
 mkdir -p %1$s/method3
 
-grep 'register' %1$s/d.out > %1$s/method1/demand.out
-grep 'saveAnswers' %1$s/d.out > %1$s/method2/demand.out
-grep 'answerQuestions' %1$s/d.out > %1$s/method3/demand.out
-grep 'register' %1$s/wl.out > %1$s/method1/monitored_workload.out
-grep 'saveAnswers' %1$s/wl.out > %1$s/method2/monitored_workload.out 
-grep 'answerQuestions' %1$s/wl.out > %1$s/method3/monitored_workload.out
-grep 'register' %1$s/wlforFirst.out > %1$s/method1/forecasted_WL_1.out
-grep 'saveAnswers' %1$s/wlforFirst.out > %1$s/method2/forecasted_WL_1.out
-grep 'answerQuestions' %1$s/wlforFirst.out > %1$s/method3/forecasted_WL_1.out
-grep 'register' %1$s/wlforSecond.out > %1$s/method1/forecasted_WL_2.out
-grep 'saveAnswers' %1$s/wlforSecond.out > %1$s/method2/forecasted_WL_2.out
-grep 'answerQuestions' %1$s/wlforSecond.out > %1$s/method3/forecasted_WL_2.out
-grep 'register' %1$s/wlforThird.out > %1$s/method1/forecasted_WL_3.out
-grep 'saveAnswers' %1$s/wlforThird.out > %1$s/method2/forecasted_WL_3.out
-grep 'answerQuestions' %1$s/wlforThird.out > %1$s/method3/forecasted_WL_3.out
-grep 'register' %1$s/wlforFourth.out > %1$s/method1/forecasted_WL_4.out
-grep 'saveAnswers' %1$s/wlforFourth.out > %1$s/method2/forecasted_WL_4.out
-grep 'answerQuestions' %1$s/wlforFourth.out > %1$s/method3/forecasted_WL_4.out
-grep 'register' %1$s/wlforFifth.out > %1$s/method1/forecasted_WL_5.out
-grep 'saveAnswers' %1$s/wlforFifth.out > %1$s/method2/forecasted_WL_5.out
-grep 'answerQuestions' %1$s/wlforFifth.out > %1$s/method3/forecasted_WL_5.out
-grep 'register' %1$s/rt.out > %1$s/method1/monitored_responseTime.out
-grep 'saveAnswers' %1$s/rt.out > %1$s/method2/monitored_responseTime.out
-grep 'answerQuestions' %1$s/rt.out > %1$s/method3/monitored_responseTime.out
+grep 'register' %1$s/d.out | sed 's/:/,/' > %1$s/method1/demand.out
+grep 'saveAnswers' %1$s/d.out | sed 's/:/,/' > %1$s/method2/demand.out
+grep 'answerQuestions' %1$s/d.out | sed 's/:/,/' > %1$s/method3/demand.out
+grep 'register' %1$s/wl.out | sed 's/:/,/' > %1$s/method1/monitored_workload.out
+grep 'saveAnswers' %1$s/wl.out | sed 's/:/,/' > %1$s/method2/monitored_workload.out 
+grep 'answerQuestions' %1$s/wl.out | sed 's/:/,/' > %1$s/method3/monitored_workload.out
+grep 'register' %1$s/wlforFirst.out | sed 's/:/,/' > %1$s/method1/forecasted_WL_1.out
+grep 'saveAnswers' %1$s/wlforFirst.out | sed 's/:/,/' > %1$s/method2/forecasted_WL_1.out
+grep 'answerQuestions' %1$s/wlforFirst.out | sed 's/:/,/' > %1$s/method3/forecasted_WL_1.out
+grep 'register' %1$s/wlforSecond.out | sed 's/:/,/' > %1$s/method1/forecasted_WL_2.out
+grep 'saveAnswers' %1$s/wlforSecond.out | sed 's/:/,/' > %1$s/method2/forecasted_WL_2.out
+grep 'answerQuestions' %1$s/wlforSecond.out | sed 's/:/,/' > %1$s/method3/forecasted_WL_2.out
+grep 'register' %1$s/wlforThird.out | sed 's/:/,/' > %1$s/method1/forecasted_WL_3.out
+grep 'saveAnswers' %1$s/wlforThird.out | sed 's/:/,/' > %1$s/method2/forecasted_WL_3.out
+grep 'answerQuestions' %1$s/wlforThird.out | sed 's/:/,/' > %1$s/method3/forecasted_WL_3.out
+grep 'register' %1$s/wlforFourth.out | sed 's/:/,/' > %1$s/method1/forecasted_WL_4.out
+grep 'saveAnswers' %1$s/wlforFourth.out | sed 's/:/,/' > %1$s/method2/forecasted_WL_4.out
+grep 'answerQuestions' %1$s/wlforFourth.out | sed 's/:/,/' > %1$s/method3/forecasted_WL_4.out
+grep 'register' %1$s/wlforFifth.out | sed 's/:/,/' > %1$s/method1/forecasted_WL_5.out
+grep 'saveAnswers' %1$s/wlforFifth.out | sed 's/:/,/' > %1$s/method2/forecasted_WL_5.out
+grep 'answerQuestions' %1$s/wlforFifth.out | sed 's/:/,/' > %1$s/method3/forecasted_WL_5.out
+grep 'register' %1$s/rt.out | sed 's/:/,/' > %1$s/method1/monitored_responseTime.out
+grep 'saveAnswers' %1$s/rt.out | sed 's/:/,/' > %1$s/method2/monitored_responseTime.out
+grep 'answerQuestions' %1$s/rt.out | sed 's/:/,/' > %1$s/method3/monitored_responseTime.out
