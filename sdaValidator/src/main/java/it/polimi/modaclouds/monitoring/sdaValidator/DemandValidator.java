@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.swing.plaf.SliderUI;
-
 public class DemandValidator {
 	
 	private static List<Float> cpu=new ArrayList<Float>();
@@ -33,7 +31,7 @@ public class DemandValidator {
 		Scanner input;
 		try {
 			input = new Scanner(new File("sda.out"));
-			writer= new PrintWriter("/home/mik-ubuntu/workspace/sdaValidator/demandAnalysis.csv", "UTF-8");
+			writer= new PrintWriter("demandAnalysis.csv", "UTF-8");
 
 			
 			writer.write("AvarageCPUUtil, "
