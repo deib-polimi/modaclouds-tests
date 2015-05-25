@@ -14,6 +14,7 @@ import it.polimi.modaclouds.scalingrules.utils.MonitoringPlatform;
 
 import java.io.File;
 import java.io.StringReader;
+import java.net.InetAddress;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Scanner;
@@ -33,14 +34,29 @@ public class Test {
 	
 	private String cloudMLIp;
 	private int cloudMLPort;
+	private String monitoringPlatformIp;
 	private int monitoringPlatformPort;
 	
-	public Test(String cloudMLIp, int cloudMLPort, int monitoringPlatformPort, int clients) throws CloudException {
+	private static boolean isReachable(String ip) {
+		try {
+			return InetAddress.getByName(ip).isReachable(30000);
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	public Test(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients) throws CloudException {
 		cloudML = new CloudML(cloudMLIp, cloudMLPort);
 		
+		this.monitoringPlatformIp = monitoringPlatformIp;
 		this.monitoringPlatformPort = monitoringPlatformPort;
 		this.cloudMLIp = cloudMLIp;
 		this.cloudMLPort = cloudMLPort;
+		
+		if (monitoringPlatformIp != null && !monitoringPlatformIp.equals("localhost") && !monitoringPlatformIp.equals("127.0.0.1") && !isReachable(monitoringPlatformIp))
+			throw new RuntimeException("The monitoring platform isn't reachable!");
+		if (cloudMLIp != null && !cloudMLIp.equals("localhost") && !cloudMLIp.equals("127.0.0.1") && !isReachable(cloudMLIp))
+			throw new RuntimeException("The CloudML server isn't reachable!");
 		
 		mpl = VirtualMachine.getVM("mpl", null, 1);
 		this.clients = VirtualMachine.getVM("client", null, clients);
@@ -49,9 +65,9 @@ public class Test {
 		initialized = false;
 	}
 	
-	public static boolean performTest(String cloudMLIp, int cloudMLPort, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
+	public static boolean performTest(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
 		try {
-			Test t = new Test(cloudMLIp, cloudMLPort, monitoringPlatformPort, clients);
+			Test t = new Test(cloudMLIp, cloudMLPort, monitoringPlatformIp, monitoringPlatformPort, clients);
 			
 			if (reuseInstances)
 				t.considerRunningMachines();
@@ -106,20 +122,25 @@ public class Test {
 		logger.info("Starting all the machines...");
 		
 		if (!startAsOnDemand) {
-			mpl.spotRequest();
+			if (monitoringPlatformIp == null)
+				mpl.spotRequest();
 			clients.spotRequest();
 		} else {
-			mpl.onDemandRequest();
+			if (monitoringPlatformIp == null)
+				mpl.onDemandRequest();
 			clients.onDemandRequest();
 		}
 		
-		mpl.waitUntilRunning();
+		if (monitoringPlatformIp == null)
+			mpl.waitUntilRunning();
 		clients.waitUntilRunning();
 		
-		mpl.setNameToInstances("MPL");
+		if (monitoringPlatformIp == null)
+			mpl.setNameToInstances("MPL");
 		clients.setNameToInstances("JMeter");
 		
-		mpl.getInstances().get(0).waitUntilSshAvailable();
+		if (monitoringPlatformIp == null)
+			mpl.getInstances().get(0).waitUntilSshAvailable();
 		clients.getInstances().get(0).waitUntilSshAvailable();
 		
 		logger.info("All the machines are now running!");
@@ -135,10 +156,12 @@ public class Test {
 		
 		AmazonEC2 ec2 = new AmazonEC2();
 		
-		ec2.addRunningInstances(mpl);
+		if (monitoringPlatformIp == null)
+			ec2.addRunningInstances(mpl);
 		ec2.addRunningInstances(clients);
 		
-		mpl.reboot();
+		if (monitoringPlatformIp == null)
+			mpl.reboot();
 		clients.reboot();
 		
 		logger.info("Added running instances!");
@@ -150,7 +173,8 @@ public class Test {
 		
 		logger.info("Stopping all the machines...");
 		
-		mpl.terminate();
+		if (monitoringPlatformIp == null)
+			mpl.terminate();
 		clients.terminate();
 		
 		logger.info("All the machines have been shutted down!");
@@ -168,18 +192,27 @@ public class Test {
 		
 		logger.info("Deleting the files set for removal before the test...");
 		
-		mpl.deleteFiles();
+		if (monitoringPlatformIp == null)
+			mpl.deleteFiles();
 		clients.deleteFiles();
 		
 		logger.info("Initializing the system...");
 		
-		Instance impl = mpl.getInstances().get(0); 
+		String mplIp;
 		
-		impl.waitUntilSshAvailable();
+		if (monitoringPlatformIp == null) {
+			Instance impl = mpl.getInstances().get(0); 
 		
-		impl.exec(mpl.getParameter("STARTER"));
+			impl.waitUntilSshAvailable();
+			
+			impl.exec(mpl.getParameter("STARTER"));
+			
+			mplIp = impl.getIp();
+		} else {
+			mplIp = monitoringPlatformIp;
+		}
 		
-		monitoringPlatform = new MonitoringPlatform(impl.getIp(), monitoringPlatformPort);
+		monitoringPlatform = new MonitoringPlatform(mplIp, monitoringPlatformPort);
 		monitoringPlatform.loadModel();
 		
 		cloudML.deploy();
@@ -195,7 +228,8 @@ public class Test {
 		
 		cloudML.terminate();
 		monitoringPlatform = null;
-		mpl.terminate();
+		if (monitoringPlatformIp == null)
+			mpl.terminate();
 		
 		logger.info("Infrastructure stopped.");
 		
@@ -279,7 +313,8 @@ public class Test {
 		
 		logger.info("Retrieving the files from the instances...");
 		
-		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
+		if (monitoringPlatformIp == null)
+			mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
 		
 		logger.info("Done!");
