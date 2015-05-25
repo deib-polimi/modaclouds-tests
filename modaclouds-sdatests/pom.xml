@@ -8,7 +8,7 @@
     </parent>
 	<artifactId>sdatests</artifactId>
 	<version>0.0.3</version>
-    <name>MODAClous - SDA Tests</name>
+    <name>MODAClouds - SDA Tests</name>
 
 	<repositories>
 		<repository>
