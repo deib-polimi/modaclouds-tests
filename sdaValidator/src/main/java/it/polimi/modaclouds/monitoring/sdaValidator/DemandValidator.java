@@ -54,13 +54,13 @@ public class DemandValidator {
 			while (input.hasNextLine()) {
 				String line = input.nextLine();
 
-				if (line.contains("STARTSTART") & !startCollectSDAResult) {
+				if (!startCollectSDAResult && line.contains("FrontendCPUUtilization")) {
 					startCollectSDAResult = true;
 				}
 
-				if (line.contains("ENDEND")) {
-					stop = true;
-				}
+//				if (line.contains("ENDEND")) {
+//					stop = true;
+//				}
 
 				if (startCollectSDAResult & !stop) {
 
@@ -127,6 +127,7 @@ public class DemandValidator {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
+			writer.flush();
 			writer.close();
 
 		}

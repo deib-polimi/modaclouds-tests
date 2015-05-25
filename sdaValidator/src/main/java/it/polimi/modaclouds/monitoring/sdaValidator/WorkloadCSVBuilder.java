@@ -26,15 +26,10 @@ public class WorkloadCSVBuilder {
 
 		List<Workload> monitored = new ArrayList<Workload>();
 		List<Workload> first = new ArrayList<Workload>();
-		;
 		List<Workload> second = new ArrayList<Workload>();
-		;
 		List<Workload> third = new ArrayList<Workload>();
-		;
 		List<Workload> fourth = new ArrayList<Workload>();
-		;
 		List<Workload> fifth = new ArrayList<Workload>();
-		;
 
 		Scanner input;
 		String[] splitted;
@@ -96,6 +91,7 @@ public class WorkloadCSVBuilder {
 					e.printStackTrace();
 				} finally {
 					try {
+						writer.flush();
 						writer.close();
 					} catch (Exception e) {
 					}
@@ -144,6 +140,7 @@ public class WorkloadCSVBuilder {
 					e.printStackTrace();
 				} finally {
 					try {
+						writer.flush();
 						writer.close();
 					} catch (Exception e) {
 					}

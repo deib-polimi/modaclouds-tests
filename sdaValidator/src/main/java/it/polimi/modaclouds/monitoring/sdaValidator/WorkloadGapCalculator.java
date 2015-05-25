@@ -98,6 +98,7 @@ public class WorkloadGapCalculator {
 			e.printStackTrace();
 		} finally {
 			try {
+				writer.flush();
 				writer.close();
 			} catch (Exception e) {
 			}
