@@ -90,7 +90,7 @@ public class DemandValidator {
 							}
 						}
 
-						if (line.contains("AvarageResponseTime")) {
+						if (line.contains("AvarageEffectiveResponseTime")) {
 							splitted = line.split(" ");
 							Float toAdd = Float.parseFloat(splitted[2]
 									.split("e")[0]);
