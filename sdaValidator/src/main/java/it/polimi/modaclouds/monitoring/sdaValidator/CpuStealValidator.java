@@ -1,14 +1,26 @@
 package it.polimi.modaclouds.monitoring.sdaValidator;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class CpuStealValidator {
-
+	
+	public static final String STOLEN = "stolen.out";
+	
 	public static void main(String[] args) {
+		perform(Paths.get("."));
+	}
+
+	public static void perform(Path parent) {
+		Path stolen = Paths.get(parent.toString(), STOLEN);
+		if (stolen == null || !stolen.toFile().exists())
+			throw new RuntimeException("CPU stolen file not found or wrong path ("
+					+ stolen.toString() + ")");
+		
 		Scanner input;
 		List<String> highValues=new ArrayList<String>();
 		int window=83;
@@ -16,7 +28,7 @@ public class CpuStealValidator {
 		int count=0;
 		
 			try {
-				input = new Scanner(new File("stolen.out"));
+				input = new Scanner(stolen);
 				
 				while(input.hasNextLine())
 				{
@@ -39,8 +51,7 @@ public class CpuStealValidator {
 					   partialSum=0;
 				   }
 				}
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			

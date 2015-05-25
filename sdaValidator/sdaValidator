@@ -1,0 +1,32 @@
+#!/bin/sh
+
+export SDAVALIDATOR_HOME="${SDAVALIDATOR_HOME:-$PWD}"
+
+if [ ! -e "$SDAVALIDATOR_HOME" ]
+then
+    echo "$SDAVALIDATOR_HOME does not exist" 1>&2
+    exit 1
+fi
+
+JAR="$SDAVALIDATOR_HOME/sdaValidator.jar"
+CLASS="it.polimi.modaclouds.monitoring.sdaValidator.Main"
+if [ ! -e "$JAR" ]
+then
+    echo "Can't find jarfile to run"
+    exit 1
+fi
+
+# Deal with Cygwin path issues
+cygwin=false
+case "`uname`" in
+    CYGWIN*) cygwin=true;;
+esac
+if [ "$cygwin" = "true" ]
+then
+    JAR=`cygpath -w "$JAR"`
+    SDAVALIDATOR_HOME=`cygpath -w "$SDAVALIDATOR_HOME"`
+fi
+
+JVM_ARGS=${JVM_ARGS:--Xmx1200M}
+
+exec java  $JVM_ARGS -jar "$JAR" "$@"
