@@ -3,9 +3,12 @@ package it.polimi.modaclouds.monitoring.sdaValidator;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -77,6 +80,13 @@ public class ResultsBuilder {
 	public static final String WORKLOAD_COLUMN = "workload";
 	public static final int TIME_SLOT_SIZE = 5*60;
 	
+	private static DecimalFormat doubleFormatter() {
+		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.getDefault());
+		otherSymbols.setDecimalSeparator('.');
+		DecimalFormat myFormatter = new DecimalFormat("0.000#######", otherSymbols);
+		return myFormatter;
+	}
+	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
 	public static void perform(Path parent, String[] methodsNames) {
 		if (methodsNames == null || methodsNames.length == 0)
@@ -131,13 +141,13 @@ public class ResultsBuilder {
 				for (int j = 0; j < methodsNames.length; ++j) {
 					double d = demands.get(DEMAND_COLUMN_PREFIX + methodsNames[j]).get(i);
 					double x = methodsWorkloads.get(j).get(i) / TIME_SLOT_SIZE;
-					sb.append(d + "," + x + ",");
+					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
 				}
 				u /= methodsNames.length;
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
 				
-				sb.append(u + "," + uMeasured + "," + u / uMeasured);
+				sb.append(doubleFormatter.format(u) + "," + doubleFormatter.format(uMeasured) + "," + doubleFormatter.format(u / uMeasured));
 				
 				out.println(sb.toString());
 			}
