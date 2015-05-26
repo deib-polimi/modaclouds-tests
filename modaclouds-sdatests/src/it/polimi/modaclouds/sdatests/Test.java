@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -43,23 +44,23 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static boolean performTest(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
-		try {
-			Test t = new Test(size, clients, useDatabase);
-			if (reuseInstances)
-				t.considerRunningMachines();
-			t.startMachines(startAsOnDemand);
-			if (onlyStartMachines)
-				return true;
-			t.initSystem();
-			t.runTest(baseJmx, data, loadBalancer);
-			if (!leaveInstancesOn)
-				t.stopMachines();
-			return true;
-		} catch (Exception e) {
-			logger.error("There were errors while running the test.", e);
-			return false;
-		}
+	public static Path performTest(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) throws Exception {
+		Test t = new Test(size, clients, useDatabase);
+		
+		if (reuseInstances)
+			t.considerRunningMachines();
+		t.startMachines(startAsOnDemand);
+		if (onlyStartMachines)
+			return null;
+		
+		t.initSystem();
+		
+		Path path = t.runTest(baseJmx, data, loadBalancer);
+		
+		if (!leaveInstancesOn)
+			t.stopMachines();
+		
+		return path;
 	}
 
 	public Test(String size, int clients, boolean useDatabase) throws CloudException {
@@ -294,7 +295,7 @@ public class Test {
 		return p;
 	}
 	
-	public void runTest(Path baseJmx, String data, String loadBalancerDNS) throws Exception {
+	public Path runTest(Path baseJmx, String data, String loadBalancerDNS) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -344,6 +345,8 @@ public class Test {
 			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
 		
 		logger.info("Done!");
+		
+		return Paths.get(localPath, "sda1", "home", sda.getParameter("SSH_USER"));
 	}
 
 }

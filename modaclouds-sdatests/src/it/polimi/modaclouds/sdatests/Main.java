@@ -2,9 +2,14 @@ package it.polimi.modaclouds.sdatests;
 
 import it.cloud.amazon.ec2.Configuration;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
@@ -59,6 +64,9 @@ public class Main {
 	@Parameter(names = "-wait", description = "Stalls the execution of the given milliseconds without starting any test at all (used only in batch)", hidden = true)
 	private int wait = -1;
 	
+	@Parameter(names = "-validator", description = "The path to the validator that will be called in the end")
+	private String validator = null;
+	
 	public static final String APP_TITLE = "\nSDA Test\n";
 
 	public static void main(String[] args) {
@@ -78,7 +86,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines);
+			doTest(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -104,9 +112,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines));
+						threads.add(doTestInBackground(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator));
 					else
-						doTest(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines);
+						doTest(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator);
 				}
 				
 				for (Thread t : threads)
@@ -123,18 +131,25 @@ public class Main {
 		
 	}
 	
-	public static void doTest(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
+	public static void doTest(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator) {
 		logger.info("Preparing the system and running the test...");
 		
-		boolean res = Test.performTest(size, clients, baseJmx, data, loadBalancer, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines);
-		
-		if (res)
+		try {
+			Path path = Test.performTest(size, clients, baseJmx, data, loadBalancer, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines);
+			
 			logger.info("The test run correctly!");
-		else
-			logger.error("There were some problems during the test! :(");
+			
+			if (validator != null && new File(validator).exists()) {
+				logger.info("Launching the validator...");
+				exec(String.format(EXEC_VALIDATOR, validator, path.toString()));
+			}
+		} catch (Exception e) {
+			logger.error("There were some problems during the test! :(", e);
+		}
+		
 	}
 	
-	public static Thread doTestInBackground(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
+	public static Thread doTestInBackground(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator) {
 		final String fsize = size;
 		final int fclients = clients;
 		final Path fbaseJmx = baseJmx;
@@ -145,15 +160,36 @@ public class Main {
 		final boolean freuseInstances = reuseInstances;
 		final boolean fleaveInstancesOn = leaveInstancesOn;
 		final boolean fonlyStartMachines = onlyStartMachines;
+		final String fvalidator = validator;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fbaseJmx, fdata, floadBalancer, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines);
+				doTest(fsize, fclients, fbaseJmx, fdata, floadBalancer, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fvalidator);
 			}
 		};
 		
 		t.start();
 		return t;
+	}
+	
+	public static final String EXEC_VALIDATOR = "bash %s -parent %s";
+	
+	public static List<String> exec(String command) throws IOException {
+		List<String> res = new ArrayList<String>();
+		ProcessBuilder pb = new ProcessBuilder(command.split(" "));
+		pb.redirectErrorStream(true);
+		
+		Process p = pb.start();
+		BufferedReader stream = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		String line = stream.readLine(); 
+		while (line != null) {
+			logger.trace(line);
+			res.add(line);
+			line = stream.readLine();
+		}
+		stream.close();
+	
+		return res;
 	}
 
 }

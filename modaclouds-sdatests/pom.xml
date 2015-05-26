@@ -7,7 +7,7 @@
         <version>0.1</version>
     </parent>
 	<artifactId>sdatests</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4</version>
     <name>MODAClouds - SDA Tests</name>
 
 	<repositories>
