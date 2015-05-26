@@ -52,14 +52,15 @@ public class Main {
 			logger.info("Launching the DemandValidator class...");
 			DemandValidator.perform(parent);
 			
-			logger.info("Launching the WorkloadCSVBuilder for method1...");
-			WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method1"));
+			String[] methods = new String[] { "reg", "save", "answ" };
 			
-			logger.info("Launching the WorkloadCSVBuilder for method2...");
-			WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method2"));
+			for (int i = 1; i <= methods.length; ++i) {
+				logger.info("Launching the WorkloadCSVBuilder for {} method...", methods[i-1]);
+				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i));
+			}
 			
-			logger.info("Launching the WorkloadCSVBuilder for method3...");
-			WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method3"));
+			logger.info("Generating the full results file...");
+			ResultsBuilder.perform(parent, methods);
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}
