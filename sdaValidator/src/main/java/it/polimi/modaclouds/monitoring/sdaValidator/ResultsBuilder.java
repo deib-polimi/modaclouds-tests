@@ -21,8 +21,10 @@ public class ResultsBuilder {
 
 	public static final String RESULT = "results.csv";
 	
+	public static final String RESULT_REQS = "requests.csv";
+	
 	public static void main(String[] args) {
-		perform(Paths.get("."), new String[] { "reg", "save", "answ" });
+		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, 1);
 	}
 	
 	public static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
@@ -75,6 +77,55 @@ public class ResultsBuilder {
 		return res;
 	}
 	
+	public static final String JMETER_LOG = "test_aggregate.jtl";
+	
+	public static Map<String, Integer> getRequestsPerPage(Path parent, int clients) {
+		if (clients <= 0)
+			throw new RuntimeException("You should have used at least one client.");
+		
+		HashMap<String, Integer> res = new HashMap<String, Integer>();
+		
+		for (int i = 1; i <= clients; ++i) {
+			Path jmeterAggregate = Paths.get(parent.getParent().getParent().getParent().toString(), "client" + i, JMETER_LOG);
+			
+			Map<String, Integer> tmp = getRequestsPerPage(jmeterAggregate);
+			for (String key : tmp.keySet()) {
+				Integer val = res.get(key);
+				if (val == null)
+					val = 0;
+				res.put(key, val += tmp.get(key));
+			}
+		}
+		
+		return res;
+	}
+	
+	private static Map<String, Integer> getRequestsPerPage(Path f) {
+		if (f == null || !f.toFile().exists())
+			throw new RuntimeException("File not found or wrong path ("
+					+ f.toString() + ")");
+		
+		HashMap<String, Integer> res = new HashMap<String, Integer>();
+		
+		try (Scanner sc = new Scanner(f)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String[] values = line.split(",");
+				
+				String page = values[2];
+				Integer val = res.get(page);
+				if (val == null)
+					val = 0;
+
+				res.put(page, val+1);
+			}
+		} catch (Exception e) {
+			logger.error("Error while dealing with the file.", e);
+		}
+		
+		return res;
+	}
+	
 	public static final String DEMAND_COLUMN_PREFIX = "AvarageEstimatedDemand_";
 	public static final String CPU_UTIL_COLUMN = "AvarageCPUUtil";
 	public static final String WORKLOAD_COLUMN = "workload";
@@ -88,7 +139,7 @@ public class ResultsBuilder {
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
-	public static void perform(Path parent, String[] methodsNames) {
+	public static void perform(Path parent, String[] methodsNames, int clients) {
 		if (methodsNames == null || methodsNames.length == 0)
 			throw new RuntimeException("You should specify at least one method name.");
 		
@@ -130,10 +181,14 @@ public class ResultsBuilder {
 		
 		logger.info("Writing the results file...");
 		
+		HashMap<Integer, Integer> methodsWorkloadTot = new HashMap<Integer, Integer>(); 
+		for (int i = 0; i < methodsNames.length; ++i)
+			methodsWorkloadTot.put(i, 0);
+		
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT).toFile())) {
-			for (int i = 1; i <= methodsNames.length; ++i)
-				out.printf("DemandM%1$d,X%1$d,", i);
-			out.println("Uactual,Umeasured,Uaoverm");
+			for (int i = 0; i < methodsNames.length; ++i)
+				out.printf("Demand_%1$s,X_%1$s,", methodsNames[i]);
+			out.println("U_actual,U_measured,U_aoverm");
 			
 			for (int i = 0; i < maxCommonLength; ++i) {
 				double u = 0;
@@ -143,6 +198,8 @@ public class ResultsBuilder {
 					double x = methodsWorkloads.get(j).get(i) / TIME_SLOT_SIZE;
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
+					
+					methodsWorkloadTot.put(j, methodsWorkloadTot.get(j) + methodsWorkloads.get(j).get(i).intValue());
 				}
 				u /= methodsNames.length;
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
@@ -151,6 +208,44 @@ public class ResultsBuilder {
 				
 				out.println(sb.toString());
 			}
+			
+			out.flush();
+			
+			logger.info("Done!");
+		} catch (Exception e) {
+			logger.error("Error while dealing with the result file.", e);
+		}
+		
+		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_REQS).toFile())) {
+			for (int i = 0; i < methodsNames.length; ++i)
+				out.printf("Requests_%s,", methodsNames[i]);
+			out.println("TotalRequests,");
+			
+			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, clients);
+			for (String key : requestsPerPage.keySet())
+				out.printf("ActualRequests_%s,", key);
+			out.println("TotalActualRequests");
+			
+			int tot = 0;
+			
+			for (int j = 0; j < methodsNames.length; ++j) {
+				List<Double> workload = methodsWorkloads.get(j);
+				int methodTot = methodsWorkloadTot.get(j);
+				for (int i = maxCommonLength; i < workload.size(); ++i)
+					methodTot += workload.get(i).intValue();
+				out.print(methodTot + ",");
+				tot += methodTot;
+			}
+			out.print(tot + ",");
+			
+			tot = 0;
+			
+			for (String key : requestsPerPage.keySet()) {
+				int methodTot = requestsPerPage.get(key);
+				out.print(methodTot + ",");
+				tot += methodTot;
+			}
+			out.println(tot);
 			
 			out.flush();
 			
