@@ -141,7 +141,7 @@ public class Main {
 			
 			if (validator != null && new File(validator).exists()) {
 				logger.info("Launching the validator...");
-				exec(String.format(EXEC_VALIDATOR, validator, path.toString()));
+				exec(String.format(EXEC_VALIDATOR, validator, path.toString(), clients));
 			}
 		} catch (Exception e) {
 			logger.error("There were some problems during the test! :(", e);
@@ -172,7 +172,7 @@ public class Main {
 		return t;
 	}
 	
-	public static final String EXEC_VALIDATOR = "bash %s -parent %s";
+	public static final String EXEC_VALIDATOR = "bash %s -parent %s -clients %d";
 	
 	public static List<String> exec(String command) throws IOException {
 		List<String> res = new ArrayList<String>();
