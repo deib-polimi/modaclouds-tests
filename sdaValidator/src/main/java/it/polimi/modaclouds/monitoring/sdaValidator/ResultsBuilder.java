@@ -211,7 +211,6 @@ public class ResultsBuilder {
 			
 			out.flush();
 			
-			logger.info("Done!");
 		} catch (Exception e) {
 			logger.error("Error while dealing with the result file.", e);
 		}
@@ -219,7 +218,7 @@ public class ResultsBuilder {
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_REQS).toFile())) {
 			for (int i = 0; i < methodsNames.length; ++i)
 				out.printf("Requests_%s,", methodsNames[i]);
-			out.println("TotalRequests,");
+			out.print("TotalRequests,");
 			
 			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, clients);
 			for (String key : requestsPerPage.keySet())
@@ -249,7 +248,6 @@ public class ResultsBuilder {
 			
 			out.flush();
 			
-			logger.info("Done!");
 		} catch (Exception e) {
 			logger.error("Error while dealing with the result file.", e);
 		}
