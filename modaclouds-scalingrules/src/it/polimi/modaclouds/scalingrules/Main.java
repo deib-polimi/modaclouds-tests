@@ -66,7 +66,7 @@ public class Main {
 	public static final String APP_TITLE = "\nScaling Rules Test\n";
 	
 	public static void main(String[] args) {
-//		args = new String[] { "-clients", "1", "-data", "tests.txt", "-useOnDemand", "-reuseInstances", "-leaveInstancesOn" };
+		args = new String[] { "-clients", "1", "-data", "tests.txt", "-useOnDemand", "-reuseInstances", "-leaveInstancesOn", "-monitoringPlatformIp", "specclient2.dei.polimi.it" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);

@@ -22,9 +22,10 @@ public class Configuration {
 	
 	public static final int DEFAULT_MONITORING_PLATFORM_PORT = 8170;
 	public static final int DEFAULT_CLOUDML_PORT = 9000;
+	public static final String DEFAULT_CLOUDML_IP = "127.0.0.1";
 	
 	public static int MONITORING_PLATFORM_PORT = DEFAULT_MONITORING_PLATFORM_PORT;
-	public static String CLOUDML_IP;
+	public static String CLOUDML_IP = DEFAULT_CLOUDML_IP;
 	public static int CLOUDML_PORT = DEFAULT_CLOUDML_PORT;
 	
 	public static final String MONITORING_RULE_CPU_ABOVE_FILE = "monitoringrules/cpuRuleAbove.txt";
