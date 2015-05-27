@@ -1,56 +1,6 @@
 #$1=MP-IP
 #$2=SDA-IP
 
-
-curl -i -H "Accept: application/json" -X PUT -d '
-{
-  "cloudProviders": [
-    {
-      "id": "amazon",
-      "type": "IaaS"
-    }
-  ],
-  "internalComponents": [
-    {
-      "id": "mic-frontend-mon",
-      "providedMethods": [
-        "mic-frontend-mon-register",
-        "mic-frontend-mon-answerQuestions",
-        "mic-frontend-mon-saveAnswers"
-      ],
-      "requiredComponents": [
-        "MIC"
-      ],
-      "type": "Mic"
-    }
-  ],
-
-  "methods": [
-    {
-      "id": "mic-frontend-mon-answerQuestions",
-      "type": "answerQuestions"
-    },
-    {
-      "id": "mic-frontend-mon-saveAnswers",
-      "type": "saveAnswers"
-    },
-    {
-      "id": "mic-frontend-mon-register",
-      "type": "register"
-    }
-  ],
-
-  "vMs": [
-    {
-      "cloudProvider": "amazon",
-      "id": "MIC",
-      "numberOfCPUs": 2,
-      "type": "Frontend"
-    }
-  ]
-}
-' http://"$1":8170/v1/model/resources
-
 curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitoring-rules -d '
 <monitoringRules xmlns="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
   <monitoringRule id="cpuRule" timeStep="3" timeWindow="3">
