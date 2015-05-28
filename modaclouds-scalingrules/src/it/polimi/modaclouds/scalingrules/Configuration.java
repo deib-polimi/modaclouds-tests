@@ -35,6 +35,8 @@ public class Configuration {
 	
 	public static String MIC_AMI = "";
 	public static String MIC_STARTER = "";
+	public static String MIC_ADD_TO_LOAD_BALANCER = "";
+	public static String MIC_DEL_FROM_LOAD_BALANCER = "";
 	
 	static {
 		try {
@@ -95,6 +97,8 @@ public class Configuration {
 		
 		prop.put("MIC_AMI", MIC_AMI);
 		prop.put("MIC_STARTER", MIC_STARTER);
+		prop.put("MIC_ADD_TO_LOAD_BALANCER", MIC_ADD_TO_LOAD_BALANCER);
+		prop.put("MIC_DEL_FROM_LOAD_BALANCER", MIC_DEL_FROM_LOAD_BALANCER);
 		
 		prop.store(fos, "ScalingRule configuration properties");
 		fos.flush();
@@ -111,6 +115,8 @@ public class Configuration {
 		
 		MIC_AMI = prop.getProperty("MIC_AMI", MIC_AMI);
 		MIC_STARTER = prop.getProperty("MIC_STARTER", MIC_STARTER);
+		MIC_ADD_TO_LOAD_BALANCER = prop.getProperty("MIC_ADD_TO_LOAD_BALANCER", MIC_ADD_TO_LOAD_BALANCER);
+		MIC_DEL_FROM_LOAD_BALANCER = prop.getProperty("MIC_DEL_FROM_LOAD_BALANCER", MIC_DEL_FROM_LOAD_BALANCER);
 	}
 	
 	private static int getProperty(Properties prop, String propertyName, int oldValue, int defaultValue) {

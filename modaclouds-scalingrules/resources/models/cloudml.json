@@ -15,7 +15,8 @@
             "resources": [{
                 "eClass": "net.cloudml.core:Resource", 
                 "name": "startApp", 
-                "startCommand": "%2$s"
+                "startCommand": "%2$s ; %3$s",
+                "stopCommand": "%4$s"
                 }
             ],
             "requiredExecutionPlatform" : {

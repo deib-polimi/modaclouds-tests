@@ -65,14 +65,14 @@ public class Test {
 		initialized = false;
 	}
 	
-	public static boolean performTest(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
+	public static boolean performTest(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadBalancer) {
 		try {
 			Test t = new Test(cloudMLIp, cloudMLPort, monitoringPlatformIp, monitoringPlatformPort, clients);
 			
 			if (reuseInstances)
 				t.considerRunningMachines();
 			t.startMachines(useOnDemand);
-			t.initSystem();
+			t.initSystem(loadBalancer);
 			
 			t.addCPUUtilizationMonitoringRules();
 			
@@ -183,7 +183,7 @@ public class Test {
 		initialized = false;
 	}
 	
-	public void initSystem() throws Exception {
+	public void initSystem(String loadBalancer) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -215,7 +215,7 @@ public class Test {
 		monitoringPlatform = new MonitoringPlatform(mplIp, monitoringPlatformPort);
 //		monitoringPlatform.loadModel();
 		
-		cloudML.deploy(it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI, getCommands(mplIp));
+		cloudML.deploy(it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI, getCommands(mplIp), String.format(it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER, loadBalancer), String.format(it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER, loadBalancer));
 		
 		logger.info("System initialized!");
 		
