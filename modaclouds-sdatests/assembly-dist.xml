@@ -71,11 +71,6 @@
       <outputDirectory></outputDirectory>
       <destName>sdaconfig.properties</destName>
     </file>
-    <file>
-      <source>resources/initMIC</source>
-      <outputDirectory></outputDirectory>
-      <destName>initMIC</destName>
-    </file>
   </files>
 
   <fileSets>

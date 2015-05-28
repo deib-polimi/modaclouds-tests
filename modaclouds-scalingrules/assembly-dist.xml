@@ -56,11 +56,6 @@
       <outputDirectory></outputDirectory>
       <destName>tests.txt</destName>
     </file>
-    <file>
-      <source>resources/initMIC</source>
-      <outputDirectory></outputDirectory>
-      <destName>initMIC</destName>
-    </file>
   </files>
 
   <fileSets>

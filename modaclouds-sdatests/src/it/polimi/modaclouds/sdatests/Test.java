@@ -82,23 +82,6 @@ public class Test {
 		otherThreads = new ArrayList<Thread>();
 	}
 	
-	private static void executeAll(Path p, Instance i) {
-		if (p == null || !p.toFile().exists())
-			throw new RuntimeException("The path is null or points to a non-existing resource.");
-		if (i == null || i.getIp() == null)
-			throw new RuntimeException("The instance is null or non-existent.");
-		
-		try (Scanner sc = new Scanner(p)) {
-			while (sc.hasNextLine()) {
-				String line = sc.nextLine().trim();
-				if (line.length() > 0 && !line.startsWith("#"))
-					i.exec(line);
-			}
-		} catch (Exception e) {
-			logger.error("Error while dealing with the file.", e);
-		}
-	}
-	
 	public void startMachines(boolean startAsOnDemand) {
 		if (running)
 			throw new RuntimeException("The system is already running!");
@@ -244,10 +227,6 @@ public class Test {
 		otherThreads.add(Ssh.execInBackground(isda, String.format(
 				sda.getParameter("STARTER"),
 				impl.getIp())));
-		
-		try { Thread.sleep(10000); } catch (Exception e) { }
-		
-		executeAll(Configuration.getPathToFile(mic.getParameter("INIT_FILE")), imic);
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		

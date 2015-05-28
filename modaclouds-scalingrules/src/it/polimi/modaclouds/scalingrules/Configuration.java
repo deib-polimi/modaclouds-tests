@@ -33,8 +33,8 @@ public class Configuration {
 	public static final String MONITORING_PLATFORM_MODEL = "models/monitoringplatform.json";
 	public static final String CLOUDML_DEPLOYMENT_MODEL = "models/cloudml.json";
 	
-	public static String MIC_INIT_FILE = "initMIC";
-	public static String MIC_STARTER = "sudo bash /home/ubuntu/snapshotMICStarter 127.0.0.1 %s ; source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC";
+	public static String MIC_AMI = "";
+	public static String MIC_STARTER = "";
 	
 	static {
 		try {
@@ -93,7 +93,7 @@ public class Configuration {
 		prop.put("CLOUDML_IP", CLOUDML_IP);
 		prop.put("CLOUDML_PORT", Integer.valueOf(CLOUDML_PORT).toString());
 		
-		prop.put("MIC_INIT_FILE", MIC_INIT_FILE);
+		prop.put("MIC_AMI", MIC_AMI);
 		prop.put("MIC_STARTER", MIC_STARTER);
 		
 		prop.store(fos, "ScalingRule configuration properties");
@@ -109,7 +109,7 @@ public class Configuration {
 		MONITORING_PLATFORM_PORT = getProperty(prop, "MONITORING_PLATFORM_PORT", MONITORING_PLATFORM_PORT, DEFAULT_MONITORING_PLATFORM_PORT);
 		CLOUDML_PORT = getProperty(prop, "CLOUDML_PORT", CLOUDML_PORT, DEFAULT_CLOUDML_PORT);
 		
-		MIC_INIT_FILE = prop.getProperty("MIC_INIT_FILE", MIC_INIT_FILE);
+		MIC_AMI = prop.getProperty("MIC_AMI", MIC_AMI);
 		MIC_STARTER = prop.getProperty("MIC_STARTER", MIC_STARTER);
 	}
 	

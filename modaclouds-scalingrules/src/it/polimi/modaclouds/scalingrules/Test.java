@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -216,7 +215,7 @@ public class Test {
 		monitoringPlatform = new MonitoringPlatform(mplIp, monitoringPlatformPort);
 //		monitoringPlatform.loadModel();
 		
-		cloudML.deploy(getCommands(mplIp));
+		cloudML.deploy(it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI, getCommands(mplIp));
 		
 		logger.info("System initialized!");
 		
@@ -224,24 +223,10 @@ public class Test {
 	}
 	
 	private static String getCommands(String mplIp) {
-		Path p = Paths.get(it.polimi.modaclouds.scalingrules.Configuration.MIC_INIT_FILE);
-		
-		if (p == null || !p.toFile().exists())
-			throw new RuntimeException("The path is null or points to a non-existing resource.");
 		if (mplIp == null)
 			throw new RuntimeException("You need to provide a correct ip address for the monitoring platform.");
 		
 		StringBuilder sb = new StringBuilder();
-		
-		try (Scanner sc = new Scanner(p)) {
-			while (sc.hasNextLine()) {
-				String line = sc.nextLine().trim();
-				if (line.length() > 0 && !line.startsWith("#"))
-					sb.append(line + " ; ");
-			}
-		} catch (Exception e) {
-			logger.error("Error while dealing with the file.", e);
-		}
 		
 		sb.append(String.format(it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER, mplIp));
 		

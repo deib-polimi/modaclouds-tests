@@ -15,7 +15,7 @@
             "resources": [{
                 "eClass": "net.cloudml.core:Resource", 
                 "name": "startApp", 
-                "startCommand": "%s"
+                "startCommand": "%2$s"
                 }
             ],
             "requiredExecutionPlatform" : {
@@ -41,7 +41,7 @@
     "vms": [
         {
             "eClass": "net.cloudml.core:VM",
-            "imageId": "eu-west-1/ami-37790e40",
+            "imageId": "eu-west-1/%1$s",
             "is64os": true,
             "location": "eu-west-1",
             "providerSpecificTypeName": "m3.large",

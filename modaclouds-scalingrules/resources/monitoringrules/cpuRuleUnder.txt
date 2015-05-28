@@ -6,7 +6,7 @@
     <parameter name="samplingProbability">1</parameter>
     <parameter name="samplingTime">3</parameter>
   </collectedMetric>
-  <metricAggregation aggregateFunction="Average" groupingClass="VM"/>
+  <metricAggregation aggregateFunction="Average" groupingClass="CloudProvider"/>
   <condition>METRIC &lt;= %f</condition>
   <actions>
     <action name="CloudMLCall">
