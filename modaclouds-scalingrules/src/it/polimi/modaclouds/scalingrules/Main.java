@@ -63,9 +63,6 @@ public class Main {
 	@Parameter(names = "-wait", description = "Stalls the execution of the given milliseconds without starting any test at all (used only in batch)", hidden = true)
 	private int wait = -1;
 	
-	@Parameter(names = "-loadBalancer", description = "The name of the load balancer that will be used", required = true)
-	private String loadBalancer = null;
-	
 	public static final String APP_TITLE = "\nScaling Rules Test\n";
 	
 	public static void main(String[] args) {
@@ -104,7 +101,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadBalancer);
+			doTest(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -130,9 +127,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadBalancer));
+						threads.add(doTestInBackground(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines));
 					else
-						doTest(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadBalancer);
+						doTest(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines);
 				}
 				
 				for (Thread t : threads)
@@ -148,10 +145,10 @@ public class Main {
 		System.exit(0);
 	}
 	
-	public static void doTest(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadBalancer) {
+	public static void doTest(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
 		logger.info("Preparing the system and running the test...");
 		
-		boolean res = Test.performTest(cloudMLIp, cloudMLPort, monitoringPlatformIp, monitoringPlatformPort, clients, baseJmx, data, useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadBalancer);
+		boolean res = Test.performTest(cloudMLIp, cloudMLPort, monitoringPlatformIp, monitoringPlatformPort, clients, baseJmx, data, useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines);
 		
 		if (res)
 			logger.info("The test run correctly!");
@@ -159,7 +156,7 @@ public class Main {
 			logger.error("There were some problems during the test! :(");
 	}
 	
-	public static Thread doTestInBackground(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadBalancer) {
+	public static Thread doTestInBackground(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines) {
 		final String fcloudMLIp = cloudMLIp;
 		final int fcloudMLPort = cloudMLPort;
 		final String fmonitoringPlatformIp = monitoringPlatformIp;
@@ -171,11 +168,10 @@ public class Main {
 		final boolean freuseInstances = reuseInstances;
 		final boolean fleaveInstancesOn = leaveInstancesOn;
 		final boolean fonlyStartMachines = onlyStartMachines;
-		final String floadBalancer = loadBalancer;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fcloudMLIp, fcloudMLPort, fmonitoringPlatformIp, fmonitoringPlatformPort, fclients, fbaseJmx, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadBalancer);
+				doTest(fcloudMLIp, fcloudMLPort, fmonitoringPlatformIp, fmonitoringPlatformPort, fclients, fbaseJmx, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines);
 			}
 		};
 		

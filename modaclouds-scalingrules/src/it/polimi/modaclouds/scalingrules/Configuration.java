@@ -30,7 +30,6 @@ public class Configuration {
 	
 	public static final String MONITORING_RULE_CPU_ABOVE_FILE = "monitoringrules/cpuRuleAbove.txt";
 	public static final String MONITORING_RULE_CPU_UNDER_FILE = "monitoringrules/cpuRuleUnder.txt";
-	public static final String MONITORING_PLATFORM_MODEL = "models/monitoringplatform.json";
 	public static final String CLOUDML_DEPLOYMENT_MODEL = "models/cloudml.json";
 	
 	public static String MIC_AMI = "";

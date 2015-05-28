@@ -221,6 +221,13 @@ public class CloudML implements PropertyChangeListener {
 
 		wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend), Command.STOP_INSTANCE);
 	}
+	
+	public void terminateAllInstances() {
+		for (String tier : instancesPerTier.keySet()) {
+			Instances instances = instancesPerTier.get(tier);
+			stopInstances(instances.running);
+		}
+	}
 
 	private void startInstances(List<String> instances) {
 		if (instances.size() == 0)
