@@ -51,9 +51,9 @@ public class MonitoringPlatform extends RestClient {
 		}
 	}
 	
-	public void loadModel() throws Exception {
-		sendMessageFromFile("/v1/model/resources", Configuration.MONITORING_PLATFORM_MODEL, Method.PUT);
-	}
+//	public void loadModel() throws Exception {
+//		sendMessageFromFile("/v1/model/resources", Configuration.MONITORING_PLATFORM_MODEL, Method.PUT);
+//	}
 
 	public void attachObserver(String targetMetric, String observerIP,
 			String observerPort) throws Exception {

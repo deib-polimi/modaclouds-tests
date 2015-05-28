@@ -144,12 +144,12 @@ public class CloudML implements PropertyChangeListener {
 //		wsClient.send("!extended { name : Terminate }");
 	}
 	
-	private void pushDeploymentModel() {
+	private void pushDeploymentModel(Object... substitutions) {
 		wsClient.send("!extended { name : LoadDeployment }");
 		
 		StringBuilder body = new StringBuilder();
 		body.append("!additional json-string:");
-		body.append(getDeploymentModelFromFile());
+		body.append(String.format(getDeploymentModelFromFile(), substitutions));
 		
 		wsClient.send(body.toString());
 	}
@@ -175,8 +175,8 @@ public class CloudML implements PropertyChangeListener {
 		wsClient.sendBlocking(command, cmd);
 	}
 	
-	public void deploy() {
-		pushDeploymentModel();
+	public void deploy(Object... substitutions) {
+		pushDeploymentModel(substitutions);
 		
 		wsClient.sendBlocking("!extended { name : Deploy }", -1, Command.DEPLOY);
 	}

@@ -12,6 +12,12 @@
         {
             "eClass": "net.cloudml.core:InternalComponent",
             "name": "app",
+            "resources": [{
+                "eClass": "net.cloudml.core:Resource", 
+                "name": "startApp", 
+                "startCommand": "%s"
+                }
+            ],
             "requiredExecutionPlatform" : {
                 "eClass" : "net.cloudml.core:RequiredExecutionPlatform",
                 "name" : "appRequired",
