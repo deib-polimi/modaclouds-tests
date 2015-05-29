@@ -5,6 +5,7 @@ import it.cloud.amazon.ec2.Configuration;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.cloud.amazon.elb.ElasticLoadBalancing;
+import it.cloud.amazon.elb.ElasticLoadBalancing.Listener;
 import it.cloud.utils.CloudException;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
@@ -126,7 +127,7 @@ public class Test {
 
 		loadBalancer = "ScalingRules" + RandomStringUtils.randomNumeric(3);
 
-		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer);
+		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(it.polimi.modaclouds.scalingrules.Configuration.MIC_PORT)));
 	}
 
 	private void destroyLoadBalancer() {
@@ -381,7 +382,7 @@ public class Test {
 
 		String protocol = "http";
 
-		String port = "8080";
+		String port = it.polimi.modaclouds.scalingrules.Configuration.MIC_PORT;
 
 		JMeterTest test = new JMeterTest(clients.getParameter("AMI"),
 				clients.getInstancesRunning(), localPath, remotePath,
