@@ -36,7 +36,33 @@ public class CloudML implements PropertyChangeListener {
 	public static void main(String[] args) {
 		CloudML cml = new CloudML("127.0.0.1", Configuration.DEFAULT_CLOUDML_PORT);
 		
-		cml.deploy();
+//		cml.deploy();
+		
+		String loadBalancer = "ScalingRules638";
+		String mplIp = "52.17.255.168";
+		
+		cml.deploy(
+				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
+				it.cloud.amazon.ec2.Configuration.REGION,
+				String.format(
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER.replaceAll("&&", " ; "),
+						mplIp),
+				String.format(
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER.replaceAll("&&", " ; "),
+						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.ec2.Configuration.REGION,
+						loadBalancer),
+				String.format(
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER.replaceAll("&&", " ; "),
+						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.ec2.Configuration.REGION,
+						loadBalancer));
+		
+		cml.scale("MIC", oneAmong(-1, 1));
+		
+		cml.scale("MIC", oneAmong(-1, 1));
 		
 		cml.scale("MIC", oneAmong(-1, 1));
 		
@@ -149,12 +175,12 @@ public class CloudML implements PropertyChangeListener {
 		
 		StringBuilder body = new StringBuilder();
 		body.append("!additional json-string:");
-		body.append(String.format(getDeploymentModelFromFile(), substitutions));
+		body.append(getDeploymentModelFromFile(substitutions));
 		
 		wsClient.send(body.toString());
 	}
 	
-	protected static String getDeploymentModelFromFile() {
+	protected static String getDeploymentModelFromFile(Object... substitutions) {
 		StringBuilder body = new StringBuilder();
 		
 		try (Scanner sc = new Scanner(Configuration.getInputStream(Configuration.CLOUDML_DEPLOYMENT_MODEL))) {
@@ -162,7 +188,12 @@ public class CloudML implements PropertyChangeListener {
 				body.append(" " + sc.nextLine().trim());
 		}
 		
-		String model = String.format(body.toString(), RandomStringUtils.randomNumeric(3));
+		Object[] newSubstitutions = new Object[substitutions.length + 1];
+		newSubstitutions[0] = RandomStringUtils.randomNumeric(3);
+		for (int i = 0; i < substitutions.length; ++i)
+			newSubstitutions[i+1] = substitutions[i];
+		
+		String model = String.format(body.toString(), newSubstitutions);
 		
 		return model;
 	}

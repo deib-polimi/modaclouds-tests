@@ -260,15 +260,18 @@ public class Test {
 
 		cloudML.deploy(
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
-				getCommands(mplIp),
+				Configuration.REGION,
 				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER,
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER.replaceAll("&&", " ; "),
+						mplIp),
+				String.format(
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER.replaceAll("&&", " ; "),
 						Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 						Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						Configuration.REGION,
 						loadBalancer),
 				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER,
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER.replaceAll("&&", " ; "),
 						Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 						Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						Configuration.REGION,
@@ -277,20 +280,6 @@ public class Test {
 		logger.info("System initialized!");
 
 		initialized = true;
-	}
-
-	private static String getCommands(String mplIp) {
-		if (mplIp == null)
-			throw new RuntimeException(
-					"You need to provide a correct ip address for the monitoring platform.");
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(String.format(
-				it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER,
-				mplIp));
-
-		return sb.toString();
 	}
 
 	public void stopInfrastructure() {

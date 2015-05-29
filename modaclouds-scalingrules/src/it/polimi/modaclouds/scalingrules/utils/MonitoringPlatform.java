@@ -1,6 +1,9 @@
 package it.polimi.modaclouds.scalingrules.utils;
 
 import it.cloud.utils.rest.RestClient;
+import it.polimi.modaclouds.scalingrules.schemas.adaptationRuntime.ApplicationTier;
+import it.polimi.modaclouds.scalingrules.schemas.adaptationRuntime.Container;
+import it.polimi.modaclouds.scalingrules.schemas.adaptationRuntime.Containers;
 import it.polimi.tower4clouds.rules.Action;
 import it.polimi.tower4clouds.rules.CollectedMetric;
 import it.polimi.tower4clouds.rules.MonitoredTarget;
@@ -8,10 +11,6 @@ import it.polimi.tower4clouds.rules.MonitoringRule;
 import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.tower4clouds.rules.ObjectFactory;
 import it.polimi.tower4clouds.rules.Parameter;
-import it.polimi.modaclouds.scalingrules.Configuration;
-import it.polimi.modaclouds.scalingrules.schemas.adaptationRuntime.ApplicationTier;
-import it.polimi.modaclouds.scalingrules.schemas.adaptationRuntime.Container;
-import it.polimi.modaclouds.scalingrules.schemas.adaptationRuntime.Containers;
 
 import java.io.StringWriter;
 

@@ -15,8 +15,8 @@
             "resources": [{
                 "eClass": "net.cloudml.core:Resource", 
                 "name": "startApp", 
-                "startCommand": "%2$s ; %3$s",
-                "stopCommand": "%4$s"
+                "startCommand": "%4$s ; %5$s",
+                "stopCommand": "%6$s"
                 }
             ],
             "requiredExecutionPlatform" : {
@@ -42,12 +42,12 @@
     "vms": [
         {
             "eClass": "net.cloudml.core:VM",
-            "imageId": "eu-west-1/%1$s",
+            "imageId": "%3$s/%2$s",
             "is64os": true,
-            "location": "eu-west-1",
+            "location": "%3$s",
             "providerSpecificTypeName": "m3.large",
-            "maxStorage": "50",
-            "minStorage": "50",
+            "maxStorage": "8",
+            "minStorage": "8",
             "name": "MIC",
             "os": "ubuntu",
             "privateKey": "resources/desantis-ireland.pem",
