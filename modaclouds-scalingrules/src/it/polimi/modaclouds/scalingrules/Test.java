@@ -100,18 +100,18 @@ public class Test {
 
 			String status = t.getTierStatus("MIC");
 
-			if (status == null || status.equals("null"))
-				throw new Exception(
-						"CloudML isn't working (the statuses are null).");
-
-			t.runTest(baseJmx, data);
-			if (!leaveInstancesOn) {
+			if (status != null && !status.equals("null"))
+				t.runTest(baseJmx, data);
+			else
+				logger.error("CloudML isn't working (the statuses are null).");
+			
+			t.stopCloudMLInstances();
+			t.destroyLoadBalancer();
+		
+			if (!leaveInstancesOn)
 				t.stopMachines();
 
-				t.destroyLoadBalancer();
-			}
-
-			return true;
+			return (status != null && !status.equals("null"));
 		} catch (Exception e) {
 			logger.error("There were errors while running the test.", e);
 			return false;
@@ -217,12 +217,19 @@ public class Test {
 			mpl.terminate();
 		clients.terminate();
 
-		cloudML.terminateAllInstances();
-
 		logger.info("All the machines have been shutted down!");
 
 		running = false;
 		initialized = false;
+	}
+	
+	public void stopCloudMLInstances() {
+		if (!running)
+			throw new RuntimeException("The system isn't running yet!");
+
+		logger.info("Stopping CloudML instances...");
+		
+		cloudML.terminateAllInstances();
 	}
 
 	public void initSystem() throws Exception {

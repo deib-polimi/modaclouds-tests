@@ -10,6 +10,7 @@ fi
 
 JAR="$SCALINGRULES_HOME/scalingrules.jar"
 CLASS="it.polimi.modaclouds.scalingrules.Main"
+DAEMON="it.polimi.modaclouds.scalingrules.utils.CloudMLDaemon"
 if [ ! -e "$JAR" ]
 then
     echo "Can't find jarfile to run"
@@ -30,4 +31,5 @@ fi
 JVM_ARGS=${JVM_ARGS:--Xmx1200M}
 
 #exec java  $JVM_ARGS -jar "$JAR" "$@"
+exec java $JVM_ARGS -cp "$JAR" "$DAEMON" "$@" &
 exec java $JVM_ARGS -cp "$JAR" "$CLASS" "$@"

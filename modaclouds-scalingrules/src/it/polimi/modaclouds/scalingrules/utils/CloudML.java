@@ -36,6 +36,8 @@ public class CloudML implements PropertyChangeListener {
 	public static void main(String[] args) {
 		CloudML cml = new CloudML("127.0.0.1", Configuration.DEFAULT_CLOUDML_PORT);
 		
+		logger.info("Deploy the system...");
+		
 //		cml.deploy();
 		
 		String loadBalancer = "ScalingRules638";
@@ -60,11 +62,17 @@ public class CloudML implements PropertyChangeListener {
 						it.cloud.amazon.ec2.Configuration.REGION,
 						loadBalancer));
 		
-		cml.scale("MIC", oneAmong(-1, 1));
+		logger.info("Starting the test...");
+		
+		cml.scale("MIC", 1);
 		
 		cml.scale("MIC", oneAmong(-1, 1));
 		
 		cml.scale("MIC", oneAmong(-1, 1));
+		
+		cml.terminateAllInstances();
+		
+		logger.info("Test ended!");
 		
 	}
 	
@@ -124,10 +132,6 @@ public class CloudML implements PropertyChangeListener {
 		if ((end - init) >= timeout)
 			signalCompleted(cmd, "Timeout");
 	}
-	
-	public static void startDaemon(int port) {
-		org.cloudml.websocket.Daemon.main(new String[] { Integer.valueOf(port).toString() });
-	}
 
 	public CloudML(String ip, int port) {
 		String serverURI = String.format("ws://%s:%d", ip, port);
@@ -142,7 +146,7 @@ public class CloudML implements PropertyChangeListener {
 				boolean connected = wsClient.connectBlocking();
 				
 				if (!connected && ((ip.equals("localhost") || ip.equals("127.0.0.1")) )) {
-					startDaemon(port);
+					CloudMLDaemon.start(port);
 					
 					Thread.sleep(1000); // give it time to start...
 					
@@ -343,7 +347,7 @@ public class CloudML implements PropertyChangeListener {
 			
 			String tier = jsonObject.has("tier") ? jsonObject.getString("tier") : null;
 			String vm = jsonObject.has("vm") ? jsonObject.getString("vm") : null;
-			String status = jsonObject.has("status") ? jsonObject.getString("status") : null;
+			String status = jsonObject.has("status") && jsonObject.get("status") != null ? jsonObject.getString("status") : null;
 			String ip = jsonObject.has("ip") ? jsonObject.getString("ip") : null;
 			String id = jsonObject.has("id") ? jsonObject.getString("id").replaceAll("<>", "/") : null;
 			
@@ -355,7 +359,7 @@ public class CloudML implements PropertyChangeListener {
 				
 				logger.trace("{} is {}", id, status);
 				
-				if (status.indexOf("RUNNING") >= 0 || (status.equals("null") && isReachable(ip))) {
+				if ((status != null && status.indexOf("RUNNING") >= 0) || (status == null && isReachable(ip))) {
 					if (inst.stopped.contains(id))
 						inst.stopped.remove(id);
 					if (!inst.running.contains(id))
@@ -440,7 +444,7 @@ public class CloudML implements PropertyChangeListener {
 		}
 		
 		public void sendBlocking(String command, Command cmd) throws NotYetConnectedException {
-			sendBlocking(command, 120000, cmd); // 600000
+			sendBlocking(command, 180000, cmd); // 600000
 		}
 		
 		public void sendBlocking(String command, long timeout, Command cmd) throws NotYetConnectedException {

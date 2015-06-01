@@ -1,7 +1,6 @@
 package it.polimi.modaclouds.scalingrules;
 
 import it.cloud.amazon.ec2.Configuration;
-import it.polimi.modaclouds.scalingrules.utils.CloudML;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,10 +66,6 @@ public class Main {
 	public static final String APP_TITLE = "\nScaling Rules Test\n";
 	
 	public static void main(String[] args) {
-		CloudML.startDaemon(it.polimi.modaclouds.scalingrules.Configuration.DEFAULT_CLOUDML_PORT);
-	}
-	
-	public static void mainAaa(String[] args) {
 		args = new String[] { "-data", "tests.txt", "-useOnDemand", "-onlyStartMachines", "-reuseInstances" };
 		
 		Main m = new Main();
