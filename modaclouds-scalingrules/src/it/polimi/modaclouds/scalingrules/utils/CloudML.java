@@ -444,7 +444,7 @@ public class CloudML implements PropertyChangeListener {
 		}
 		
 		public void sendBlocking(String command, Command cmd) throws NotYetConnectedException {
-			sendBlocking(command, 180000, cmd); // 600000
+			sendBlocking(command, 300000, cmd); // 600000
 		}
 		
 		public void sendBlocking(String command, long timeout, Command cmd) throws NotYetConnectedException {
