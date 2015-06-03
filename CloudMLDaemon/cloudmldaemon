@@ -9,6 +9,7 @@ then
 fi
 
 JAR="$CLOUDMLDAEMON_HOME/cloudmldaemon.jar"
+CLASS="it.polimi.modaclouds.cloudml.Main"
 
 if [ ! -e "$JAR" ]
 then
@@ -29,4 +30,4 @@ fi
 
 JVM_ARGS=${JVM_ARGS:--Xmx1200M}
 
-exec java $JVM_ARGS -jar "$JAR" "$@" &
+exec java $JVM_ARGS -cp "$JAR:lib/*" $CLASS "$@" &
