@@ -50,7 +50,7 @@
             "minStorage": "8",
             "name": "MIC",
             "os": "ubuntu",
-            "privateKey": "resources/desantis-ireland.pem",
+            "privateKey": "desantis-ireland.pem",
             "providedExecutionPlatforms": [
                 {
                     "eClass": "net.cloudml.core:ProvidedExecutionPlatform",

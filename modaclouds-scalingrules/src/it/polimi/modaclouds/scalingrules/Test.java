@@ -96,7 +96,7 @@ public class Test {
 		loadBalancer = null;
 	}
 	
-	public static String createTempCredentials(String ip, VirtualMachine vm, String filePath) throws Exception {
+	public static String getActualCredentials(String ip, VirtualMachine vm, String filePath) throws Exception {
 		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath));
 		
 		Path p = Files.createTempFile("credentials", ".properties");
@@ -104,16 +104,32 @@ public class Test {
 		
 		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
 			String remotePath = vm.getParameter("REMOTE_PATH");
+			String newFile = remotePath + "/" + p.toFile().getName();
 			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
-			Ssh.sendFile(ip, vm, p.toString(), remotePath + "/" + p.toFile().getName());
-			return remotePath + "/" + p.toFile().getName();
+			Ssh.sendFile(ip, vm, p.toString(), newFile);
+			return newFile;
 		}
 		
 		return p.toString();
 	}
 	
-	public static Path fillCredentialsInDeploymentModel(String ip, VirtualMachine vm, String filePath) throws Exception {
-		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath));
+	public static String getActualKey(String ip, VirtualMachine vm, String filePath) throws Exception {
+		Path p = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath).toPath();
+		
+		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
+			String remotePath = vm.getParameter("REMOTE_PATH");
+			String newFile = remotePath + "/" + p.toFile().getName();
+			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
+			Ssh.sendFile(ip, vm, p.toString(), newFile);
+			Ssh.exec(ip, vm, "chmod 400 " + newFile);
+			return newFile;
+		}
+		
+		return p.toString();
+	}
+	
+	public static Path getActualDeploymentModel(String ip, VirtualMachine vm) throws Exception {
+		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL));
 		
 		JSONObject jsonObject = new JSONObject(body);
 		
@@ -123,14 +139,32 @@ public class Test {
 				JSONObject provider = array.getJSONObject(i);
 				if (provider.has("credentials")) {
 					String credentials = provider.getString("credentials");
-					String s = Test.createTempCredentials(ip, vm, credentials);
+					String s = Test.getActualCredentials(ip, vm, credentials);
 					provider.put("credentials", s);
+					
+					body = body.replaceAll(credentials, s);
+				}
+			}
+		}
+		
+		if (jsonObject.has("vms")) {
+			JSONArray array = jsonObject.getJSONArray("vms");
+			for (int i = 0; i < array.length(); ++i) {
+				JSONObject vmo = array.getJSONObject(i);
+				if (vmo.has("privateKey")) {
+					String privateKey = vmo.getString("privateKey");
+					String s = Test.getActualKey(ip, vm, privateKey);
+					vmo.put("privateKey", s);
+					
+					body = body.replaceAll(privateKey, s);
 				}
 			}
 		}
 		
 		Path p = Files.createTempFile("model", ".json");
-		FileUtils.writeStringToFile(p.toFile(), jsonObject.toString(2));
+		FileUtils.writeStringToFile(p.toFile(), body);
+		
+		System.out.println(body);
 		
 		return p;
 	}
@@ -358,7 +392,7 @@ public class Test {
 		// monitoringPlatform.loadModel();
 
 		cloudML.deploy(
-				fillCredentialsInDeploymentModel(cloudMLIp, mpl, it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL).toFile(),
+				getActualDeploymentModel(cloudMLIp, mpl).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				Configuration.REGION,
 				String.format(

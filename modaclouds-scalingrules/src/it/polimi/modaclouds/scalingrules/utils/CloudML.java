@@ -1,5 +1,6 @@
 package it.polimi.modaclouds.scalingrules.utils;
 
+import it.cloud.amazon.ec2.VirtualMachine;
 import it.polimi.modaclouds.scalingrules.Configuration;
 import it.polimi.modaclouds.scalingrules.Test;
 
@@ -36,15 +37,19 @@ public class CloudML implements PropertyChangeListener {
 	private WSClient wsClient;
 	
 	public static void main(String[] args) throws Exception {
-		CloudML cml = new CloudML("127.0.0.1", Configuration.DEFAULT_CLOUDML_PORT);
+		String mplIp = "52.17.223.188";
+		String cloudMLIp = mplIp;
+		VirtualMachine vm = VirtualMachine.getVM("mpl", "m3.large", 1);
+//		String cloudMLIp = "127.0.0.1";
+//		VirtualMachine vm = null;
+		String loadBalancer = "ScalingRules638";
+		
+		CloudML cml = new CloudML(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);
 		
 		logger.info("Deploy the system...");
 		
-		String loadBalancer = "ScalingRules638";
-		String mplIp = "52.17.255.168";
-		
 		cml.deploy(
-				Test.fillCredentialsInDeploymentModel("127.0.0.1", null, Configuration.CLOUDML_DEPLOYMENT_MODEL).toFile(),
+				Test.getActualDeploymentModel(cloudMLIp, vm).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				it.cloud.amazon.ec2.Configuration.REGION,
 				String.format(
