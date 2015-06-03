@@ -8,6 +8,7 @@ import it.cloud.amazon.elb.ElasticLoadBalancing;
 import it.cloud.amazon.elb.ElasticLoadBalancing.Listener;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
+import it.cloud.utils.Ssh;
 import it.polimi.modaclouds.scalingrules.utils.CloudML;
 import it.polimi.modaclouds.scalingrules.utils.CloudMLDaemon;
 import it.polimi.modaclouds.scalingrules.utils.MonitoringPlatform;
@@ -61,20 +62,21 @@ public class Test {
 				&& !cloudMLIp.equals("127.0.0.1") && !isReachable(cloudMLIp))
 			throw new RuntimeException("The CloudML server isn't reachable!");
 		
-		try {
-			cloudML = new CloudML(cloudMLIp, cloudMLPort);
-		} catch (Exception e) {
-			if (cloudMLIp.equals("127.0.0.1") || cloudMLIp.equals("localhost")) {
-				CloudMLDaemon.start(cloudMLPort);
-				try {
-					Thread.sleep(3000);
-				} catch (Exception e1) { }
-				
+		if (cloudMLIp != null)
+			try {
 				cloudML = new CloudML(cloudMLIp, cloudMLPort);
-			} else {
-				throw e;
+			} catch (Exception e) {
+				if (cloudMLIp.equals("127.0.0.1") || cloudMLIp.equals("localhost")) {
+					CloudMLDaemon.start(cloudMLPort);
+					try {
+						Thread.sleep(3000);
+					} catch (Exception e1) { }
+					
+					cloudML = new CloudML(cloudMLIp, cloudMLPort);
+				} else {
+					throw e;
+				}
 			}
-		}
 
 		this.monitoringPlatformIp = monitoringPlatformIp;
 		this.monitoringPlatformPort = monitoringPlatformPort;
@@ -274,6 +276,23 @@ public class Test {
 		} else {
 			mplIp = monitoringPlatformIp;
 		}
+		
+		if (cloudMLIp == null) {
+			cloudMLIp = mplIp;
+			
+			try {
+				cloudML = new CloudML(cloudMLIp, cloudMLPort);
+			} catch (Exception e) {
+				Ssh.exec(mplIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), cloudMLPort));
+				
+				try {
+					Thread.sleep(3000);
+				} catch (Exception e1) { }
+				
+				cloudML = new CloudML(cloudMLIp, cloudMLPort);
+				
+			}
+		}
 
 		monitoringPlatform = new MonitoringPlatform(mplIp,
 				monitoringPlatformPort);
@@ -332,31 +351,6 @@ public class Test {
 		Unmarshaller unmarshaller = context.createUnmarshaller();
 		MonitoringRules rules = (MonitoringRules) unmarshaller.unmarshal(new StringReader(tmp));
 		return rules.getMonitoringRules();
-	}
-	
-	public static void main(String[] args) throws Exception {
-		String mplIp = "52.17.197.91";
-		int monitoringPlatformPort = 8170;
-		String cloudMLIp = "131.175.135.109";
-		int cloudMLPort = 9000;
-		
-		double aboveValue = 0.6;
-		double underValue = 0.2;
-		
-		MonitoringPlatform monitoringPlatform = new MonitoringPlatform(mplIp,
-				monitoringPlatformPort);
-		
-		MonitoringRules rules = new MonitoringRules();
-		rules.getMonitoringRules()
-				.addAll(getMonitoringRulesFromFile(
-						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
-						aboveValue, cloudMLIp, cloudMLPort));
-		rules.getMonitoringRules()
-				.addAll(getMonitoringRulesFromFile(
-						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
-						underValue, cloudMLIp, cloudMLPort));
-
-		monitoringPlatform.installRules(rules);
 	}
 
 	public void addCPUUtilizationMonitoringRules(double aboveValue,

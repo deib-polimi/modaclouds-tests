@@ -9,14 +9,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>it.polimi.modaclouds.tests</groupId>
-        <artifactId>tests</artifactId>
-        <version>0.1</version>
-    </parent>
+	<parent>
+		<groupId>it.polimi.modaclouds.tests</groupId>
+		<artifactId>tests</artifactId>
+		<version>0.1</version>
+	</parent>
 	<artifactId>scalingrules</artifactId>
-	<version>0.0.4</version>
-    <name>MODAClouds - Scaling Rules</name>
+	<version>0.0.5</version>
+	<name>MODAClouds - Scaling Rules</name>
 
 	<licenses>
 		<license>
@@ -35,22 +35,22 @@
 			<url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/snapshots</url>
 		</repository>
 		<repository>
-            <id>maven-restlet</id>
-            <name>Public online Restlet repository</name>
-            <url>http://maven.restlet.com</url>
-        </repository>
-        <repository>
-            <id>cloudml-snapshots</id>
-            <url>http://cml.cloudapp.net:8081/nexus/content/repositories/snapshots</url>
-        </repository>
-        <repository>
-            <id>rickdesantis-releases</id>
-            <url>https://github.com/rickdesantis/mvn-repo/raw/master/releases</url>
-        </repository>
-        <repository>
-            <id>rickdesantis-snapshots</id>
-            <url>https://github.com/rickdesantis/mvn-repo/raw/master/snapshots</url>
-        </repository>
+			<id>maven-restlet</id>
+			<name>Public online Restlet repository</name>
+			<url>http://maven.restlet.com</url>
+		</repository>
+		<repository>
+			<id>cloudml-snapshots</id>
+			<url>http://cml.cloudapp.net:8081/nexus/content/repositories/snapshots</url>
+		</repository>
+		<repository>
+			<id>rickdesantis-releases</id>
+			<url>https://github.com/rickdesantis/mvn-repo/raw/master/releases</url>
+		</repository>
+		<repository>
+			<id>rickdesantis-snapshots</id>
+			<url>https://github.com/rickdesantis/mvn-repo/raw/master/snapshots</url>
+		</repository>
 	</repositories>
 	<properties>
 		<github.global.server>github</github.global.server>
@@ -78,6 +78,10 @@
 		<resources>
 			<resource>
 				<directory>resources/</directory>
+				<excludes>
+					<exclude>credentials*.properties</exclude>
+					<exclude>*.pem</exclude>
+				</excludes>
 			</resource>
 		</resources>
 		<plugins>
@@ -93,60 +97,40 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <filters>
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>resources/credentials*.properties</exclude>
-                                <exclude>resources/*.pem</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
 
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <transformers>
-                        <transformer
-                            implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>it.polimi.modaclouds.scalingrules.Main</mainClass>
-                        </transformer>
-                    </transformers>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4.1</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>assembly-dist.xml</descriptor>
-                    </descriptors>
-                    <finalName>scalingrules</finalName>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id><!-- make-assembly -->scalingrules</id> <!-- this is used for inheritance merges -->
-                        <phase>package</phase> <!-- bind to the packaging phase -->
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <!-- <configuration> <descriptors> <descriptor>assembly-dist.xml</descriptor>
-                            </descriptors> </configuration> -->
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>it.polimi.modaclouds.scalingrules.Main</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>com.github.github</groupId>
 				<artifactId>site-maven-plugin</artifactId>
@@ -239,55 +223,56 @@
 					</execution>
 				</executions>
 			</plugin>
+
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4.1</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>assembly-dist.xml</descriptor>
-                    </descriptors>
-                    <finalName>scalingrules</finalName>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id><!-- make-assembly -->scalingrules</id> <!-- this is used for inheritance merges -->
-                        <phase>package</phase> <!-- bind to the packaging phase -->
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4.1</version>
+				<configuration>
+					<descriptors>
+						<descriptor>assembly-dist.xml</descriptor>
+					</descriptors>
+					<finalName>scalingrules</finalName>
+				</configuration>
+				<executions>
+					<execution>
+						<id><!-- make-assembly -->scalingrules</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- bind to the packaging phase -->
+						<goals>
+							<goal>single</goal>
+						</goals>
                         <!-- <configuration> <descriptors> <descriptor>assembly-dist.xml</descriptor>
                             </descriptors> </configuration> -->
-                    </execution>
-                </executions>
-            </plugin>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
-			     <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[2.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-dependency-plugin</artifactId>
+										<versionRange>[2.0,)</versionRange>
+										<goals>
+											<goal>copy-dependencies</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
 
 				<plugin>
 					<groupId>org.jvnet.jaxb2.maven2</groupId>
@@ -337,10 +322,10 @@
 			<version>2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-            <groupId>org.cloudml</groupId>
-            <artifactId>websocket</artifactId>
-            <version>2.0-SNAPSHOT</version>
-        </dependency>
+			<groupId>org.cloudml</groupId>
+			<artifactId>websocket</artifactId>
+			<version>2.0-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>it.polimi.tower4clouds</groupId>
 			<artifactId>rules</artifactId>
@@ -384,20 +369,20 @@
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.10</version>
 		</dependency>
-        <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>1.47</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jclouds.provider</groupId>
-            <artifactId>aws-ec2</artifactId>
-            <version>1.7.2</version>
-        </dependency>
-        <dependency>
-            <groupId>it.cloud.cloud-runner</groupId>
-            <artifactId>cloud-runner</artifactId>
-            <version>0.0.4</version>
-        </dependency>
+		<dependency>
+			<groupId>com.beust</groupId>
+			<artifactId>jcommander</artifactId>
+			<version>1.47</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jclouds.provider</groupId>
+			<artifactId>aws-ec2</artifactId>
+			<version>1.7.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.cloud.cloud-runner</groupId>
+			<artifactId>cloud-runner</artifactId>
+			<version>0.0.5</version>
+		</dependency>
 	</dependencies>
 </project>
