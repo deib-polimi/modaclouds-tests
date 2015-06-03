@@ -46,6 +46,11 @@
         <include>doc/**</include>
       </includes>
     </fileSet>
+    
+    <fileSet>
+      <outputDirectory>lib</outputDirectory>
+      <directory>target/lib</directory>
+    </fileSet>
 
     <fileSet>
       <outputDirectory></outputDirectory>
