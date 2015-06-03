@@ -51,7 +51,7 @@ public class Test {
 	}
 
 	public Test(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp,
-			int monitoringPlatformPort, int clients) throws Exception {
+			int monitoringPlatformPort, int clients, String size) throws Exception {
 		if (monitoringPlatformIp != null
 				&& !monitoringPlatformIp.equals("localhost")
 				&& !monitoringPlatformIp.equals("127.0.0.1")
@@ -83,8 +83,8 @@ public class Test {
 		this.cloudMLIp = cloudMLIp;
 		this.cloudMLPort = cloudMLPort;
 
-		mpl = VirtualMachine.getVM("mpl", null, 1);
-		this.clients = VirtualMachine.getVM("client", null, clients);
+		mpl = VirtualMachine.getVM("mpl", size, 1);
+		this.clients = VirtualMachine.getVM("client", size, clients);
 
 		running = false;
 		initialized = false;
@@ -96,10 +96,10 @@ public class Test {
 			String monitoringPlatformIp, int monitoringPlatformPort,
 			int clients, Path baseJmx, String data, boolean useOnDemand,
 			boolean reuseInstances, boolean leaveInstancesOn,
-			boolean onlyStartMachines) {
+			boolean onlyStartMachines, String size) {
 		try {
 			Test t = new Test(cloudMLIp, cloudMLPort, monitoringPlatformIp,
-					monitoringPlatformPort, clients);
+					monitoringPlatformPort, clients, size);
 
 			if (reuseInstances)
 				t.considerRunningMachines();
