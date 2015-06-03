@@ -23,6 +23,7 @@ import it.polimi.tower4clouds.rules.MonitoringRule;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -34,8 +35,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.java_websocket.WebSocket.READYSTATE;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -65,7 +68,10 @@ public class CloudMLCall extends AbstractAction {
 				"!getSnapshot\n" +
 						"path : /componentInstances[id='%1$s']\n" +
 						"multimaps : { vm : name, tier : type/name, id : id, status : status, ip : publicAddress }", true, false),
-		DEPLOY("DEPLOY", null, false, true);
+		DEPLOY("DEPLOY", "!extended { name : Deploy }", false, true),
+		LOAD_DEPLOYMENT("LOAD_DEPLOYMENT",
+				"!extended { name : LoadDeployment }\n" +
+				"!additional json-string: %s", true, false);
 
 		public String name;
 		public String command;
@@ -275,14 +281,6 @@ public class CloudMLCall extends AbstractAction {
 			}
 		}
 		
-		public void send(String command) {
-			wsClient.send(command);
-		}
-		
-		public void sendBlocking(String command, Command cmd) {
-			wsClient.sendBlocking(command, cmd);
-		}
-		
 		private void waitUntilDone(Command cmd, long timeout) {
 			if (timeout <= 0)
 				timeout = Long.MAX_VALUE;
@@ -315,9 +313,9 @@ public class CloudMLCall extends AbstractAction {
 			wsClient = new WSClient(serverURI);
 			wsClient.addPropertyChangeListener(this);
 			boolean connected = wsClient.connectBlocking();
-			
+				
 			if (!connected)
-				throw new Exception("CloudML server not found.");
+				throw new Exception("CloudML server not found at the given URI (" + serverURI + ").");
 
 		}
 		
@@ -325,17 +323,61 @@ public class CloudMLCall extends AbstractAction {
 //			wsClient.send("!extended { name : Terminate }");
 		}
 		
+		private void pushDeploymentModel(File orig, Object... substitutions) {
+			String[] commands = Command.LOAD_DEPLOYMENT.command.split("\n");
+			if (commands.length < 2)
+				return;
+			
+			wsClient.send(commands[0]);
+			
+			wsClient.send(String.format(commands[1], getDeploymentModelFromFile(orig, substitutions)));
+		}
+		
+		protected String getDeploymentModelFromFile(File orig, Object... substitutions) {
+			StringBuilder body = new StringBuilder();
+			
+			try (Scanner sc = new Scanner(orig)) {
+				while (sc.hasNextLine())
+					body.append(" " + sc.nextLine().trim());
+			} catch (Exception e) {
+				getLogger().error("Error while reading the file.", e);
+				return null;
+			}
+			
+			Object[] newSubstitutions = new Object[substitutions.length + 1];
+			newSubstitutions[0] = RandomStringUtils.randomNumeric(3);
+			for (int i = 0; i < substitutions.length; ++i)
+				newSubstitutions[i+1] = substitutions[i];
+			
+			String model = String.format(body.toString(), newSubstitutions);
+			
+			return model;
+		}
+		
+		public void send(String command) {
+			wsClient.send(command);
+		}
+		
+		public void sendBlocking(String command, Command cmd) {
+			wsClient.sendBlocking(command, cmd);
+		}
+		
+		public void deploy(File orig, Object... substitutions) {
+			pushDeploymentModel(orig, substitutions);
+			
+			wsClient.sendBlocking(Command.DEPLOY.command, -1, Command.DEPLOY);
+		}
+		
 		private void scaleOut(String vmId, int times) {
 			getLogger().info("Scaling out " + times + " instances");
 			
-			wsClient.sendBlocking("!extended { name: ScaleOut, params: ["
-					+ vmId + "," + times + "] }", Command.SCALE_OUT);
+			wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.valueOf(times).toString()), Command.SCALE_OUT);
 		}
 
 		public void getDeploymentModel() {
 			getLogger().info("Asking for the deployment model...");
 			
-			wsClient.sendBlocking("!getSnapshot { path : / }", Command.GET_STATUS);
+			wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
 		}
 
 		private void getInstanceInfo(String id) {
@@ -364,6 +406,13 @@ public class CloudMLCall extends AbstractAction {
 			}
 
 			wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend), Command.STOP_INSTANCE);
+		}
+		
+		public void terminateAllInstances() {
+			for (String tier : instancesPerTier.keySet()) {
+				Instances instances = instancesPerTier.get(tier);
+				stopInstances(instances.running);
+			}
 		}
 
 		private void startInstances(List<String> instances) {
@@ -449,7 +498,7 @@ public class CloudMLCall extends AbstractAction {
 				
 				String tier = jsonObject.has("tier") ? jsonObject.getString("tier") : null;
 				String vm = jsonObject.has("vm") ? jsonObject.getString("vm") : null;
-				String status = jsonObject.has("status") ? jsonObject.getString("status") : null;
+				String status = jsonObject.has("status") && !jsonObject.isNull("status") ? jsonObject.getString("status") : null;
 				String ip = jsonObject.has("ip") ? jsonObject.getString("ip") : null;
 				String id = jsonObject.has("id") ? jsonObject.getString("id").replaceAll("<>", "/") : null;
 				
@@ -461,7 +510,7 @@ public class CloudMLCall extends AbstractAction {
 					
 					getLogger().trace("{} is {}", id, status);
 					
-					if (status.indexOf("RUNNING") >= 0 || (status.equals("null") && isReachable(ip))) {
+					if ((status != null && status.indexOf("RUNNING") >= 0) || (status == null && isReachable(ip))) {
 						if (inst.stopped.contains(id))
 							inst.stopped.remove(id);
 						if (!inst.running.contains(id))
@@ -546,7 +595,7 @@ public class CloudMLCall extends AbstractAction {
 			}
 			
 			public void sendBlocking(String command, Command cmd) throws NotYetConnectedException {
-				sendBlocking(command, 120000, cmd); // 600000
+				sendBlocking(command, 300000, cmd); // 600000
 			}
 			
 			public void sendBlocking(String command, long timeout, Command cmd) throws NotYetConnectedException {
@@ -670,8 +719,25 @@ public class CloudMLCall extends AbstractAction {
 			public boolean isConnected() {
 				return super.getReadyState() == READYSTATE.OPEN;
 			}
+			
+			public boolean disconnect() {
+				try {
+					closeBlocking();
+					return true;
+				} catch (Exception e) {
+					getLogger().error("Error while disconnecting.", e);
+					return false;
+				}
+			}
 		}
-
+		
+		public void disconnect() {
+			if (wsClient != null)
+				wsClient.disconnect();
+			
+			wsClient = null;
+		}
+		
 		private Map<Command, String> commandParam;
 		private Map<String, Instances> instancesPerTier;
 		
@@ -806,7 +872,7 @@ public class CloudMLCall extends AbstractAction {
 				
 				if (n < 0 && instances.running.size() > 0) {
 					int toBeShuttedDown = -n;
-					if (instances.running.size() - 1 < toBeShuttedDown)
+					if (instances.running.size() -1 < toBeShuttedDown)
 						toBeShuttedDown = instances.running.size() - 1;
 					
 					ArrayList<String> ids = new ArrayList<String>();

@@ -5,6 +5,7 @@ import it.polimi.modaclouds.scalingrules.Configuration;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -33,17 +34,16 @@ public class CloudML implements PropertyChangeListener {
 	
 	private WSClient wsClient;
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		CloudML cml = new CloudML("127.0.0.1", Configuration.DEFAULT_CLOUDML_PORT);
 		
 		logger.info("Deploy the system...");
-		
-//		cml.deploy();
 		
 		String loadBalancer = "ScalingRules638";
 		String mplIp = "52.17.255.168";
 		
 		cml.deploy(
+				Configuration.getAsFile(Configuration.CLOUDML_DEPLOYMENT_MODEL),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				it.cloud.amazon.ec2.Configuration.REGION,
 				String.format(
@@ -133,40 +133,18 @@ public class CloudML implements PropertyChangeListener {
 			signalCompleted(cmd, "Timeout");
 	}
 
-	public CloudML(String ip, int port) {
+	public CloudML(String ip, int port) throws Exception {
 		String serverURI = String.format("ws://%s:%d", ip, port);
 		
 		commandParam = new HashMap<CloudML.Command, String>();
 		instancesPerTier = new HashMap<String, Instances>();
 		
-		try {
-			wsClient = new WSClient(serverURI);
-			try {
-				wsClient.addPropertyChangeListener(this);
-				boolean connected = wsClient.connectBlocking();
-				
-				if (!connected && ((ip.equals("localhost") || ip.equals("127.0.0.1")) )) {
-					CloudMLDaemon.start(port);
-					
-					Thread.sleep(1000); // give it time to start...
-					
-					wsClient = new WSClient(serverURI);
-					wsClient.addPropertyChangeListener(this);
-					connected = wsClient.connectBlocking();
-					
-					if (!connected) {
-						logger.error("The CloudML server couldn't start. Exiting the system.");
-						System.exit(-1);
-					}
-				}
-				
-			} catch (Exception e) {
-				logger.error("Errors while connecting to " + serverURI + ".", e);
-			}
-		} catch (URISyntaxException | InterruptedException e) {
-			logger.error("Error while initializing the CloudML instance. Exiting.", e);
-			System.exit(-1);
-		}
+		wsClient = new WSClient(serverURI);
+		wsClient.addPropertyChangeListener(this);
+		boolean connected = wsClient.connectBlocking();
+			
+		if (!connected)
+			throw new Exception("CloudML server not found at the given URI (" + serverURI + ").");
 
 	}
 	
@@ -174,22 +152,25 @@ public class CloudML implements PropertyChangeListener {
 //		wsClient.send("!extended { name : Terminate }");
 	}
 	
-	private void pushDeploymentModel(Object... substitutions) {
-		wsClient.send("!extended { name : LoadDeployment }");
+	private void pushDeploymentModel(File orig, Object... substitutions) {
+		String[] commands = Command.LOAD_DEPLOYMENT.command.split("\n");
+		if (commands.length < 2)
+			return;
 		
-		StringBuilder body = new StringBuilder();
-		body.append("!additional json-string:");
-		body.append(getDeploymentModelFromFile(substitutions));
+		wsClient.send(commands[0]);
 		
-		wsClient.send(body.toString());
+		wsClient.send(String.format(commands[1], getDeploymentModelFromFile(orig, substitutions)));
 	}
 	
-	protected static String getDeploymentModelFromFile(Object... substitutions) {
+	protected String getDeploymentModelFromFile(File orig, Object... substitutions) {
 		StringBuilder body = new StringBuilder();
 		
-		try (Scanner sc = new Scanner(Configuration.getInputStream(Configuration.CLOUDML_DEPLOYMENT_MODEL))) {
+		try (Scanner sc = new Scanner(orig)) {
 			while (sc.hasNextLine())
 				body.append(" " + sc.nextLine().trim());
+		} catch (Exception e) {
+			logger.error("Error while reading the file.", e);
+			return null;
 		}
 		
 		Object[] newSubstitutions = new Object[substitutions.length + 1];
@@ -210,23 +191,22 @@ public class CloudML implements PropertyChangeListener {
 		wsClient.sendBlocking(command, cmd);
 	}
 	
-	public void deploy(Object... substitutions) {
-		pushDeploymentModel(substitutions);
+	public void deploy(File orig, Object... substitutions) {
+		pushDeploymentModel(orig, substitutions);
 		
-		wsClient.sendBlocking("!extended { name : Deploy }", -1, Command.DEPLOY);
+		wsClient.sendBlocking(Command.DEPLOY.command, -1, Command.DEPLOY);
 	}
 	
 	private void scaleOut(String vmId, int times) {
 		logger.info("Scaling out " + times + " instances");
 		
-		wsClient.sendBlocking("!extended { name: ScaleOut, params: ["
-				+ vmId + "," + times + "] }", Command.SCALE_OUT);
+		wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.valueOf(times).toString()), Command.SCALE_OUT);
 	}
 
 	public void getDeploymentModel() {
 		logger.info("Asking for the deployment model...");
 		
-		wsClient.sendBlocking("!getSnapshot { path : / }", Command.GET_STATUS);
+		wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
 	}
 
 	private void getInstanceInfo(String id) {
@@ -283,7 +263,7 @@ public class CloudML implements PropertyChangeListener {
 		wsClient.sendBlocking(String.format(Command.START_INSTANCE.command, toSend), Command.START_INSTANCE);
 	}
 	
-	private static boolean isReachable(String ip) {
+	private boolean isReachable(String ip) {
 		try {
 			return InetAddress.getByName(ip).isReachable(30000);
 		} catch (Exception e) {
@@ -347,7 +327,7 @@ public class CloudML implements PropertyChangeListener {
 			
 			String tier = jsonObject.has("tier") ? jsonObject.getString("tier") : null;
 			String vm = jsonObject.has("vm") ? jsonObject.getString("vm") : null;
-			String status = jsonObject.has("status") && jsonObject.get("status") != null ? jsonObject.getString("status") : null;
+			String status = jsonObject.has("status") && !jsonObject.isNull("status") ? jsonObject.getString("status") : null;
 			String ip = jsonObject.has("ip") ? jsonObject.getString("ip") : null;
 			String id = jsonObject.has("id") ? jsonObject.getString("id").replaceAll("<>", "/") : null;
 			
@@ -568,6 +548,23 @@ public class CloudML implements PropertyChangeListener {
 		public boolean isConnected() {
 			return super.getReadyState() == READYSTATE.OPEN;
 		}
+		
+		public boolean disconnect() {
+			try {
+				closeBlocking();
+				return true;
+			} catch (Exception e) {
+				logger.error("Error while disconnecting.", e);
+				return false;
+			}
+		}
+	}
+	
+	public void disconnect() {
+		if (wsClient != null)
+			wsClient.disconnect();
+		
+		wsClient = null;
 	}
 	
 	public static enum Command {
@@ -584,7 +581,10 @@ public class CloudML implements PropertyChangeListener {
 				"!getSnapshot\n" +
 						"path : /componentInstances[id='%1$s']\n" +
 						"multimaps : { vm : name, tier : type/name, id : id, status : status, ip : publicAddress }", true, false),
-		DEPLOY("DEPLOY", null, false, true);
+		DEPLOY("DEPLOY", "!extended { name : Deploy }", false, true),
+		LOAD_DEPLOYMENT("LOAD_DEPLOYMENT",
+				"!extended { name : LoadDeployment }\n" +
+				"!additional json-string: %s", true, false);
 
 		public String name;
 		public String command;

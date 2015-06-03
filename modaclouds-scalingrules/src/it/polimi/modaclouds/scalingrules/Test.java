@@ -6,7 +6,6 @@ import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.cloud.amazon.elb.ElasticLoadBalancing;
 import it.cloud.amazon.elb.ElasticLoadBalancing.Listener;
-import it.cloud.utils.CloudException;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
 import it.polimi.modaclouds.scalingrules.utils.CloudML;
@@ -49,7 +48,7 @@ public class Test {
 	}
 
 	public Test(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp,
-			int monitoringPlatformPort, int clients) throws CloudException {
+			int monitoringPlatformPort, int clients) throws Exception {
 		cloudML = new CloudML(cloudMLIp, cloudMLPort);
 
 		this.monitoringPlatformIp = monitoringPlatformIp;
@@ -266,6 +265,7 @@ public class Test {
 		// monitoringPlatform.loadModel();
 
 		cloudML.deploy(
+				it.polimi.modaclouds.scalingrules.Configuration.getAsFile(it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				Configuration.REGION,
 				String.format(
