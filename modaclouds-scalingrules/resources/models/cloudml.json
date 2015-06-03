@@ -3,7 +3,7 @@
     "name": "MiC2AWS",
     "providers": [
         {
-            "credentials": "resources/credentialsAmazon.properties",
+            "credentials": "%7$s",
             "eClass": "net.cloudml.core:Provider",
             "name": "aws-ec2"
         }

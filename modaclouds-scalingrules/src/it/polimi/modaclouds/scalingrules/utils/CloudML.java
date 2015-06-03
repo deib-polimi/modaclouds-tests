@@ -1,6 +1,7 @@
 package it.polimi.modaclouds.scalingrules.utils;
 
 import it.polimi.modaclouds.scalingrules.Configuration;
+import it.polimi.modaclouds.scalingrules.Test;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -60,7 +61,8 @@ public class CloudML implements PropertyChangeListener {
 						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						it.cloud.amazon.ec2.Configuration.REGION,
-						loadBalancer));
+						loadBalancer),
+				Test.createTempCredentials("127.0.0.1", null, "credentialsAmazon.properties"));
 		
 		logger.info("Starting the test...");
 		

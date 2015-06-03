@@ -18,6 +18,7 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 import java.io.File;
 import java.io.StringReader;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +93,20 @@ public class Test {
 
 		loadBalancer = null;
 	}
+	
+	public static String createTempCredentials(String ip, VirtualMachine vm, String filePath) throws Exception {
+		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath));
+		
+		Path p = Files.createTempFile("credentials", ".properties");
+		FileUtils.writeStringToFile(p.toFile(), body);
+		
+		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
+			Ssh.sendFile(ip, vm, p.toString(), "/tmp/scalingrules/" + p.toFile().getName());
+			return "/tmp/scalingrules/" + p.toFile().getName();
+		}
+		
+		return p.toString();
+	}
 
 	public static boolean performTest(String cloudMLIp, int cloudMLPort,
 			String monitoringPlatformIp, int monitoringPlatformPort,
@@ -122,6 +138,8 @@ public class Test {
 				logger.error("CloudML isn't working (the statuses are null).");
 			
 			t.stopCloudMLInstances();
+			t.terminateCloudMLDaemon();
+			
 			t.destroyLoadBalancer();
 		
 			if (!leaveInstancesOn)
@@ -247,6 +265,20 @@ public class Test {
 		
 		cloudML.terminateAllInstances();
 	}
+	
+	public void terminateCloudMLDaemon() throws Exception {
+		if (!running)
+			throw new RuntimeException("The system isn't running yet!");
+
+		logger.info("Stopping the CloudML daemon...");
+		
+		if (cloudMLIp.equals("localhost") || cloudMLIp.equals("127.0.0.1")) {
+			CloudMLDaemon.port = cloudMLPort;
+			CloudMLDaemon.stop();
+		} else {
+			Ssh.execInBackground(cloudMLIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), cloudMLPort + " -stop"));
+		}
+	}
 
 	public void initSystem() throws Exception {
 		if (!running)
@@ -283,7 +315,7 @@ public class Test {
 			try {
 				cloudML = new CloudML(cloudMLIp, cloudMLPort);
 			} catch (Exception e) {
-				Ssh.execInBackground(mplIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), cloudMLPort));
+				Ssh.execInBackground(mplIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.valueOf(cloudMLPort).toString()));
 				
 				try {
 					Thread.sleep(3000);
@@ -321,20 +353,6 @@ public class Test {
 		logger.info("System initialized!");
 
 		initialized = true;
-	}
-
-	public void stopInfrastructure() {
-		if (!running)
-			throw new RuntimeException("The infrastructure isn't running yet!");
-
-		cloudML.terminate();
-		monitoringPlatform = null;
-		if (monitoringPlatformIp == null)
-			mpl.terminate();
-
-		logger.info("Infrastructure stopped.");
-
-		running = false;
 	}
 
 	private static List<MonitoringRule> getMonitoringRulesFromFile(String fileName,
