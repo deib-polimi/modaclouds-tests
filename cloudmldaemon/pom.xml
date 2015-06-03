@@ -14,7 +14,7 @@
         <artifactId>tests</artifactId>
         <version>0.1</version>
     </parent>
-    <artifactId>CloudMLDaemon</artifactId>
+    <artifactId>cloudmldaemon</artifactId>
     <version>0.0.1</version>
     <name>MODAClouds - CloudML Daemon</name>
 
