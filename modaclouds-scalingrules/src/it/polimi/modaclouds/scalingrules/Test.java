@@ -29,6 +29,8 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,11 +103,36 @@ public class Test {
 		FileUtils.writeStringToFile(p.toFile(), body);
 		
 		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
-			Ssh.sendFile(ip, vm, p.toString(), "/tmp/scalingrules/" + p.toFile().getName());
-			return "/tmp/scalingrules/" + p.toFile().getName();
+			String remotePath = vm.getParameter("REMOTE_PATH");
+			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
+			Ssh.sendFile(ip, vm, p.toString(), remotePath + "/" + p.toFile().getName());
+			return remotePath + "/" + p.toFile().getName();
 		}
 		
 		return p.toString();
+	}
+	
+	public static Path fillCredentialsInDeploymentModel(String ip, VirtualMachine vm, String filePath) throws Exception {
+		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath));
+		
+		JSONObject jsonObject = new JSONObject(body);
+		
+		if (jsonObject.has("providers")) {
+			JSONArray array = jsonObject.getJSONArray("providers");
+			for (int i = 0; i < array.length(); ++i) {
+				JSONObject provider = array.getJSONObject(i);
+				if (provider.has("credentials")) {
+					String credentials = provider.getString("credentials");
+					String s = Test.createTempCredentials(ip, vm, credentials);
+					provider.put("credentials", s);
+				}
+			}
+		}
+		
+		Path p = Files.createTempFile("model", ".json");
+		FileUtils.writeStringToFile(p.toFile(), jsonObject.toString(2));
+		
+		return p;
 	}
 
 	public static boolean performTest(String cloudMLIp, int cloudMLPort,
@@ -331,7 +358,7 @@ public class Test {
 		// monitoringPlatform.loadModel();
 
 		cloudML.deploy(
-				it.polimi.modaclouds.scalingrules.Configuration.getAsFile(it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL),
+				fillCredentialsInDeploymentModel(cloudMLIp, mpl, it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				Configuration.REGION,
 				String.format(

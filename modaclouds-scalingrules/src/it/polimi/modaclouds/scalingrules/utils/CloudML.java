@@ -44,7 +44,7 @@ public class CloudML implements PropertyChangeListener {
 		String mplIp = "52.17.255.168";
 		
 		cml.deploy(
-				Configuration.getAsFile(Configuration.CLOUDML_DEPLOYMENT_MODEL),
+				Test.fillCredentialsInDeploymentModel("127.0.0.1", null, Configuration.CLOUDML_DEPLOYMENT_MODEL).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				it.cloud.amazon.ec2.Configuration.REGION,
 				String.format(
@@ -61,8 +61,7 @@ public class CloudML implements PropertyChangeListener {
 						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						it.cloud.amazon.ec2.Configuration.REGION,
-						loadBalancer),
-				Test.createTempCredentials("127.0.0.1", null, "credentialsAmazon.properties"));
+						loadBalancer));
 		
 		logger.info("Starting the test...");
 		
