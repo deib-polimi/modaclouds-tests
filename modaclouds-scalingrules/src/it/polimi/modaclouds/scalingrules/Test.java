@@ -9,6 +9,7 @@ import it.cloud.amazon.elb.ElasticLoadBalancing.Listener;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
 import it.polimi.modaclouds.scalingrules.utils.CloudML;
+import it.polimi.modaclouds.scalingrules.utils.CloudMLDaemon;
 import it.polimi.modaclouds.scalingrules.utils.MonitoringPlatform;
 import it.polimi.tower4clouds.rules.MonitoringRule;
 import it.polimi.tower4clouds.rules.MonitoringRules;
@@ -18,6 +19,7 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.xml.bind.JAXBContext;
@@ -49,13 +51,6 @@ public class Test {
 
 	public Test(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp,
 			int monitoringPlatformPort, int clients) throws Exception {
-		cloudML = new CloudML(cloudMLIp, cloudMLPort);
-
-		this.monitoringPlatformIp = monitoringPlatformIp;
-		this.monitoringPlatformPort = monitoringPlatformPort;
-		this.cloudMLIp = cloudMLIp;
-		this.cloudMLPort = cloudMLPort;
-
 		if (monitoringPlatformIp != null
 				&& !monitoringPlatformIp.equals("localhost")
 				&& !monitoringPlatformIp.equals("127.0.0.1")
@@ -65,6 +60,26 @@ public class Test {
 		if (cloudMLIp != null && !cloudMLIp.equals("localhost")
 				&& !cloudMLIp.equals("127.0.0.1") && !isReachable(cloudMLIp))
 			throw new RuntimeException("The CloudML server isn't reachable!");
+		
+		try {
+			cloudML = new CloudML(cloudMLIp, cloudMLPort);
+		} catch (Exception e) {
+			if (cloudMLIp.equals("127.0.0.1") || cloudMLIp.equals("localhost")) {
+				CloudMLDaemon.start(cloudMLPort);
+				try {
+					Thread.sleep(3000);
+				} catch (Exception e1) { }
+				
+				cloudML = new CloudML(cloudMLIp, cloudMLPort);
+			} else {
+				throw e;
+			}
+		}
+
+		this.monitoringPlatformIp = monitoringPlatformIp;
+		this.monitoringPlatformPort = monitoringPlatformPort;
+		this.cloudMLIp = cloudMLIp;
+		this.cloudMLPort = cloudMLPort;
 
 		mpl = VirtualMachine.getVM("mpl", null, 1);
 		this.clients = VirtualMachine.getVM("client", null, clients);
@@ -303,27 +318,56 @@ public class Test {
 		running = false;
 	}
 
-	private static MonitoringRule getMonitoringRuleFromFile(String fileName,
+	private static List<MonitoringRule> getMonitoringRulesFromFile(String fileName,
 			Object... substitutions) throws Exception {
 		String tmp = it.polimi.modaclouds.scalingrules.Configuration
 				.readFile(fileName);
 		if (substitutions.length > 0)
 			tmp = String.format(tmp, substitutions);
+		
+		if (tmp.indexOf("<monitoringRules") == -1)
+			tmp = "<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">" + tmp + "</monitoringRules>"; 
 
-		JAXBContext context = JAXBContext.newInstance(MonitoringRule.class);
+		JAXBContext context = JAXBContext.newInstance(MonitoringRules.class);
 		Unmarshaller unmarshaller = context.createUnmarshaller();
-		return (MonitoringRule) unmarshaller.unmarshal(new StringReader(tmp));
+		MonitoringRules rules = (MonitoringRules) unmarshaller.unmarshal(new StringReader(tmp));
+		return rules.getMonitoringRules();
+	}
+	
+	public static void main(String[] args) throws Exception {
+		String mplIp = "52.17.197.91";
+		int monitoringPlatformPort = 8170;
+		String cloudMLIp = "131.175.135.109";
+		int cloudMLPort = 9000;
+		
+		double aboveValue = 0.6;
+		double underValue = 0.2;
+		
+		MonitoringPlatform monitoringPlatform = new MonitoringPlatform(mplIp,
+				monitoringPlatformPort);
+		
+		MonitoringRules rules = new MonitoringRules();
+		rules.getMonitoringRules()
+				.addAll(getMonitoringRulesFromFile(
+						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
+						aboveValue, cloudMLIp, cloudMLPort));
+		rules.getMonitoringRules()
+				.addAll(getMonitoringRulesFromFile(
+						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
+						underValue, cloudMLIp, cloudMLPort));
+
+		monitoringPlatform.installRules(rules);
 	}
 
 	public void addCPUUtilizationMonitoringRules(double aboveValue,
 			double underValue) throws Exception {
 		MonitoringRules rules = new MonitoringRules();
 		rules.getMonitoringRules()
-				.add(getMonitoringRuleFromFile(
+				.addAll(getMonitoringRulesFromFile(
 						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
 						aboveValue, cloudMLIp, cloudMLPort));
 		rules.getMonitoringRules()
-				.add(getMonitoringRuleFromFile(
+				.addAll(getMonitoringRulesFromFile(
 						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
 						underValue, cloudMLIp, cloudMLPort));
 

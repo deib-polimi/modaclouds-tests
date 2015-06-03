@@ -87,7 +87,7 @@ public class CloudMLCall extends AbstractAction {
 
 		public static Command getByName(String name) {
 			for (Command c : values())
-				if (c.command.equalsIgnoreCase(name))
+				if (c.name.equalsIgnoreCase(name))
 					return c;
 			return null;
 		}
