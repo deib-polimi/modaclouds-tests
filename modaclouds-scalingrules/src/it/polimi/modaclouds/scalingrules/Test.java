@@ -283,7 +283,7 @@ public class Test {
 			try {
 				cloudML = new CloudML(cloudMLIp, cloudMLPort);
 			} catch (Exception e) {
-				Ssh.exec(mplIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), cloudMLPort));
+				Ssh.execInBackground(mplIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), cloudMLPort));
 				
 				try {
 					Thread.sleep(3000);

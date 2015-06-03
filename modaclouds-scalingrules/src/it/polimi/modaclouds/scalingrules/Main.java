@@ -60,9 +60,6 @@ public class Main {
 	@Parameter(names = "-onlyStartMachines", description = "Starts the machines and quit", hidden = true)
 	private boolean onlyStartMachines = false;
 	
-	@Parameter(names = "-onlyStartCloudML", description = "Starts CloudML and quit", hidden = true)
-	private boolean onlyStartCloudML = false;
-	
 	@Parameter(names = "-wait", description = "Stalls the execution of the given milliseconds without starting any test at all (used only in batch)", hidden = true)
 	private int wait = -1;
 	
@@ -72,7 +69,7 @@ public class Main {
 	public static final String APP_TITLE = "\nScaling Rules Test\n";
 	
 	public static void main(String[] args) {
-//		args = new String[] { "-data", "tests.txt", "-useOnDemand", "-onlyStartMachines", "-reuseInstances" };
+		args = new String[] { "-data", "tests.txt", "-useOnDemand", "-size", "m3.large", "-clients", "1" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
@@ -83,9 +80,6 @@ public class Main {
 			jc.usage();
 			System.exit(0);
 		}
-		
-		if (m.onlyStartCloudML)
-			return;
 		
 		it.polimi.modaclouds.scalingrules.Configuration.MONITORING_PLATFORM_PORT = m.monitoringPlatformPort;
 		it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_IP = m.cloudMLIp;

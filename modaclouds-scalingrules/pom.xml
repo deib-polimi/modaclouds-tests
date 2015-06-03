@@ -78,10 +78,10 @@
 		<resources>
 			<resource>
 				<directory>resources/</directory>
-				<excludes>
-					<exclude>credentials*.properties</exclude>
-					<exclude>*.pem</exclude>
-				</excludes>
+<!-- 				<excludes> -->
+<!-- 					<exclude>credentials*.properties</exclude> -->
+<!-- 					<exclude>*.pem</exclude> -->
+<!-- 				</excludes> -->
 			</resource>
 		</resources>
 		<plugins>
