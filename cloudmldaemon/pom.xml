@@ -175,7 +175,7 @@
                     <descriptors>
                         <descriptor>assembly-dist.xml</descriptor>
                     </descriptors>
-                    <finalName>scalingrules</finalName>
+                    <finalName>cloudmldaemon</finalName>
                 </configuration>
                 <executions>
                     <execution>
