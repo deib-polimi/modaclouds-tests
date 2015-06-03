@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.scalingrules.utils;
+package it.polimi.modaclouds.cloudml;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,15 +12,17 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
-public class CloudMLDaemon {
+public class Main {
 	
-	private static final Logger logger = LoggerFactory.getLogger(CloudMLDaemon.class);
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 	
 	@Parameter(names = { "-h", "--help", "-help" }, help = true)
 	private boolean help;
 	
-	@Parameter(names = "-cloudMLPort", description = "The port of CloudML")
-	private int cloudMLPort = it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_PORT;
+	public static final int DEFAULT_CLOUDML_PORT = 9000;
+	
+	@Parameter(names = "-port", description = "The port of CloudML")
+	private int cloudMLPort = DEFAULT_CLOUDML_PORT;
 	
 	@Parameter(names = "-stop", description = "Stops the server instead of starting it")
 	private boolean stop = false;
@@ -28,7 +30,7 @@ public class CloudMLDaemon {
 	public static final String APP_TITLE = "\nCloudML Daemon\n";
 	
 	public static void main(String[] args) {
-		CloudMLDaemon m = new CloudMLDaemon();
+		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
 		
 		System.out.println(APP_TITLE);
@@ -48,13 +50,13 @@ public class CloudMLDaemon {
 	public static int port = -1;
 	
 	public static void start() {
-		start(it.polimi.modaclouds.scalingrules.Configuration.DEFAULT_CLOUDML_PORT);
+		start(DEFAULT_CLOUDML_PORT);
 	}
 
 	public static void start(int port) {
 		logger.info("Starting the CloudML daemon on port {}...", port);
 		
-		CloudMLDaemon.port = port;
+		Main.port = port;
 		org.cloudml.websocket.Daemon.main(new String[] { Integer.valueOf(port).toString() });
 	}
 	

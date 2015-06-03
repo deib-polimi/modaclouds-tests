@@ -54,7 +54,7 @@
 	</repositories>
 	<properties>
 		<github.global.server>github</github.global.server>
-		<github.repository.name>modaclouds-scalingrules</github.repository.name>
+		<github.repository.name>modaclouds-tests</github.repository.name>
 		<github.user.name>deib-polimi</github.user.name>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
