@@ -56,6 +56,11 @@
       <outputDirectory></outputDirectory>
       <destName>tests.txt</destName>
     </file>
+    <file>
+      <source>resources/cloudml.json</source>
+      <outputDirectory></outputDirectory>
+      <destName>cloudml.json</destName>
+    </file>
   </files>
 
   <fileSets>

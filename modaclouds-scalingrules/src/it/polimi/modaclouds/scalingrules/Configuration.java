@@ -28,9 +28,9 @@ public class Configuration {
 	public static String CLOUDML_IP = DEFAULT_CLOUDML_IP;
 	public static int CLOUDML_PORT = DEFAULT_CLOUDML_PORT;
 	
-	public static final String MONITORING_RULE_CPU_ABOVE_FILE = "monitoringrules/cpuRuleAbove.txt";
-	public static final String MONITORING_RULE_CPU_UNDER_FILE = "monitoringrules/cpuRuleUnder.txt";
-	public static final String CLOUDML_DEPLOYMENT_MODEL = "models/cloudml.json";
+	public static final String MONITORING_RULE_CPU_ABOVE_FILE = "cpuRuleAbove.txt";
+	public static final String MONITORING_RULE_CPU_UNDER_FILE = "cpuRuleUnder.txt";
+	public static final String CLOUDML_DEPLOYMENT_MODEL = "cloudml.json";
 	
 	public static String MIC_AMI = "";
 	public static String MIC_STARTER = "";
