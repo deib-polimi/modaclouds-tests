@@ -57,6 +57,11 @@
       <destName>MPloadModel</destName>
     </file>
     <file>
+      <source>resources/MPloadModel-noSDA</source>
+      <outputDirectory></outputDirectory>
+      <destName>MPloadModel-noSDA</destName>
+    </file>
+    <file>
       <source>resources/observer_remote_launcher</source>
       <outputDirectory></outputDirectory>
       <destName>observer_remote_launcher</destName>

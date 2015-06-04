@@ -1,3 +1,4 @@
+#!/bin/bash
 #$1=MP-IP
 #$2=SDA-IP
 
@@ -7,7 +8,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="CpuUtilization">
+    <collectedMetric metricName="CPUUtilization">
       <parameter name="samplingProbability">1</parameter>
       <parameter name="samplingTime">3</parameter>
     </collectedMetric>
@@ -24,7 +25,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="CpuStolen">
+    <collectedMetric metricName="CPUStolen">
       <parameter name="samplingProbability">1</parameter>
       <parameter name="samplingTime">3</parameter>
     </collectedMetric>

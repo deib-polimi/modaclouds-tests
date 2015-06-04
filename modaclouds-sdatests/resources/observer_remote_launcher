@@ -1,3 +1,4 @@
+#!/bin/bash
 #$1=SDA-IP
 #$2=KEY
 #$3=USER
