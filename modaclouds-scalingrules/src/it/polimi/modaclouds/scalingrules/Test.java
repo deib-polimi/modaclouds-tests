@@ -376,10 +376,10 @@ public class Test {
 			try {
 				cloudML = new CloudML(cloudMLIp, cloudMLPort);
 			} catch (Exception e) {
-				Ssh.execInBackground(mplIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.valueOf(cloudMLPort).toString()));
+				Ssh.execInBackground(cloudMLIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.valueOf(cloudMLPort).toString()));
 				
 				try {
-					Thread.sleep(3000);
+					Thread.sleep(10000);
 				} catch (Exception e1) { }
 				
 				cloudML = new CloudML(cloudMLIp, cloudMLPort);
