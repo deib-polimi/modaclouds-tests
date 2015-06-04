@@ -203,7 +203,7 @@ public class Test {
 		Instance isda = sda.getInstances().get(0);
 		Instance imic = mic.getInstances().get(0);
 		
-		impl.exec(mpl.getParameter("STARTER"));
+		impl.exec(String.format(mpl.getParameter("STARTER"), impl.getIp()));
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		

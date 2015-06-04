@@ -362,10 +362,9 @@ public class Test {
 			Instance impl = mpl.getInstances().get(0);
 
 			impl.waitUntilSshAvailable();
-
-			impl.exec(mpl.getParameter("STARTER"));
-
 			mplIp = impl.getIp();
+			
+			impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
 		} else {
 			mplIp = monitoringPlatformIp;
 		}
