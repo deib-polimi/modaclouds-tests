@@ -4,6 +4,8 @@ import it.cloud.amazon.ec2.AmazonEC2;
 import it.cloud.amazon.ec2.Configuration;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
+import it.cloud.amazon.elb.ElasticLoadBalancing;
+import it.cloud.amazon.elb.ElasticLoadBalancing.Listener;
 import it.cloud.utils.CloudException;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,18 +48,23 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static Path performTest(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA) throws Exception {
-		Test t = new Test(size, clients, useDatabase, noSDA);
+	public static Path performTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA) throws Exception {
+		Test t = new Test(size, clients, servers, useDatabase, noSDA);
 		
 		if (reuseInstances)
 			t.considerRunningMachines();
 		t.startMachines(startAsOnDemand);
-		if (onlyStartMachines)
-			return null;
+		
+		t.createLoadBalancer();
 		
 		t.initSystem();
 		
-		Path path = t.runTest(baseJmx, data, loadBalancer);
+		if (onlyStartMachines)
+			return null;
+		
+		Path path = t.runTest(baseJmx, data);
+		
+		t.destroyLoadBalancer();
 		
 		if (!leaveInstancesOn)
 			t.stopMachines();
@@ -64,16 +72,19 @@ public class Test {
 		return path;
 	}
 
-	public Test(String size, int clients, boolean useDatabase, boolean noSDA) throws CloudException {
+	public Test(String size, int clients, int servers, boolean useDatabase, boolean noSDA) throws CloudException {
 		if (clients <= 0)
 			throw new RuntimeException("You need at least 1 client!");
+		
+		if (servers <= 0)
+			throw new RuntimeException("You need at least 1 server!");
 		
 		this.noSDA = noSDA;
 		
 		mpl = VirtualMachine.getVM("mpl", size, 1);
 		if (!noSDA)
 			sda = VirtualMachine.getVM("sda", size, 1);
-		mic = VirtualMachine.getVM("mic", size, 1);
+		mic = VirtualMachine.getVM("mic", size, servers);
 		this.clients = VirtualMachine.getVM("client", size, clients);
 		
 		this.useDatabase = useDatabase;
@@ -84,6 +95,34 @@ public class Test {
 		initialized = false;
 		
 		otherThreads = new ArrayList<Thread>();
+	}
+	
+	private String loadBalancer;
+
+	private void createLoadBalancer() {
+		if (mic.getInstancesNeeded() <= 1)
+			return;
+		
+		if (loadBalancer != null)
+			throw new RuntimeException(
+					"You've already created a load balancer!");
+
+		loadBalancer = "SDATests" + RandomStringUtils.randomNumeric(3);
+
+		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(mic.getParameter("PORT"))));
+	}
+
+	private void destroyLoadBalancer() {
+		if (mic.getInstancesNeeded() <= 1)
+			return;
+		
+		if (loadBalancer == null)
+			throw new RuntimeException(
+					"You've still to create a load balancer!");
+
+		ElasticLoadBalancing.deleteLoadBalancer(loadBalancer);
+
+		loadBalancer = null;
 	}
 	
 	public void startMachines(boolean startAsOnDemand) {
@@ -217,7 +256,6 @@ public class Test {
 		Instance isda = null;
 		if (!noSDA)
 			isda = sda.getInstances().get(0);
-		Instance imic = mic.getInstances().get(0);
 		
 		impl.exec(String.format(mpl.getParameter("STARTER"), impl.getIp()));
 		
@@ -263,17 +301,25 @@ public class Test {
 			try { Thread.sleep(10000); } catch (Exception e) { }
 		}
 		
-		imic.exec(String.format(
-				mic.getParameter("STARTER0"),
-				useDatabase ? database.getIps().get(0) : "127.0.0.1",
-				impl.getIp()
-				));
-		
-		try { Thread.sleep(10000); } catch (Exception e) { }
-		
-		imic.exec(mic.getParameter("STARTER1"));
-		
-		try { Thread.sleep(10000); } catch (Exception e) { }
+		for (Instance imic : mic.getInstances()) {
+			imic.exec(String.format(
+					mic.getParameter("STARTER0"),
+					useDatabase ? database.getIps().get(0) : "127.0.0.1",
+					impl.getIp()
+					));
+			
+			try { Thread.sleep(10000); } catch (Exception e) { }
+			
+			imic.exec(mic.getParameter("STARTER1"));
+			
+			try { Thread.sleep(10000); } catch (Exception e) { }
+			
+			if (mic.getInstancesNeeded() > 1 && loadBalancer != null) {
+				imic.exec(String.format(mic.getParameter("ADD_TO_LOAD_BALANCER"), loadBalancer));
+				
+				try { Thread.sleep(10000); } catch (Exception e) { }
+			}
+		}
 		
 		logger.info("System initialized!");
 		
@@ -328,7 +374,7 @@ public class Test {
 		return p;
 	}
 	
-	public Path runTest(Path baseJmx, String data, String loadBalancerDNS) throws Exception {
+	public Path runTest(Path baseJmx, String data) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -354,9 +400,10 @@ public class Test {
 		if (port == null)
 			port = "8080";
 		
+		String server = mic.getInstancesNeeded() > 1 && loadBalancer != null ? ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer) : mic.getIps().get(0); 
 		
 		JMeterTest test = new JMeterTest(clients.getParameter("AMI"), clients.getInstancesRunning(), localPath, remotePath, clients.getParameter("JMETER_PATH"), data,
-				loadBalancerDNS != null ? loadBalancerDNS : mic.getIps().get(0),
+				server,
 				protocol,
 				port);
 		

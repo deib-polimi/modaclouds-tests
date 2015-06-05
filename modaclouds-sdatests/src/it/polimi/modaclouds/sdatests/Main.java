@@ -28,14 +28,14 @@ public class Main {
 	@Parameter(names = "-size", description = "The size that will be used for all the machines")
 	private String size = null;
 	
-	@Parameter(names = "-clients", description = "The number of JMeter clients to be used (default: 1)")
+	@Parameter(names = "-clients", description = "The number of JMeter clients to be used")
 	private int clients = 1;
+	
+	@Parameter(names = "-servers", description = "The number of servers to be used")
+	private int servers = 1;
 	
 	@Parameter(names = "-data", description = "The file with the workload")
 	private String data = null;
-	
-	@Parameter(names = "-loadBalancer", description = "The DNS of the load balancer")
-	private String loadBalancer = null;
 	
 	@Parameter(names = "-batch", description = "Go in batch mode, reading a file describing a number of tests as parameter")
 	private String batch = null;
@@ -73,7 +73,7 @@ public class Main {
 	public static final String APP_TITLE = "\nSDA Test\n";
 
 	public static void main(String[] args) {
-//		args = new String[] { "-clients", "1", "-size", "m3.large", "-data", "tests.txt", "-useOnDemand", "-reuseInstances", "-leaveInstancesOn" };
+//		args = new String[] { "-clients", "1", "-size", "m3.large", "-data", "tests.txt", "-useOnDemand", "-noSDA"  }; //, "-leaveInstancesOn" }; //"-reuseInstances" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
@@ -89,7 +89,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA);
+			doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -115,9 +115,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA));
+						threads.add(doTestInBackground(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA));
 					else
-						doTest(m.size, m.clients, Paths.get(m.baseJmx), m.data, m.loadBalancer, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA);
+						doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA);
 				}
 				
 				for (Thread t : threads)
@@ -134,11 +134,11 @@ public class Main {
 		
 	}
 	
-	public static void doTest(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator, boolean noSDA) {
+	public static void doTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator, boolean noSDA) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			Path path = Test.performTest(size, clients, baseJmx, data, loadBalancer, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA);
+			Path path = Test.performTest(size, clients, servers, baseJmx, data, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA);
 			
 			logger.info("The test run correctly!");
 			
@@ -152,12 +152,11 @@ public class Main {
 		
 	}
 	
-	public static Thread doTestInBackground(String size, int clients, Path baseJmx, String data, String loadBalancer, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator, boolean noSDA) {
+	public static Thread doTestInBackground(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator, boolean noSDA) {
 		final String fsize = size;
 		final int fclients = clients;
 		final Path fbaseJmx = baseJmx;
 		final String fdata = data;
-		final String floadBalancer = loadBalancer;
 		final boolean fuseDatabase = useDatabase;
 		final boolean fstartAsOnDemand = startAsOnDemand;
 		final boolean freuseInstances = reuseInstances;
@@ -165,10 +164,11 @@ public class Main {
 		final boolean fonlyStartMachines = onlyStartMachines;
 		final String fvalidator = validator;
 		final boolean fnoSDA = noSDA;
+		final int fservers = servers;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fbaseJmx, fdata, floadBalancer, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fvalidator, fnoSDA);
+				doTest(fsize, fclients, fservers, fbaseJmx, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fvalidator, fnoSDA);
 			}
 		};
 		
