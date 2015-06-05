@@ -75,3 +75,31 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
 </monitoringRules>
 '
+curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers -d '
+{
+    "format": "RDF/JSON",
+    "protocol": "HTTP",
+    "callbackUrl": "http://$1:8001"
+}
+' 
+curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers -d '
+{
+    "format": "RDF/JSON",
+    "protocol": "HTTP",
+    "callbackUrl": "http://$1:8001"
+}
+' 
+curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUStolen/observers -d '
+{
+    "format": "RDF/JSON",
+    "protocol": "HTTP",
+    "callbackUrl": "http://$1:8001"
+}
+'
+curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/Workload/observers -d '
+{
+    "format": "RDF/JSON",
+    "protocol": "HTTP",
+    "callbackUrl": "http://$1:8001"
+}
+'

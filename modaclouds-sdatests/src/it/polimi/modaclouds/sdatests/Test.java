@@ -223,15 +223,25 @@ public class Test {
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
-		if (!noSDA)
+		if (!noSDA) {
 			exec(String.format(
 					LOAD_MODEL_COMMAND,
 					impl.getIp(),
 					isda.getIp()));
-		else
+		} else {
+			impl.exec(mpl.getParameter("DATA2STDOUT_INIT"));
+			
+			try { Thread.sleep(10000); } catch (Exception e) { }
+			
+			Ssh.execInBackground(impl, 
+					mpl.getParameter("DATA2STDOUT_STARTER"));
+			
+			try { Thread.sleep(5000); } catch (Exception e) { }
+			
 			exec(String.format(
 					LOAD_MODEL_COMMAND_NOSDA,
 					impl.getIp()));
+		}
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
