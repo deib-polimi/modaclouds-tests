@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,12 +152,18 @@ public class Main {
 	public static void doTest(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
 		logger.info("Preparing the system and running the test...");
 		
-		boolean res = Test.performTest(cloudMLIp, cloudMLPort, monitoringPlatformIp, monitoringPlatformPort, clients, baseJmx, data, useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size);
+		try {
+			long duration = Test.performTest(cloudMLIp, cloudMLPort, monitoringPlatformIp, monitoringPlatformPort, clients, baseJmx, data, useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size);
 		
-		if (res)
-			logger.info("The test run correctly!");
-		else
-			logger.error("There were some problems during the test! :(");
+			if (duration == Test.ERROR_STATUS_NULL)
+				logger.error("There was the status == null problem...");
+			else if (duration > -1)
+				logger.info("The test run correctly in {}!", durationToString(duration));
+			else
+				logger.info("The test run correctly!");
+		} catch (Exception e) {
+			logger.error("There were some problems during the test! :(", e);
+		}
 	}
 	
 	public static Thread doTestInBackground(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
@@ -181,6 +188,25 @@ public class Main {
 		
 		t.start();
 		return t;
+	}
+	
+	public static String durationToString(long duration) {
+		String actualDuration = "";
+		{
+			int res = (int) TimeUnit.MILLISECONDS.toSeconds(duration);
+			if (res > 60 * 60) {
+				actualDuration += (res / (60 * 60)) + " h ";
+				res = res % (60 * 60);
+			}
+			if (res > 60) {
+				actualDuration += (res / 60) + " m ";
+				res = res % 60;
+			}
+			actualDuration += res + " s";
+		}
+
+
+		return actualDuration;
 	}
 
 }

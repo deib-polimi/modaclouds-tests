@@ -40,6 +40,7 @@ public class Test {
 	
 	private boolean useDatabase;
 	private boolean noSDA;
+	private boolean healthCheck;
 	
 	private boolean running;
 	private boolean initialized;
@@ -48,8 +49,10 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static Path performTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA) throws Exception {
-		Test t = new Test(size, clients, servers, useDatabase, noSDA);
+	public static long performTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String validator) throws Exception {
+		long init = System.currentTimeMillis();
+		
+		Test t = new Test(size, clients, servers, useDatabase, noSDA, healthCheck);
 		
 		if (reuseInstances)
 			t.considerRunningMachines();
@@ -60,7 +63,7 @@ public class Test {
 		t.initSystem();
 		
 		if (onlyStartMachines)
-			return null;
+			return -1;
 		
 		Path path = t.runTest(baseJmx, data);
 		
@@ -69,17 +72,22 @@ public class Test {
 		if (!leaveInstancesOn)
 			t.stopMachines();
 		
-		return path;
+		t.execValidator(validator, path, clients);
+		
+		return System.currentTimeMillis() - init;
 	}
 
-	public Test(String size, int clients, int servers, boolean useDatabase, boolean noSDA) throws CloudException {
+	public Test(String size, int clients, int servers, boolean useDatabase, boolean noSDA, boolean healthCheck) throws CloudException {
 		if (clients <= 0)
 			throw new RuntimeException("You need at least 1 client!");
 		
 		if (servers <= 0)
 			throw new RuntimeException("You need at least 1 server!");
 		
+		if (healthCheck)
+			noSDA = true;
 		this.noSDA = noSDA;
+		this.healthCheck = healthCheck;
 		
 		mpl = VirtualMachine.getVM("mpl", size, 1);
 		if (!noSDA)
@@ -227,6 +235,7 @@ public class Test {
 	
 	public static String LOAD_MODEL_COMMAND = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE) + " %s %s";
 	public static String LOAD_MODEL_COMMAND_NOSDA = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-noSDA") + " %s";
+	public static String LOAD_MODEL_COMMAND_HEALTHCHECK = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-healthCheck") + " %s";
 	public static String OBSERVER_LAUNCH_COMMAND = "bash " + Configuration.getPathToFile(OBSERVER_LAUNCH_FILE) + " %s %s %s";
 	
 	public static final String SDA_CONFIG = "sdaconfig.properties";
@@ -276,9 +285,14 @@ public class Test {
 			
 			try { Thread.sleep(5000); } catch (Exception e) { }
 			
-			exec(String.format(
-					LOAD_MODEL_COMMAND_NOSDA,
-					impl.getIp()));
+			if (!healthCheck)
+				exec(String.format(
+						LOAD_MODEL_COMMAND_NOSDA,
+						impl.getIp()));
+			else
+				exec(String.format(
+						LOAD_MODEL_COMMAND_HEALTHCHECK,
+						impl.getIp()));
 		}
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
@@ -431,6 +445,15 @@ public class Test {
 			return Paths.get(localPath, "sda1", "home", sda.getParameter("SSH_USER"));
 		else
 			return null;
+	}
+	
+	public static final String EXEC_VALIDATOR = "bash %s -parent %s -clients %d";
+	
+	public void execValidator(String validator, Path path, int clients) throws Exception {
+		if (path != null && validator != null && new File(validator).exists()) {
+			logger.info("Launching the validator...");
+			exec(String.format(EXEC_VALIDATOR, validator, path.toString(), clients));
+		}
 	}
 
 }

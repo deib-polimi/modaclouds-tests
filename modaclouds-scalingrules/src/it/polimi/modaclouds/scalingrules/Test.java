@@ -169,49 +169,48 @@ public class Test {
 		return p;
 	}
 
-	public static boolean performTest(String cloudMLIp, int cloudMLPort,
+	public static long performTest(String cloudMLIp, int cloudMLPort,
 			String monitoringPlatformIp, int monitoringPlatformPort,
 			int clients, Path baseJmx, String data, boolean useOnDemand,
 			boolean reuseInstances, boolean leaveInstancesOn,
-			boolean onlyStartMachines, String size) {
-		try {
-			Test t = new Test(cloudMLIp, cloudMLPort, monitoringPlatformIp,
-					monitoringPlatformPort, clients, size);
-
-			if (reuseInstances)
-				t.considerRunningMachines();
-			t.startMachines(useOnDemand);
-
-			t.createLoadBalancer();
-
-			t.initSystem();
-
-			t.addCPUUtilizationMonitoringRules();
-
-			if (onlyStartMachines)
-				return true;
-
-			String status = t.getTierStatus("MIC");
-
-			if (status != null && !status.equals("null"))
-				t.runTest(baseJmx, data);
-			else
-				logger.error("CloudML isn't working (the statuses are null).");
-			
-			t.stopCloudMLInstances();
-			t.terminateCloudMLDaemon();
-			
-			t.destroyLoadBalancer();
+			boolean onlyStartMachines, String size) throws Exception {
+		long init = System.currentTimeMillis();
 		
-			if (!leaveInstancesOn)
-				t.stopMachines();
+		Test t = new Test(cloudMLIp, cloudMLPort, monitoringPlatformIp,
+				monitoringPlatformPort, clients, size);
 
-			return (status != null && !status.equals("null"));
-		} catch (Exception e) {
-			logger.error("There were errors while running the test.", e);
-			return false;
-		}
+		if (reuseInstances)
+			t.considerRunningMachines();
+		t.startMachines(useOnDemand);
+
+		t.createLoadBalancer();
+
+		t.initSystem();
+
+		t.addCPUUtilizationMonitoringRules();
+
+		if (onlyStartMachines)
+			return -1;
+
+		String status = t.getTierStatus("MIC");
+
+		if (status != null && !status.equals("null"))
+			t.runTest(baseJmx, data);
+		else
+			logger.error("CloudML isn't working (the statuses are null).");
+		
+		t.stopCloudMLInstances();
+		t.terminateCloudMLDaemon();
+		
+		t.destroyLoadBalancer();
+	
+		if (!leaveInstancesOn)
+			t.stopMachines();
+
+		return (status != null && !status.equals("null")) ? System.currentTimeMillis() - init : ERROR_STATUS_NULL;
 	}
+	
+	public static final long ERROR_STATUS_NULL = -1234;
 
 	private String loadBalancer;
 
