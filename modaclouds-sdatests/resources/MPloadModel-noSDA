@@ -79,7 +79,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
 JSON="{
     \"format\": \"TOWER/JSON\",
     \"protocol\": \"HTTP\",
-    \"callbackUrl\": \"http://$1:8001/data\"
+    \"callbackUrl\": \"http://localhost:8001/data\"
 }"
 
 exec echo $JSON | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers -d @-
