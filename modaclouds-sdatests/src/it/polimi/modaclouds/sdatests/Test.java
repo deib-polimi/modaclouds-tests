@@ -439,6 +439,9 @@ public class Test {
 		if (useDatabase)
 			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
 		
+		if (healthCheck)
+			logger.info("Total count of CountResponseTime: {}", getTotalCountResponseTime(Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"), "logs", "data2stdout.log")));
+		
 		logger.info("Done!");
 		
 		if (!noSDA)
@@ -454,6 +457,17 @@ public class Test {
 			logger.info("Launching the validator...");
 			exec(String.format(EXEC_VALIDATOR, validator, path.toString(), clients));
 		}
+	}
+	
+	public int getTotalCountResponseTime(Path path) {
+		try {
+			Data2StdoutParser parser = new Data2StdoutParser(path, Data2StdoutParser.DataType.TOWER_JSON);
+			return (int)parser.getTotalPerMetric("CountResponseTime");
+		} catch (Exception e) {
+			logger.error("Error while parsing the output.", e);
+		}
+		
+		return 0;
 	}
 
 }
