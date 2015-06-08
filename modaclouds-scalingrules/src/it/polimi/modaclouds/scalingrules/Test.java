@@ -17,6 +17,7 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 
 import java.io.File;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +29,7 @@ import java.util.Locale;
 import java.util.Scanner;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.FileUtils;
@@ -171,6 +173,8 @@ public class Test {
 		
 		return p;
 	}
+	
+	public static final int MAX_ATTEMPTS = 5;
 
 	public static long performTest(String cloudMLIp, int cloudMLPort,
 			String monitoringPlatformIp, int monitoringPlatformPort,
@@ -195,8 +199,14 @@ public class Test {
 		if (onlyStartMachines)
 			return -1;
 
-		String status = t.getTierStatus(APP_NAME);
-
+		String status;
+		int attempt = 0;
+		do {
+			t.initCloudML();
+			status = t.getTierStatus(APP_NAME);
+			attempt++;
+		} while ((status == null || status.equals("null")) && attempt < MAX_ATTEMPTS);
+		
 		if (status != null && !status.equals("null"))
 			t.runTest(baseJmx, data);
 		else
@@ -370,6 +380,46 @@ public class Test {
 		} else {
 			mplIp = monitoringPlatformIp;
 		}
+
+		monitoringPlatform = new MonitoringPlatform(mplIp,
+				monitoringPlatformPort);
+		// monitoringPlatform.loadModel();
+
+		logger.info("System initialized!");
+
+		initialized = true;
+	}
+	
+	private boolean cloudMlInitialized = false;
+	
+	public void initCloudML() throws Exception {
+		if (!running)
+			throw new RuntimeException("The system isn't running yet!");
+
+		if (!initialized)
+			throw new RuntimeException("The system isn't initialized yet!");
+		
+		if (cloudMlInitialized) {
+			stopCloudMLInstances();
+			terminateCloudMLDaemon();
+			
+			try {
+				Thread.sleep(10000);
+			} catch (Exception e) { }
+			
+			cloudMlInitialized = false;
+		}
+
+		logger.info("Initializing CloudML...");
+		
+		String mplIp;
+		
+		if (monitoringPlatformIp == null) {
+			Instance impl = mpl.getInstances().get(0);
+			mplIp = impl.getIp();
+		} else {
+			mplIp = monitoringPlatformIp;
+		}
 		
 		if (cloudMLIp == null) {
 			cloudMLIp = mplIp;
@@ -387,11 +437,7 @@ public class Test {
 				
 			}
 		}
-
-		monitoringPlatform = new MonitoringPlatform(mplIp,
-				monitoringPlatformPort);
-		// monitoringPlatform.loadModel();
-
+		
 		cloudML.deploy(
 				getActualDeploymentModel(cloudMLIp, mpl).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
@@ -411,10 +457,10 @@ public class Test {
 						Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						Configuration.REGION,
 						loadBalancer));
+		
+		logger.info("CloudML initialized!");
 
-		logger.info("System initialized!");
-
-		initialized = true;
+		cloudMlInitialized = true;
 	}
 
 	private static List<MonitoringRule> getMonitoringRulesFromFile(String fileName,
@@ -425,7 +471,7 @@ public class Test {
 			tmp = String.format(tmp, substitutions);
 		
 		if (tmp.indexOf("<monitoringRules") == -1)
-			tmp = "<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">" + tmp + "</monitoringRules>"; 
+			tmp = "<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">" + tmp + "</monitoringRules>"; 
 
 		JAXBContext context = JAXBContext.newInstance(MonitoringRules.class);
 		Unmarshaller unmarshaller = context.createUnmarshaller();
@@ -458,6 +504,38 @@ public class Test {
 
 		monitoringPlatform.installRules(rules);
 	}
+	
+	public static void main(String[] args) throws Exception {
+		double aboveValue = 0.6;
+		double underValue = 0.2;
+		String cloudMLIp = "127.0.0.1";
+		int cloudMLPort = 9000;
+		String APP_NAME = "MIC";
+		
+		MonitoringRules rules = new MonitoringRules();
+		rules.getMonitoringRules()
+				.addAll(getMonitoringRulesFromFile(
+						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
+						doubleFormatter.format(aboveValue), cloudMLIp, cloudMLPort, APP_NAME));
+		rules.getMonitoringRules()
+				.addAll(getMonitoringRulesFromFile(
+						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
+						doubleFormatter.format(underValue), cloudMLIp, cloudMLPort, APP_NAME));
+		
+		JAXBContext context = JAXBContext
+				.newInstance(MonitoringRules.class);
+		Marshaller marshaller = context.createMarshaller();
+		marshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
+		marshaller.setProperty("jaxb.schemaLocation", "http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema");
+		StringWriter sw = new StringWriter();
+
+		marshaller.marshal(rules, sw);
+		
+		String body = sw.toString();
+		body = body.substring(body.indexOf("<monitoringRules"));
+		
+		System.out.println(body);
+	}
 
 	public void addCPUUtilizationMonitoringRules() throws Exception {
 		addCPUUtilizationMonitoringRules(0.6, 0.2);
@@ -488,6 +566,9 @@ public class Test {
 
 		if (!initialized)
 			throw new RuntimeException("The system isn't initialized yet!");
+		
+		if (!cloudMlInitialized)
+			throw new RuntimeException("CloudML isn't initialized yet!");
 
 		String server = ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer);
 

@@ -38,11 +38,15 @@ public class MonitoringPlatform extends RestClient {
 				.newInstance(MonitoringRules.class);
 		Marshaller marshaller = context.createMarshaller();
 		marshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
+		marshaller.setProperty("jaxb.schemaLocation", "http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema");
 		StringWriter sw = new StringWriter();
 
 		marshaller.marshal(toInstall, sw);
+		
+		String body = sw.toString();
+		body = body.substring(body.indexOf("<monitoringRules"));
 
-		Status status = sendMessage("/v1/monitoring-rules", sw.toString(), Method.POST);
+		Status status = sendMessage("/v1/monitoring-rules", body, Method.POST);
 
 		if (status.getCode() != 204) {
 			throw new RuntimeException("Failed : HTTP error code : "

@@ -1,9 +1,9 @@
 <monitoringRules xmlns="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
-  <monitoringRule id="cpuRule" timeStep="3" timeWindow="3">
+  <monitoringRule id="cpuUtilizationAboveRule" timeStep="3" timeWindow="3">
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="CpuUtilizationAbove">
+    <collectedMetric metricName="CPUUtilization">
       <parameter name="samplingProbability">1</parameter>
       <parameter name="samplingTime">3</parameter>
     </collectedMetric>
