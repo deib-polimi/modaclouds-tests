@@ -1,20 +1,22 @@
-<monitoringRule id="cpuRule" timeStep="3" timeWindow="3">
-  <monitoredTargets>
-    <monitoredTarget class="VM" type="Frontend"/>
-  </monitoredTargets>
-  <collectedMetric metricName="CpuUtilizationAbove">
-    <parameter name="samplingProbability">1</parameter>
-    <parameter name="samplingTime">3</parameter>
-  </collectedMetric>
-  <metricAggregation aggregateFunction="Average" groupingClass="CloudProvider"/>
-  <condition>METRIC &gt;= %f</condition>
-  <actions>
-    <action name="CloudMLCall">
-      <parameter name="ip">%s</parameter>
-      <parameter name="port">%d</parameter>
-      <parameter name="command">SCALE</parameter>
-      <parameter name="tier">MIC</parameter>
-      <parameter name="n">1</parameter>
-    </action>
-  </actions>
-</monitoringRule>
+<monitoringRules xmlns="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
+  <monitoringRule id="cpuRule" timeStep="3" timeWindow="3">
+    <monitoredTargets>
+      <monitoredTarget class="VM" type="Frontend"/>
+    </monitoredTargets>
+    <collectedMetric metricName="CpuUtilizationAbove">
+      <parameter name="samplingProbability">1</parameter>
+      <parameter name="samplingTime">3</parameter>
+    </collectedMetric>
+    <metricAggregation aggregateFunction="Average" groupingClass="CloudProvider"/>
+    <condition>METRIC &gt;= %s</condition>
+    <actions>
+      <action name="CloudMLCall">
+        <parameter name="ip">%s</parameter>
+        <parameter name="port">%d</parameter>
+        <parameter name="command">SCALE</parameter>
+        <parameter name="tier">%s</parameter>
+        <parameter name="n">1</parameter>
+      </action>
+    </actions>
+  </monitoringRule>
+</monitoringRules>

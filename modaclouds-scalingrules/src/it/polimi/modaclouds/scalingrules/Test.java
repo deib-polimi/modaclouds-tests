@@ -20,8 +20,11 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 import javax.xml.bind.JAXBContext;
@@ -192,7 +195,7 @@ public class Test {
 		if (onlyStartMachines)
 			return -1;
 
-		String status = t.getTierStatus("MIC");
+		String status = t.getTierStatus(APP_NAME);
 
 		if (status != null && !status.equals("null"))
 			t.runTest(baseJmx, data);
@@ -429,6 +432,17 @@ public class Test {
 		MonitoringRules rules = (MonitoringRules) unmarshaller.unmarshal(new StringReader(tmp));
 		return rules.getMonitoringRules();
 	}
+	
+	public static final String APP_NAME = "MIC";
+	
+	private static DecimalFormat doubleFormatter = doubleFormatter();
+	
+	private static DecimalFormat doubleFormatter() {
+		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.getDefault());
+		otherSymbols.setDecimalSeparator('.');
+		DecimalFormat myFormatter = new DecimalFormat("0.0#########", otherSymbols);
+		return myFormatter;
+	}
 
 	public void addCPUUtilizationMonitoringRules(double aboveValue,
 			double underValue) throws Exception {
@@ -436,11 +450,11 @@ public class Test {
 		rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
-						aboveValue, cloudMLIp, cloudMLPort));
+						doubleFormatter.format(aboveValue), cloudMLIp, cloudMLPort, APP_NAME));
 		rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
-						underValue, cloudMLIp, cloudMLPort));
+						doubleFormatter.format(underValue), cloudMLIp, cloudMLPort, APP_NAME));
 
 		monitoringPlatform.installRules(rules);
 	}
