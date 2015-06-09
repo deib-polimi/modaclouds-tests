@@ -24,7 +24,7 @@ public class ResultsBuilder {
 	public static final String RESULT_REQS = "requests.csv";
 	
 	public static void main(String[] args) {
-		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, 1);
+		perform(Paths.get("."), new String[] { "reg", "save", "answ" });
 	}
 	
 	public static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
@@ -79,16 +79,18 @@ public class ResultsBuilder {
 	
 	public static final String JMETER_LOG = "test_aggregate.jtl";
 	
-	public static Map<String, Integer> getRequestsPerPage(Path parent, int clients) {
-		if (clients <= 0)
-			throw new RuntimeException("You should have used at least one client.");
-		
+	public static Map<String, Integer> getRequestsPerPage(Path parent, boolean onlyOk) {
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
-		for (int i = 1; i <= clients; ++i) {
+		boolean goOn = true;
+		for (int i = 1; goOn; ++i) {
 			Path jmeterAggregate = Paths.get(parent.getParent().getParent().getParent().toString(), "client" + i, JMETER_LOG);
+			if (!jmeterAggregate.toFile().exists()) {
+				goOn = false;
+				continue;
+			}
 			
-			Map<String, Integer> tmp = getRequestsPerPage(jmeterAggregate);
+			Map<String, Integer> tmp = getRequestsPerPageFromSingleFile(jmeterAggregate, onlyOk);
 			for (String key : tmp.keySet()) {
 				Integer val = res.get(key);
 				if (val == null)
@@ -100,7 +102,7 @@ public class ResultsBuilder {
 		return res;
 	}
 	
-	private static Map<String, Integer> getRequestsPerPage(Path f) {
+	private static Map<String, Integer> getRequestsPerPageFromSingleFile(Path f, boolean onlyOk) {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
 					+ f.toString() + ")");
@@ -113,6 +115,10 @@ public class ResultsBuilder {
 				String[] values = line.split(",");
 				
 				String page = values[2];
+				String resultReq = values[4];
+				if (onlyOk && !resultReq.equals("OK"))
+					continue;
+				
 				Integer val = res.get(page);
 				if (val == null)
 					val = 0;
@@ -139,7 +145,7 @@ public class ResultsBuilder {
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
-	public static void perform(Path parent, String[] methodsNames, int clients) {
+	public static void perform(Path parent, String[] methodsNames) {
 		if (methodsNames == null || methodsNames.length == 0)
 			throw new RuntimeException("You should specify at least one method name.");
 		
@@ -220,10 +226,15 @@ public class ResultsBuilder {
 				out.printf("Requests_%s,", methodsNames[i]);
 			out.print("TotalRequests,");
 			
-			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, clients);
+			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, false);
 			for (String key : requestsPerPage.keySet())
 				out.printf("ActualRequests_%s,", key);
-			out.println("TotalActualRequests");
+			out.print("TotalActualRequests,");
+			
+			Map<String, Integer> requestsPerPageOnlyOk = getRequestsPerPage(parent, true);
+			for (String key : requestsPerPageOnlyOk.keySet())
+				out.printf("ActualRequestsOk_%s,", key);
+			out.println("TotalActualRequestsOk");
 			
 			int tot = 0;
 			
@@ -241,6 +252,15 @@ public class ResultsBuilder {
 			
 			for (String key : requestsPerPage.keySet()) {
 				int methodTot = requestsPerPage.get(key);
+				out.print(methodTot + ",");
+				tot += methodTot;
+			}
+			out.print(tot + ",");
+			
+			tot = 0;
+			
+			for (String key : requestsPerPageOnlyOk.keySet()) {
+				int methodTot = requestsPerPageOnlyOk.get(key);
 				out.print(methodTot + ",");
 				tot += methodTot;
 			}

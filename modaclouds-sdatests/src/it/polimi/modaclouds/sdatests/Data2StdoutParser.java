@@ -155,16 +155,18 @@ public class Data2StdoutParser {
 	
 	public static final String JMETER_LOG = "test_aggregate.jtl";
 	
-	public static Map<String, Integer> getRequestsPerPage(Path parent, int clients) {
-		if (clients <= 0)
-			throw new RuntimeException("You should have used at least one client.");
-		
+	public static Map<String, Integer> getRequestsPerPage(Path parent, boolean onlyOk) {
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
-		for (int i = 1; i <= clients; ++i) {
+		boolean goOn = true;
+		for (int i = 1; goOn; ++i) {
 			Path jmeterAggregate = Paths.get(parent.getParent().getParent().getParent().toString(), "client" + i, JMETER_LOG);
+			if (!jmeterAggregate.toFile().exists()) {
+				goOn = false;
+				continue;
+			}
 			
-			Map<String, Integer> tmp = getRequestsPerPage(jmeterAggregate);
+			Map<String, Integer> tmp = getRequestsPerPageFromSingleFile(jmeterAggregate, onlyOk);
 			for (String key : tmp.keySet()) {
 				Integer val = res.get(key);
 				if (val == null)
@@ -176,7 +178,7 @@ public class Data2StdoutParser {
 		return res;
 	}
 	
-	private static Map<String, Integer> getRequestsPerPage(Path f) {
+	private static Map<String, Integer> getRequestsPerPageFromSingleFile(Path f, boolean onlyOk) {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
 					+ f.toString() + ")");
@@ -189,6 +191,10 @@ public class Data2StdoutParser {
 				String[] values = line.split(",");
 				
 				String page = values[2];
+				String resultReq = values[4];
+				if (onlyOk && !resultReq.equals("OK"))
+					continue;
+				
 				Integer val = res.get(page);
 				if (val == null)
 					val = 0;
@@ -204,10 +210,7 @@ public class Data2StdoutParser {
 	
 	public static final String RESULT_REQS = "requests.csv";
 	
-	public static void perform(Path parent, int clients) {
-		if (clients < 1)
-			throw new RuntimeException("You need to specify at least 1 client!");
-		
+	public static void perform(Path parent) {
 		Path log = null;
 		if (parent == null || !(log = Paths.get(parent.toString(), "logs", "data2stdout.log")).toFile().exists())
 			throw new RuntimeException("The log file doesn't exists!");
@@ -215,10 +218,15 @@ public class Data2StdoutParser {
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_REQS).toFile())) {
 			out.print("TotalRequestsConsidered,");
 			
-			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, clients);
-			for (String key : requestsPerPage.keySet())
-				out.printf("ActualRequests_%s,", key);
-			out.println("TotalActualRequests");
+			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, false);
+//			for (String key : requestsPerPage.keySet())
+//				out.printf("ActualRequests_%s,", key);
+			out.print("TotalActualRequests,");
+			
+			Map<String, Integer> requestsPerPageOnlyOk = getRequestsPerPage(parent, true);
+//			for (String key : requestsPerPageOnlyOk.keySet())
+//				out.printf("ActualRequestsOk_%s,", key);
+			out.println("TotalActualRequestsOk");
 			
 			Data2StdoutParser parser = new Data2StdoutParser(log, DataType.TOWER_JSON);
 			int tot = (int)parser.getTotalPerMetric("CountResponseTime");
@@ -229,9 +237,19 @@ public class Data2StdoutParser {
 			
 			for (String key : requestsPerPage.keySet()) {
 				int methodTot = requestsPerPage.get(key);
-				out.print(methodTot + ",");
+//				out.print(methodTot + ",");
 				tot += methodTot;
 			}
+			out.print(tot + ",");
+			
+			tot = 0;
+			
+			for (String key : requestsPerPageOnlyOk.keySet()) {
+				int methodTot = requestsPerPageOnlyOk.get(key);
+//				out.print(methodTot + ",");
+				tot += methodTot;
+			}
+			
 			out.println(tot);
 			
 			out.flush();
@@ -241,7 +259,7 @@ public class Data2StdoutParser {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Data2StdoutParser.perform(Paths.get("/Users/ft/Lavoro/tmp/sdatests-0.0.7/tests/0906151602-m3.xlarge-3333x3/mpl1/home/ubuntu"), 3);
+		Data2StdoutParser.perform(Paths.get("/Users/ft/Lavoro/tmp/sdatests-0.0.7/tests/0906151602-m3.xlarge-3333x3/mpl1/home/ubuntu"));
 	}
 
 }

@@ -28,9 +28,6 @@ public class Main {
 	@Parameter(names = "-parent", description = "The parent folder", required = true)
 	private String parent = null;
 	
-	@Parameter(names = "-clients", description = "The number of JMeter clients used")
-	private int clients = 1;
-	
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
@@ -63,7 +60,7 @@ public class Main {
 			}
 			
 			logger.info("Generating the full results file...");
-			ResultsBuilder.perform(parent, methods, m.clients);
+			ResultsBuilder.perform(parent, methods);
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}

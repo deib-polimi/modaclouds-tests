@@ -70,9 +70,9 @@ public class Test {
 			t.stopMachines();
 		
 		if (!noSDA)
-			t.execValidator(validator, path, clients);
+			t.execValidator(validator, path);
 		else
-			Data2StdoutParser.perform(path, clients);
+			Data2StdoutParser.perform(path);
 		
 		return System.currentTimeMillis() - init;
 	}
@@ -213,12 +213,10 @@ public class Test {
 	}
 	
 	public static final String LOAD_MODEL_FILE = "MPloadModel";
-	public static final String OBSERVER_LAUNCH_FILE= "observer_remote_launcher";
 	
 	public static String LOAD_MODEL_COMMAND = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE) + " %s %s";
 	public static String LOAD_MODEL_COMMAND_NOSDA = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-noSDA") + " %s";
 	public static String LOAD_MODEL_COMMAND_HEALTHCHECK = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-healthCheck") + " %s";
-	public static String OBSERVER_LAUNCH_COMMAND = "bash " + Configuration.getPathToFile(OBSERVER_LAUNCH_FILE) + " %s %s %s";
 	
 	public static final String SDA_CONFIG = "sdaconfig.properties";
 	
@@ -253,10 +251,6 @@ public class Test {
 					impl.getIp(),
 					impl.getIp()));
 		} else {
-			impl.exec(mpl.getParameter("DATA2STDOUT_INIT"));
-			
-			try { Thread.sleep(10000); } catch (Exception e) { }
-			
 			Ssh.execInBackground(impl, 
 					mpl.getParameter("DATA2STDOUT_STARTER"));
 			
@@ -275,14 +269,6 @@ public class Test {
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
 		if (!noSDA) {
-			exec(String.format(
-					OBSERVER_LAUNCH_COMMAND,
-					impl.getIp(),
-					Configuration.getPathToFile(mpl.getParameter("KEYPAIR_NAME") + ".pem").toString(),
-					mpl.getParameter("SSH_USER")));
-		
-			try { Thread.sleep(10000); } catch (Exception e) { }
-		
 			otherThreads.add(Ssh.execInBackground(impl, String.format(
 					mpl.getParameter("SDA_STARTER"),
 					impl.getIp())));
@@ -408,12 +394,12 @@ public class Test {
 		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
 	}
 	
-	public static final String EXEC_VALIDATOR = "bash %s -parent %s -clients %d";
+	public static final String EXEC_VALIDATOR = "bash %s -parent %s";
 	
-	public void execValidator(String validator, Path path, int clients) throws Exception {
+	public void execValidator(String validator, Path path) throws Exception {
 		if (path != null && validator != null && new File(validator).exists()) {
 			logger.info("Launching the validator...");
-			exec(String.format(EXEC_VALIDATOR, validator, path.toString(), clients));
+			exec(String.format(EXEC_VALIDATOR, validator, path.toString()));
 		}
 	}
 	
