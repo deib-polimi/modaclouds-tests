@@ -241,7 +241,7 @@ public class Data2StdoutParser {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Data2StdoutParser.perform(Paths.get("/Users/ft/Lavoro/tmp/sdatests-0.0.7/tests/0606151736-m3.xlarge-3333x3/mpl1/home/ubuntu"), 3);
+		Data2StdoutParser.perform(Paths.get("/Users/ft/Lavoro/tmp/sdatests-0.0.7/tests/0906151602-m3.xlarge-3333x3/mpl1/home/ubuntu"), 3);
 	}
 
 }

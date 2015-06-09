@@ -21,7 +21,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
       </action>
     </actions>
   </monitoringRule>
-<monitoringRule id="cpuStealRule" timeStep="3" timeWindow="3">
+  <monitoringRule id="cpuStealRule" timeStep="3" timeWindow="3">
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
@@ -197,16 +197,25 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
 </monitoringRules>
 '
-curl -d 'http://'$2':8178/v1/results' http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers
-curl -d 'http://'$2':8177/v1/results' http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers
-curl -d 'http://'$2':8173/v1/results' http://"$1":8170/v1/metrics/FrontendCPUStolen/observers
-curl -d 'http://'$2':8179/v1/results' http://"$1":8170/v1/metrics/EstimatedDemand/observers
-curl -d 'http://'$2':8175/v1/results' http://"$1":8170/v1/metrics/ForecastedWorkload1/observers
-curl -d 'http://'$2':8180/v1/results' http://"$1":8170/v1/metrics/ForecastedWorkload2/observers
-curl -d 'http://'$2':8181/v1/results' http://"$1":8170/v1/metrics/ForecastedWorkload3/observers
-curl -d 'http://'$2':8182/v1/results' http://"$1":8170/v1/metrics/ForecastedWorkload4/observers
-curl -d 'http://'$2':8183/v1/results' http://"$1":8170/v1/metrics/ForecastedWorkload5/observers
-curl -d 'http://'$2':8174/v1/results' http://"$1":8170/v1/metrics/Workload/observers
-curl -d 'http://'$2':8176/v1/results' http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers
-curl -d 'http://'$2':8176/v1/results' http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers
-curl -d 'http://'$2':8176/v1/results' http://"$1":8170/v1/metrics/Workload/observers
+
+JSON_INIT="{
+    \"format\": \"TOWER/JSON\",
+    \"protocol\": \"HTTP\",
+    \"callbackUrl\": \"http://"$2":"
+
+JSON_END="/v1/results\"
+}"
+
+echo "$JSON_INIT"8178"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers -d @-
+echo "$JSON_INIT"8177"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers -d @-
+echo "$JSON_INIT"8173"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUStolen/observers -d @-
+echo "$JSON_INIT"8179"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/EstimatedDemand/observers -d @-
+echo "$JSON_INIT"8175"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload1/observers -d @-
+echo "$JSON_INIT"8180"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload2/observers -d @-
+echo "$JSON_INIT"8181"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload3/observers -d @-
+echo "$JSON_INIT"8182"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload4/observers -d @-
+echo "$JSON_INIT"8183"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload5/observers -d @-
+echo "$JSON_INIT"8174"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/Workload/observers -d @-
+echo "$JSON_INIT"8176"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers -d @-
+echo "$JSON_INIT"8176"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers -d @-
+echo "$JSON_INIT"8176"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/Workload/observers -d @-
