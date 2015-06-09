@@ -210,12 +210,9 @@ echo "$JSON_INIT"8178"$JSON_END" | curl -X POST -i -H "Content-type: application
 echo "$JSON_INIT"8177"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers -d @-
 echo "$JSON_INIT"8173"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUStolen/observers -d @-
 echo "$JSON_INIT"8179"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/EstimatedDemand/observers -d @-
-echo "$JSON_INIT"8175"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload1/observers -d @-
+echo "$JSON_INIT"8185"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload1/observers -d @-
 echo "$JSON_INIT"8180"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload2/observers -d @-
 echo "$JSON_INIT"8181"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload3/observers -d @-
 echo "$JSON_INIT"8182"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload4/observers -d @-
 echo "$JSON_INIT"8183"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload5/observers -d @-
 echo "$JSON_INIT"8174"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/Workload/observers -d @-
-echo "$JSON_INIT"8176"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers -d @-
-echo "$JSON_INIT"8176"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers -d @-
-echo "$JSON_INIT"8176"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/Workload/observers -d @-
