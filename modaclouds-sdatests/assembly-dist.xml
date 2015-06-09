@@ -76,11 +76,6 @@
       <outputDirectory></outputDirectory>
       <destName>tests.txt</destName>
     </file>
-    <file>
-      <source>resources/sdaconfig.properties</source>
-      <outputDirectory></outputDirectory>
-      <destName>sdaconfig.properties</destName>
-    </file>
   </files>
 
   <fileSets>
