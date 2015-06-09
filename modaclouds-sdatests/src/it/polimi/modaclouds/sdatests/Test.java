@@ -15,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -23,7 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,6 @@ public class Test {
 	private static final Logger logger = LoggerFactory.getLogger(Test.class);
 	
 	private VirtualMachine mpl;
-	private VirtualMachine sda;
 	private VirtualMachine mic;
 	private VirtualMachine clients;
 	private VirtualMachine database;
@@ -72,7 +69,10 @@ public class Test {
 		if (!leaveInstancesOn)
 			t.stopMachines();
 		
-		t.execValidator(validator, path, clients);
+		if (!noSDA)
+			t.execValidator(validator, path, clients);
+		else
+			Data2StdoutParser.perform(path, clients);
 		
 		return System.currentTimeMillis() - init;
 	}
@@ -90,8 +90,6 @@ public class Test {
 		this.healthCheck = healthCheck;
 		
 		mpl = VirtualMachine.getVM("mpl", size, 1);
-		if (!noSDA)
-			sda = VirtualMachine.getVM("sda", size, 1);
 		mic = VirtualMachine.getVM("mic", size, servers);
 		this.clients = VirtualMachine.getVM("client", size, clients);
 		
@@ -141,16 +139,12 @@ public class Test {
 		
 		if (!startAsOnDemand) {
 			mpl.spotRequest();
-			if (!noSDA)
-				sda.spotRequest();
 			mic.spotRequest();
 			clients.spotRequest();
 			if (useDatabase)
 				database.spotRequest();
 		} else {
 			mpl.onDemandRequest();
-			if (!noSDA)
-				sda.onDemandRequest();
 			mic.onDemandRequest();
 			clients.onDemandRequest();
 			if (useDatabase)
@@ -158,22 +152,16 @@ public class Test {
 		}
 		
 		mpl.waitUntilRunning();
-		if (!noSDA)
-			sda.waitUntilRunning();
 		mic.waitUntilRunning();
 		clients.waitUntilRunning();
 		if (useDatabase)
 			database.waitUntilRunning();
 		
 		mpl.setNameToInstances("MPL");
-		if (!noSDA)
-			sda.setNameToInstances("SDA");
 		mic.setNameToInstances("MiC");
 		clients.setNameToInstances("JMeter");
 		
 		mpl.getInstances().get(0).waitUntilSshAvailable();
-		if (!noSDA)
-			sda.getInstances().get(0).waitUntilSshAvailable();
 		mic.getInstances().get(0).waitUntilSshAvailable();
 		if (useDatabase)
 			database.getInstances().get(0).waitUntilSshAvailable();
@@ -192,16 +180,12 @@ public class Test {
 		AmazonEC2 ec2 = new AmazonEC2();
 		
 		ec2.addRunningInstances(mpl);
-		if (!noSDA)
-			ec2.addRunningInstances(sda);
 		ec2.addRunningInstances(mic);
 		ec2.addRunningInstances(clients);
 		if (useDatabase)
 			ec2.addRunningInstances(database);
 		
 		mpl.reboot();
-		if (!noSDA)
-			sda.reboot();
 		mic.reboot();
 		clients.reboot();
 		if (useDatabase)
@@ -217,8 +201,6 @@ public class Test {
 		logger.info("Stopping all the machines...");
 		
 		mpl.terminate();
-		if (!noSDA)
-			sda.terminate();
 		mic.terminate();
 		clients.terminate();
 		if (useDatabase)
@@ -251,8 +233,6 @@ public class Test {
 		
 		logger.info("Deleting the files set for removal before the test...");
 		
-		if (!noSDA)
-			sda.deleteFiles();
 		mic.deleteFiles();
 		mpl.deleteFiles();
 		clients.deleteFiles();
@@ -262,9 +242,6 @@ public class Test {
 		logger.info("Initializing the system...");
 		
 		Instance impl = mpl.getInstances().get(0);
-		Instance isda = null;
-		if (!noSDA)
-			isda = sda.getInstances().get(0);
 		
 		impl.exec(String.format(mpl.getParameter("STARTER"), impl.getIp()));
 		
@@ -274,7 +251,7 @@ public class Test {
 			exec(String.format(
 					LOAD_MODEL_COMMAND,
 					impl.getIp(),
-					isda.getIp()));
+					impl.getIp()));
 		} else {
 			impl.exec(mpl.getParameter("DATA2STDOUT_INIT"));
 			
@@ -300,16 +277,14 @@ public class Test {
 		if (!noSDA) {
 			exec(String.format(
 					OBSERVER_LAUNCH_COMMAND,
-					isda.getIp(),
-					Configuration.getPathToFile(sda.getParameter("KEYPAIR_NAME") + ".pem").toString(),
-					sda.getParameter("SSH_USER")));
+					impl.getIp(),
+					Configuration.getPathToFile(mpl.getParameter("KEYPAIR_NAME") + ".pem").toString(),
+					mpl.getParameter("SSH_USER")));
 		
 			try { Thread.sleep(10000); } catch (Exception e) { }
 		
-			isda.sendFile(createModifiedSDAConfigFile().toString(), "/home/ubuntu/modaclouds-sda-1.2.2/config.properties");
-		
-			otherThreads.add(Ssh.execInBackground(isda, String.format(
-					sda.getParameter("STARTER"),
+			otherThreads.add(Ssh.execInBackground(impl, String.format(
+					mpl.getParameter("SDA_STARTER"),
 					impl.getIp())));
 			
 			try { Thread.sleep(10000); } catch (Exception e) { }
@@ -376,18 +351,6 @@ public class Test {
 		return peak;
 	}
 	
-	private Path createModifiedSDAConfigFile() throws Exception {
-		if (!running)
-			throw new RuntimeException("The system isn't running yet!");
-		
-		Instance impl = mpl.getInstances().get(0);
-		
-		String file = FileUtils.readFileToString(Configuration.getPathToFile(SDA_CONFIG).toFile());
-		Path p = Files.createTempFile("config", ".properties");
-		FileUtils.writeStringToFile(p.toFile(), String.format(file, impl.getIp()));
-		return p;
-	}
-	
 	public Path runTest(Path baseJmx, String data) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
@@ -431,8 +394,6 @@ public class Test {
 		
 		logger.info("Retrieving the files from the instances...");
 		
-		if (!noSDA)
-			sda.retrieveFiles(localPath, "/home/" + sda.getParameter("SSH_USER"));
 		mic.retrieveFiles(localPath, "/home/" + mic.getParameter("SSH_USER"));
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
@@ -444,10 +405,7 @@ public class Test {
 		
 		logger.info("Done!");
 		
-		if (!noSDA)
-			return Paths.get(localPath, "sda1", "home", sda.getParameter("SSH_USER"));
-		else
-			return null;
+		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
 	}
 	
 	public static final String EXEC_VALIDATOR = "bash %s -parent %s -clients %d";

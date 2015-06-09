@@ -22,18 +22,6 @@ public class Main {
 	@Parameter(names = { "-h", "--help", "-help" }, help = true)
 	private boolean help;
 	
-	@Parameter(names = "-monitoringPlatformIp", description = "The IP of the monitoring platform if it's already running")
-	private String monitoringPlatformIp = null;
-	
-	@Parameter(names = "-monitoringPlatformPort", description = "The port of the monitoring platform")
-	private int monitoringPlatformPort = it.polimi.modaclouds.scalingrules.Configuration.MONITORING_PLATFORM_PORT;
-	
-	@Parameter(names = "-cloudMLIp", description = "The IP of CloudML")
-	private String cloudMLIp = it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_IP;
-	
-	@Parameter(names = "-cloudMLPort", description = "The port of CloudML")
-	private int cloudMLPort = it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_PORT;
-	
 	@Parameter(names = "-useOnDemand", description = "Use OnDemand instances instead of OnSpot")
 	private boolean useOnDemand = false;
 	
@@ -82,10 +70,6 @@ public class Main {
 			System.exit(0);
 		}
 		
-		it.polimi.modaclouds.scalingrules.Configuration.MONITORING_PLATFORM_PORT = m.monitoringPlatformPort;
-		it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_IP = m.cloudMLIp;
-		it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_PORT = m.cloudMLPort;
-		
 		List<String> errors = Configuration.checkValidity();
 		if (errors.size() > 0) {
 			if (errors.size() == 1) {
@@ -105,7 +89,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
+			doTest(m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -131,9 +115,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size));
+						threads.add(doTestInBackground(m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size));
 					else
-						doTest(m.cloudMLIp, m.cloudMLPort, m.monitoringPlatformIp, m.monitoringPlatformPort, m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
+						doTest(m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
 				}
 				
 				for (Thread t : threads)
@@ -149,11 +133,11 @@ public class Main {
 		System.exit(0);
 	}
 	
-	public static void doTest(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
+	public static void doTest(int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(cloudMLIp, cloudMLPort, monitoringPlatformIp, monitoringPlatformPort, clients, baseJmx, data, useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size);
+			long duration = Test.performTest(clients, baseJmx, data, useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size);
 		
 			if (duration == Test.ERROR_STATUS_NULL)
 				logger.error("There was the status == null problem...");
@@ -166,11 +150,7 @@ public class Main {
 		}
 	}
 	
-	public static Thread doTestInBackground(String cloudMLIp, int cloudMLPort, String monitoringPlatformIp, int monitoringPlatformPort, int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
-		final String fcloudMLIp = cloudMLIp;
-		final int fcloudMLPort = cloudMLPort;
-		final String fmonitoringPlatformIp = monitoringPlatformIp;
-		final int fmonitoringPlatformPort = monitoringPlatformPort;
+	public static Thread doTestInBackground(int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
 		final int fclients = clients;
 		final Path fbaseJmx = baseJmx;
 		final String fdata = data;
@@ -182,7 +162,7 @@ public class Main {
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fcloudMLIp, fcloudMLPort, fmonitoringPlatformIp, fmonitoringPlatformPort, fclients, fbaseJmx, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fsize);
+				doTest(fclients, fbaseJmx, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fsize);
 			}
 		};
 		

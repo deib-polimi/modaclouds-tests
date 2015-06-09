@@ -1,6 +1,7 @@
 package it.polimi.modaclouds.sdatests;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -152,14 +153,95 @@ public class Data2StdoutParser {
 		return total / count;
 	}
 	
+	public static final String JMETER_LOG = "test_aggregate.jtl";
+	
+	public static Map<String, Integer> getRequestsPerPage(Path parent, int clients) {
+		if (clients <= 0)
+			throw new RuntimeException("You should have used at least one client.");
+		
+		HashMap<String, Integer> res = new HashMap<String, Integer>();
+		
+		for (int i = 1; i <= clients; ++i) {
+			Path jmeterAggregate = Paths.get(parent.getParent().getParent().getParent().toString(), "client" + i, JMETER_LOG);
+			
+			Map<String, Integer> tmp = getRequestsPerPage(jmeterAggregate);
+			for (String key : tmp.keySet()) {
+				Integer val = res.get(key);
+				if (val == null)
+					val = 0;
+				res.put(key, val += tmp.get(key));
+			}
+		}
+		
+		return res;
+	}
+	
+	private static Map<String, Integer> getRequestsPerPage(Path f) {
+		if (f == null || !f.toFile().exists())
+			throw new RuntimeException("File not found or wrong path ("
+					+ f.toString() + ")");
+		
+		HashMap<String, Integer> res = new HashMap<String, Integer>();
+		
+		try (Scanner sc = new Scanner(f)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String[] values = line.split(",");
+				
+				String page = values[2];
+				Integer val = res.get(page);
+				if (val == null)
+					val = 0;
+
+				res.put(page, val+1);
+			}
+		} catch (Exception e) {
+			logger.error("Error while dealing with the file.", e);
+		}
+		
+		return res;
+	}
+	
+	public static final String RESULT_REQS = "requests.csv";
+	
+	public static void perform(Path parent, int clients) {
+		if (clients < 1)
+			throw new RuntimeException("You need to specify at least 1 client!");
+		
+		Path log = null;
+		if (parent == null || !(log = Paths.get(parent.toString(), "logs", "data2stdout.log")).toFile().exists())
+			throw new RuntimeException("The log file doesn't exists!");
+		
+		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_REQS).toFile())) {
+			out.print("TotalRequestsConsidered,");
+			
+			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, clients);
+			for (String key : requestsPerPage.keySet())
+				out.printf("ActualRequests_%s,", key);
+			out.println("TotalActualRequests");
+			
+			Data2StdoutParser parser = new Data2StdoutParser(log, DataType.TOWER_JSON);
+			int tot = (int)parser.getTotalPerMetric("CountResponseTime");
+			
+			out.print(tot + ",");
+			
+			tot = 0;
+			
+			for (String key : requestsPerPage.keySet()) {
+				int methodTot = requestsPerPage.get(key);
+				out.print(methodTot + ",");
+				tot += methodTot;
+			}
+			out.println(tot);
+			
+			out.flush();
+		} catch (Exception e) {
+			logger.error("Error while dealing with the result file.", e);
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
-		Path p = Paths.get("/Users/ft/Lavoro/tmp/sdatests-0.0.7/tests/0606151736-m3.xlarge-3333x3/mpl1/home/ubuntu/logs/data2stdout.log");
-		
-		Data2StdoutParser parser = new Data2StdoutParser(p, DataType.TOWER_JSON);
-		
-		int total = (int)parser.getTotalPerMetric("CountResponseTime");
-		
-		logger.info("Total: {}.", total);
+		Data2StdoutParser.perform(Paths.get("/Users/ft/Lavoro/tmp/sdatests-0.0.7/tests/0606151736-m3.xlarge-3333x3/mpl1/home/ubuntu"), 3);
 	}
 
 }
