@@ -72,7 +72,7 @@ public class Main {
 	public static final String APP_TITLE = "\nSDA Test\n";
 
 	public static void main(String[] args) {
-//		args = new String[] { "-clients", "1", "-size", "m3.large", "-data", "tests.txt", "-useOnDemand" }; //, "-healthCheck" , "-leaveInstancesOn" }; //"-reuseInstances" };
+		args = new String[] { "-clients", "1", "-size", "m3.large", "-data", "tests.txt", "-useOnDemand" }; //, "-healthCheck" , "-leaveInstancesOn" }; //"-reuseInstances" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);

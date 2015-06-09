@@ -1,5 +1,7 @@
 package it.polimi.modaclouds.monitoring.sdaValidator;
 
+import it.polimi.modaclouds.monitoring.sdaValidator.util.FileFormatConverter;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +48,19 @@ public class Main {
 			throw new RuntimeException("Parent folder not found! (" + parent.toString() + ")");
 		
 		try {
+			logger.info("Converting the results from JSON to CSV...");
+			String[] files = new String[] {
+					"cpu.out", "cpuSteal.out", "d.out", "rt.out", "thresholds.out", "wl.out",
+					"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
+					};
+			for (String f : files) {
+				try {
+					FileFormatConverter.rewriteJsonAsCsv(Paths.get(parent.toString(), f), FileFormatConverter.DataType.TOWER_JSON);
+				} catch (Exception e) {
+					logger.error("Error while converting the file.", e);
+				}
+			}
+			
 			logger.info("Launching the initializing script...");
 			exec(String.format(INIT_COMMAND, createModifiedBash(parent).toString()));
 			

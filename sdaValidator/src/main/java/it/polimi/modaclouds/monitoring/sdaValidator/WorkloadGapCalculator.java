@@ -1,5 +1,8 @@
 package it.polimi.modaclouds.monitoring.sdaValidator;
 
+import it.polimi.modaclouds.monitoring.sdaValidator.util.Workload;
+import it.polimi.modaclouds.monitoring.sdaValidator.util.WorkloadHelper;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -7,9 +10,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
-import util.Workload;
-import util.WorkloadHelper;
 
 public class WorkloadGapCalculator {
 

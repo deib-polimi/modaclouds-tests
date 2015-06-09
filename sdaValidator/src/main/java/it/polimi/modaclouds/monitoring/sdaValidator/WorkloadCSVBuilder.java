@@ -1,5 +1,7 @@
 package it.polimi.modaclouds.monitoring.sdaValidator;
 
+import it.polimi.modaclouds.monitoring.sdaValidator.util.Workload;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -8,8 +10,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
-import util.Workload;
 
 public class WorkloadCSVBuilder {
 

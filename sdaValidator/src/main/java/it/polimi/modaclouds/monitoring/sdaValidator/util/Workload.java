@@ -1,4 +1,4 @@
-package util;
+package it.polimi.modaclouds.monitoring.sdaValidator.util;
 
 public class Workload {
 
