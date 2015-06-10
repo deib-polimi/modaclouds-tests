@@ -60,14 +60,14 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="EstimationCI">
+    <collectedMetric metricName="EstimationCI_AvarageEffectiveResponseTime">
       <parameter name="window">60000</parameter>
       <parameter name="nCPU">2</parameter>
       <parameter name="CPUUtilTarget">MIC</parameter>
       <parameter name="CPUUtilMetric">FrontendCPUUtilization</parameter>
       <parameter name="targetMetric">AvarageEffectiveResponseTime</parameter>
       <parameter name="samplingTime">300</parameter>
-      <parameter name="filePath">/home/ubuntu/modaclouds-sda-1.2.2/</parameter>
+      <parameter name="filePath">/home/ubuntu/modaclouds-sda/</parameter>
     </collectedMetric>
     <actions>
       <action name="OutputMetric">
