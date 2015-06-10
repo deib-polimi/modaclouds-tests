@@ -329,7 +329,7 @@
 		<dependency>
 			<groupId>it.polimi.tower4clouds</groupId>
 			<artifactId>rules</artifactId>
-			<version>0.2-SNAPSHOT</version>
+			<version>0.2</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j-over-slf4j</artifactId>

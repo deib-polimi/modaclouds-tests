@@ -80,7 +80,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+    <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload5Min">
       <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">30</parameter>
       <parameter name="autoregressive">1</parameter>
@@ -100,7 +100,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+    <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload10Min">
       <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">60</parameter>
       <parameter name="autoregressive">1</parameter>
@@ -120,7 +120,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+    <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload15Min">
       <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">90</parameter>
       <parameter name="autoregressive">1</parameter>
@@ -140,7 +140,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+    <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload20Min">
       <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">120</parameter>
       <parameter name="autoregressive">1</parameter>
@@ -160,7 +160,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+    <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload25Min">
       <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">150</parameter>
       <parameter name="autoregressive">1</parameter>
