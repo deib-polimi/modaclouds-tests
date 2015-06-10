@@ -65,7 +65,6 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
       <parameter name="nCPU">2</parameter>
       <parameter name="CPUUtilTarget">MIC</parameter>
       <parameter name="CPUUtilMetric">FrontendCPUUtilization</parameter>
-      <parameter name="targetMetric">AvarageEffectiveResponseTime</parameter>
       <parameter name="samplingTime">300</parameter>
       <parameter name="filePath">/home/ubuntu/modaclouds-sda/</parameter>
     </collectedMetric>
@@ -81,8 +80,8 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeSeriesARIMA5Min">
-      <parameter name="targetMetric">Workload</parameter>
+    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+      <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">30</parameter>
       <parameter name="autoregressive">1</parameter>
       <parameter name="movingAverage">1</parameter>
@@ -101,8 +100,8 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeSeriesARIMA10Min">
-      <parameter name="targetMetric">Workload</parameter>
+    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+      <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">60</parameter>
       <parameter name="autoregressive">1</parameter>
       <parameter name="movingAverage">1</parameter>
@@ -121,8 +120,8 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeSeriesARIMA15Min">
-      <parameter name="targetMetric">Workload</parameter>
+    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+      <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">90</parameter>
       <parameter name="autoregressive">1</parameter>
       <parameter name="movingAverage">1</parameter>
@@ -141,8 +140,8 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeSeriesARIMA20Min">
-      <parameter name="targetMetric">Workload</parameter>
+    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+      <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">120</parameter>
       <parameter name="autoregressive">1</parameter>
       <parameter name="movingAverage">1</parameter>
@@ -161,8 +160,8 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
-    <collectedMetric metricName="ForecastingTimeSeriesARIMA25Min">
-      <parameter name="targetMetric">Workload</parameter>
+    <collectedMetric metricName="ForecastingTimeseriesARMA_Workload">
+      <parameter name="order">1</parameter>
       <parameter name="forecastPeriod">150</parameter>
       <parameter name="autoregressive">1</parameter>
       <parameter name="movingAverage">1</parameter>
