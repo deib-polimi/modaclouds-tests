@@ -203,7 +203,7 @@ JSON_INIT="{
     \"protocol\": \"HTTP\",
     \"callbackUrl\": \"http://"$2":"
 
-JSON_END="/v1/results\"
+JSON_END="/data\"
 }"
 
 echo "$JSON_INIT"8178"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers -d @-

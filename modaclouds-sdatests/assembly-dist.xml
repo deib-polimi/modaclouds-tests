@@ -67,11 +67,6 @@
       <destName>MPloadModel-healthCheck</destName>
     </file>
     <file>
-      <source>resources/observer_remote_launcher</source>
-      <outputDirectory></outputDirectory>
-      <destName>observer_remote_launcher</destName>
-    </file>
-    <file>
       <source>resources/tests.txt</source>
       <outputDirectory></outputDirectory>
       <destName>tests.txt</destName>

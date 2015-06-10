@@ -386,9 +386,6 @@ public class Test {
 		if (useDatabase)
 			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
 		
-		if (healthCheck)
-			logger.info("Total count of CountResponseTime: {}", getTotalCountResponseTime(Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"), "logs", "data2stdout.log")));
-		
 		logger.info("Done!");
 		
 		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
@@ -412,6 +409,12 @@ public class Test {
 		}
 		
 		return 0;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		VirtualMachine tmp = VirtualMachine.getVM("mpl", "m3.large", 1);
+		
+		Ssh.exec("54.154.106.241", tmp, "cd /home/ubuntu/modaclouds-sda && source ~/.bashrc && sudo -E bash run_main.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81 tower4clouds > /home/ubuntu/sda.out 2>&1 &");
 	}
 
 }
