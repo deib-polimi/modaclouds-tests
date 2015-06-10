@@ -418,7 +418,7 @@ public class Test {
 	public void addCPUUtilizationMonitoringRules(double aboveValue,
 			double underValue) throws Exception {
 		String cloudMLIp = mpl.getInstances().get(0).getIp();
-		String cloudMLPort = mpl.getParameter("CLOUDML_PORT");
+		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
 		
 		MonitoringRules rules = new MonitoringRules();
 		rules.getMonitoringRules()
