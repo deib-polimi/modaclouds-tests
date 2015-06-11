@@ -71,6 +71,11 @@
       <outputDirectory></outputDirectory>
       <destName>tests.txt</destName>
     </file>
+    <file>
+      <source>resources/grep_methodResult</source>
+      <outputDirectory></outputDirectory>
+      <destName>grep_methodResult</destName>
+    </file>
   </files>
 
   <fileSets>

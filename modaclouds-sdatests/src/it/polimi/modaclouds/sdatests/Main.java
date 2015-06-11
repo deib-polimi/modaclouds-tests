@@ -60,9 +60,6 @@ public class Main {
 	@Parameter(names = "-wait", description = "Stalls the execution of the given milliseconds without starting any test at all (used only in batch)", hidden = true)
 	private int wait = -1;
 	
-	@Parameter(names = "-validator", description = "The path to the validator that will be called in the end")
-	private String validator = null;
-	
 	@Parameter(names = "-noSDA", description = "Don't use the SDAs for the test", hidden = true)
 	private boolean noSDA = false;
 	
@@ -88,7 +85,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA, m.healthCheck);
+			doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -114,9 +111,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA, m.healthCheck));
+						threads.add(doTestInBackground(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck));
 					else
-						doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.validator, m.noSDA, m.healthCheck);
+						doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck);
 				}
 				
 				for (Thread t : threads)
@@ -133,11 +130,11 @@ public class Main {
 		
 	}
 	
-	public static void doTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator, boolean noSDA, boolean healthCheck) {
+	public static void doTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(size, clients, servers, baseJmx, data, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck, validator);
+			long duration = Test.performTest(size, clients, servers, baseJmx, data, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck);
 			
 			if (duration > -1)
 				logger.info("The test run correctly in {}!", durationToString(duration));
@@ -149,7 +146,7 @@ public class Main {
 		
 	}
 	
-	public static Thread doTestInBackground(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String validator, boolean noSDA, boolean healthCheck) {
+	public static Thread doTestInBackground(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck) {
 		final String fsize = size;
 		final int fclients = clients;
 		final Path fbaseJmx = baseJmx;
@@ -159,14 +156,13 @@ public class Main {
 		final boolean freuseInstances = reuseInstances;
 		final boolean fleaveInstancesOn = leaveInstancesOn;
 		final boolean fonlyStartMachines = onlyStartMachines;
-		final String fvalidator = validator;
 		final boolean fnoSDA = noSDA;
 		final int fservers = servers;
 		final boolean fhealthCheck = healthCheck;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fservers, fbaseJmx, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fvalidator, fnoSDA, fhealthCheck);
+				doTest(fsize, fclients, fservers, fbaseJmx, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fnoSDA, fhealthCheck);
 			}
 		};
 		

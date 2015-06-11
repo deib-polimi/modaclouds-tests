@@ -10,6 +10,7 @@ import it.cloud.utils.CloudException;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
 import it.cloud.utils.Ssh;
+import it.polimi.modaclouds.sdatests.validator.Validator;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,7 +47,7 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static long performTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String validator) throws Exception {
+	public static long performTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck) throws Exception {
 		long init = System.currentTimeMillis();
 		
 		Test t = new Test(size, clients, servers, useDatabase, noSDA, healthCheck);
@@ -70,7 +71,7 @@ public class Test {
 			t.stopMachines();
 		
 		if (!noSDA)
-			t.execValidator(validator, path);
+			Validator.perform(path);
 		else
 			Data2StdoutParser.perform(path);
 		
@@ -389,15 +390,6 @@ public class Test {
 		logger.info("Done!");
 		
 		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
-	}
-	
-	public static final String EXEC_VALIDATOR = "bash %s -parent %s";
-	
-	public void execValidator(String validator, Path path) throws Exception {
-		if (path != null && validator != null && new File(validator).exists()) {
-			logger.info("Launching the validator...");
-			exec(String.format(EXEC_VALIDATOR, validator, path.toString()));
-		}
 	}
 	
 	public int getTotalCountResponseTime(Path path) {
