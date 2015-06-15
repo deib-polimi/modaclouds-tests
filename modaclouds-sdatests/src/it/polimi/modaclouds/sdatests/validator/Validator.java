@@ -42,8 +42,9 @@ public class Validator {
 			logger.info("Launching the initializing script...");
 			exec(String.format(INIT_COMMAND, createModifiedBash(parent).toString()));
 			
-			logger.info("Launching the DemandValidator class...");
-			DemandValidator.perform(parent);
+//			TODO: fix the demand validator with the new sda.out format
+//			logger.info("Launching the DemandValidator class...");
+//			DemandValidator.perform(parent);
 			
 			String[] methods = new String[] { "reg", "save", "answ" };
 			

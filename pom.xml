@@ -25,7 +25,6 @@
 	<modules>
 		<module>modaclouds-sdatests</module>
 		<module>modaclouds-scalingrules</module>
-		<module>sdaValidator</module>
 		<module>cloudmldaemon</module>
 	</modules>
 

@@ -48,6 +48,11 @@ public class Test {
 	}
 	
 	public static long performTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck) throws Exception {
+		if (!baseJmx.toFile().exists())
+			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
+		if (!new File(data).exists())
+			throw new RuntimeException("The provided data file (" + data + ") doesn't exist!");
+		
 		long init = System.currentTimeMillis();
 		
 		Test t = new Test(size, clients, servers, useDatabase, noSDA, healthCheck);
