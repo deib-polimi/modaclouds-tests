@@ -88,5 +88,36 @@ public abstract class FileFormatConverter {
 			logger.error("Error while converting the file.", e);
 		}
 	}
+	
+	public static String jsonAsCsvString(Path file, DataType origDataType) {
+		StringBuilder out = new StringBuilder();
+		
+		try (Scanner sc = new Scanner(file)) {
+			
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				
+				try {
+					switch (origDataType) {
+					case TOWER_JSON:
+						JSONArray array = new JSONArray(line);
+						for (int i = 0; i < array.length(); ++i) {
+							JSONObject obj = array.getJSONObject(i);
+							Element el = new Element(obj);
+							
+							out.append(el.toCSV() + "\n");
+						}
+						break;
+					default:
+						break;
+					}
+				} catch (Exception e) { }
+			}
+		} catch (Exception e) {
+			logger.error("Error while converting the file.", e);
+		}
+		
+		return out.toString();
+	}
 
 }

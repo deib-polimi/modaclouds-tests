@@ -3,7 +3,6 @@ package it.polimi.modaclouds.sdatests.validator;
 import it.polimi.modaclouds.sdatests.validator.util.Workload;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class WorkloadCSVBuilder {
+	
+	private static final Logger logger = LoggerFactory.getLogger(WorkloadCSVBuilder.class);
 
 	public static void main(String[] args) {
 		perform(Paths.get("."));
@@ -22,7 +26,15 @@ public class WorkloadCSVBuilder {
 	public static final String FORECASTED_WORKLOAD = "forecasted_WL_%d.out";
 	public static final String FORECASTED_WORKLOAD_AGGREGATE = "workload_timestep_%d.csv";
 
+	public static final int WINDOW = 30;
+	
 	public static void perform(Path parent) {
+		perform(parent, WINDOW);
+	}
+
+	public static void perform(Path parent, int window) {
+		if (window < 1)
+			window = 1;
 
 		List<Workload> monitored = new ArrayList<Workload>();
 		List<Workload> first = new ArrayList<Workload>();
@@ -31,94 +43,81 @@ public class WorkloadCSVBuilder {
 		List<Workload> fourth = new ArrayList<Workload>();
 		List<Workload> fifth = new ArrayList<Workload>();
 
-		Scanner input;
-		String[] splitted;
-
 		for (int i = 0; i <= 5; i++) {
 			int cont = 1;
-			BufferedWriter writer = null;
 
 			if (i == 0) {
-				try {
-					Path monitoredWorkload = Paths.get(parent.toString(),
-							MONITORED_WORKLOAD);
-					if (monitoredWorkload == null
-							|| !monitoredWorkload.toFile().exists())
-						throw new RuntimeException(
-								"Monitored workload file not found or wrong path ("
-										+ monitoredWorkload.toString() + ")");
+				Path monitoredWorkload = Paths.get(parent.toString(),
+						MONITORED_WORKLOAD);
+				if (monitoredWorkload == null
+						|| !monitoredWorkload.toFile().exists())
+					throw new RuntimeException(
+							"Monitored workload file not found or wrong path ("
+									+ monitoredWorkload.toString() + ")");
 
-					input = new Scanner(monitoredWorkload);
-
-					File tempFile = Paths.get(parent.toString(),
-							MONITORED_WORKLOAD_AGGREGATE).toFile();
-					writer = new BufferedWriter(new FileWriter(tempFile));
+				try (Scanner input = new Scanner(monitoredWorkload);
+						BufferedWriter writer = new BufferedWriter(
+								new FileWriter(Paths.get(parent.toString(),
+										MONITORED_WORKLOAD_AGGREGATE).toFile()))) {
 					writer.write("TIMESTEP,METRIC\n");
 
 					int j = 0;
 
-					int[] buffer = new int[30];
+					float[] buffer = new float[window];
 					while (input.hasNextLine()) {
 						String line = input.nextLine();
-						splitted = line.split(",");
-						int value = 0;
-						;
+						String[] splitted = line.split(",");
+						float value = 0;
 
-						value = Integer.parseInt(splitted[3]);
+						value = Float.parseFloat(splitted[3]);
 
-						if (j == 29) {
-							buffer[j] = value;
+						buffer[j] = value;
+						j++;
 
-							System.out.println("workload at timestep " + cont);
-							int sum = 0;
-							for (int temp : buffer) {
-								System.out.println(temp);
+						if (j == window - 1) {
+							logger.debug("workload at timestep {}", cont);
+							float sum = 0;
+							for (float temp : buffer) {
+								logger.debug("{}", temp);
 								sum = sum + temp;
 							}
-							System.out.println("-------------------");
-							System.out.println("AVG=" + sum / 30);
-							writer.write(cont + "," + sum / 30 + "\n");
-							monitored.add(new Workload(cont, sum / 30));
+							logger.debug("-------------------");
+							int avg = (int) Math.round(sum / 30);
+							logger.debug("AVG={}", avg);
+							writer.write(cont + "," + avg + "\n");
+							monitored.add(new Workload(cont, avg));
 							cont++;
 							j = 0;
-						} else {
-							buffer[j] = value;
-							j++;
-
 						}
 					}
+
+					writer.flush();
 				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					try {
-						writer.flush();
-						writer.close();
-					} catch (Exception e) {
-					}
+					logger.error("Error while considering the actual workload.", e);
 				}
 			} else {
-				try {
-					Path forecastedWorkload = Paths.get(parent.toString(),
-							String.format(FORECASTED_WORKLOAD, i));
-					if (forecastedWorkload == null
-							|| !forecastedWorkload.toFile().exists())
-						throw new RuntimeException(
-								"Forecasted workload file not found or wrong path ("
-										+ forecastedWorkload.toString() + ")");
+				Path forecastedWorkload = Paths.get(parent.toString(),
+						String.format(FORECASTED_WORKLOAD, i));
+				if (forecastedWorkload == null
+						|| !forecastedWorkload.toFile().exists())
+					throw new RuntimeException(
+							"Forecasted workload file not found or wrong path ("
+									+ forecastedWorkload.toString() + ")");
 
-					input = new Scanner(forecastedWorkload);
-
-					File tempFile = Paths.get(parent.toString(),
-							String.format(FORECASTED_WORKLOAD_AGGREGATE, i)).toFile();
-					writer = new BufferedWriter(new FileWriter(tempFile));
+				try (Scanner input = new Scanner(forecastedWorkload);
+						BufferedWriter writer = new BufferedWriter(
+								new FileWriter(Paths.get(
+										parent.toString(),
+										String.format(
+												FORECASTED_WORKLOAD_AGGREGATE,
+												i)).toFile()))) {
 					writer.write("TIMESTEP,METRIC\n");
 					while (input.hasNextLine()) {
 						String line = input.nextLine();
-						splitted = line.split(",");
+						String[] splitted = line.split(",");
 						float value = 0;
-						;
 
-						value = Float.parseFloat(splitted[4]);
+						value = Float.parseFloat(splitted[3]);
 
 						writer.write(cont + "," + value + "\n");
 
@@ -136,20 +135,16 @@ public class WorkloadCSVBuilder {
 						}
 						cont++;
 					}
+
+					writer.flush();
 				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					try {
-						writer.flush();
-						writer.close();
-					} catch (Exception e) {
-					}
+					logger.error("Error while considering the forecasted workload.", e);
 				}
 			}
 		}
 
-		WorkloadGapCalculator.calculate(parent, monitored, first, second, third,
-				fourth, fifth);
+		WorkloadGapCalculator.calculate(parent, monitored, first, second,
+				third, fourth, fifth);
 	}
 
 }

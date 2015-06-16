@@ -20,31 +20,36 @@ import org.slf4j.LoggerFactory;
 public class Validator {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Validator.class);
-
+	
 	public static void perform(Path parent) {
+		perform(parent, true);
+	}
+
+	public static void perform(Path parent, boolean dontConvertFromJsonToCSV) {
 		if (parent == null || !parent.toFile().exists())
 			throw new RuntimeException("Parent folder not found! (" + parent.toString() + ")");
 		
 		try {
-			logger.info("Converting the results from JSON to CSV...");
-			String[] files = new String[] {
-					"cpu.out", "cpuSteal.out", "d.out", "rt.out", "thresholds.out", "wl.out",
-					"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
-					};
-			for (String f : files) {
-				try {
-					FileFormatConverter.rewriteJsonAsCsv(Paths.get(parent.toString(), f), FileFormatConverter.DataType.TOWER_JSON);
-				} catch (Exception e) {
-					logger.error("Error while converting the file.", e);
+			if (!dontConvertFromJsonToCSV) {
+				logger.info("Converting the results from JSON to CSV...");
+				String[] files = new String[] {
+						"cpu.out", "cpuSteal.out", "d.out", "rt.out", "thresholds.out", "wl.out",
+						"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
+						};
+				for (String f : files) {
+					try {
+						FileFormatConverter.rewriteJsonAsCsv(Paths.get(parent.toString(), f), FileFormatConverter.DataType.TOWER_JSON);
+					} catch (Exception e) {
+						logger.error("Error while converting the file.", e);
+					}
 				}
 			}
 			
 			logger.info("Launching the initializing script...");
 			exec(String.format(INIT_COMMAND, createModifiedBash(parent).toString()));
 			
-//			TODO: fix the demand validator with the new sda.out format
-//			logger.info("Launching the DemandValidator class...");
-//			DemandValidator.perform(parent);
+			logger.info("Launching the DemandValidator class...");
+			DemandValidator.perform(parent);
 			
 			String[] methods = new String[] { "reg", "save", "answ" };
 			

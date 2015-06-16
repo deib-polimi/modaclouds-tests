@@ -4,23 +4,24 @@ import it.polimi.modaclouds.sdatests.validator.util.Workload;
 import it.polimi.modaclouds.sdatests.validator.util.WorkloadHelper;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class WorkloadGapCalculator {
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(WorkloadGapCalculator.class);
 
 	public static final String RESULT = "gap_analisys.csv";
 
 	public static void calculate(Path parent, List<Workload> monitored,
 			List<Workload> first, List<Workload> second, List<Workload> third,
 			List<Workload> fourth, List<Workload> fifth) {
-
-		BufferedWriter writer = null;
-		File tempFile = Paths.get(parent.toString(), RESULT).toFile();
 
 		float avarageGapFirst = 0;
 		float avarageGapSecond = 0;
@@ -37,8 +38,8 @@ public class WorkloadGapCalculator {
 
 		int cont = 0;
 
-		try {
-			writer = new BufferedWriter(new FileWriter(tempFile));
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(Paths
+				.get(parent.toString(), RESULT).toFile()))) {
 
 			writer.write("workload,"
 					+ "prediction_1_timestep, error_1_timestep,"
@@ -93,15 +94,9 @@ public class WorkloadGapCalculator {
 					+ "% ," + "--------," + avarageGapFourth / cont * 100
 					+ "% ," + "--------," + avarageGapFifth / cont * 100 + "%");
 
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				writer.flush();
-				writer.close();
-			} catch (Exception e) {
-			}
+			writer.flush();
+		} catch (Exception e) {
+			logger.error("Error while analyzing the gap.", e);
 		}
 	}
 }

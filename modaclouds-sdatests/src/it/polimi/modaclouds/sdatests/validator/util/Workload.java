@@ -3,14 +3,14 @@ package it.polimi.modaclouds.sdatests.validator.util;
 public class Workload {
 
 	private int timestep;
-	
+
 	private float value;
 
-	public Workload(int timestep, float value){
-		this.timestep=timestep;
-		this.value=value;
+	public Workload(int timestep, float value) {
+		this.timestep = timestep;
+		this.value = value;
 	}
-	
+
 	public int getTimestep() {
 		return timestep;
 	}
@@ -26,6 +26,5 @@ public class Workload {
 	public void setValue(float value) {
 		this.value = value;
 	}
-	
 
 }

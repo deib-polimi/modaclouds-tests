@@ -1,7 +1,5 @@
 package it.polimi.modaclouds.sdatests.validator;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,7 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DemandValidator {
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(DemandValidator.class);
 
 	private static List<Float> cpu = new ArrayList<Float>();
 
@@ -36,31 +40,27 @@ public class DemandValidator {
 
 		boolean startCollectSDAResult = false;
 		boolean stop = false;
-		PrintWriter writer = null;
 
-		Scanner input;
-		try {
-			input = new Scanner(sda);
-			writer = new PrintWriter(Paths.get(parent.toString(), RESULT)
-					.toFile(), "UTF-8");
+		try (Scanner input = new Scanner(sda);
+				PrintWriter writer = new PrintWriter(Paths.get(
+						parent.toString(), RESULT).toFile(), "UTF-8")) {
 
 			writer.write("AvarageCPUUtil, "
 					+ "AvarageEstimatedDemand_save, AvarageRealResponseTime_save, AvarageEstimatedResponseTime_save, GAP_save,"
 					+ "AvarageEstimatedDemand_reg, AvarageRealResponseTime_reg, AvarageEstimatedResponseTime_reg, GAP_reg,"
 					+ "AvarageEstimatedDemand_answ, AvarageRealResponseTime_answ, AvarageEstimatedResponseTime_answ, GAP_answ\n");
 
-			String[] splitted;
-
 			while (input.hasNextLine()) {
 				String line = input.nextLine();
 
-				if (!startCollectSDAResult && line.contains("FrontendCPUUtilization")) {
+				if (!startCollectSDAResult
+						&& line.contains("FrontendCPUUtilization")) {
 					startCollectSDAResult = true;
 				}
 
-//				if (line.contains("ENDEND")) {
-//					stop = true;
-//				}
+				// if (line.contains("ENDEND")) {
+				// stop = true;
+				// }
 
 				if (startCollectSDAResult & !stop) {
 
@@ -72,7 +72,7 @@ public class DemandValidator {
 					} else {
 
 						if (line.contains("estimationci")) {
-							splitted = line.split(" ");
+							String[] splitted = line.split(" ");
 							String datum = splitted[splitted.length - 1]
 									.substring(1, splitted[splitted.length - 1]
 											.length() - 1);
@@ -91,7 +91,7 @@ public class DemandValidator {
 						}
 
 						if (line.contains("AvarageEffectiveResponseTime")) {
-							splitted = line.split(" ");
+							String[] splitted = line.split(" ");
 							Float toAdd = Float.parseFloat(splitted[2]
 									.split("e")[0]);
 
@@ -111,7 +111,7 @@ public class DemandValidator {
 						}
 
 						if (line.contains("FrontendCPUUtilization")) {
-							splitted = line.split(" ");
+							String[] splitted = line.split(" ");
 							Float toAdd = Float.parseFloat(splitted[2]
 									.split("e")[0]);
 							if (!Float.isNaN(toAdd.floatValue()))
@@ -122,14 +122,10 @@ public class DemandValidator {
 				}
 
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			writer.flush();
-			writer.close();
 
+			writer.flush();
+		} catch (Exception e) {
+			logger.error("Error while considering the demands.", e);
 		}
 
 	}
