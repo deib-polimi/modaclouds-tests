@@ -58,7 +58,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
   <monitoringRule id="sdaHaproxy" timeStep="300" timeWindow="300">
     <monitoredTargets>
-      <monitoredTarget class="VM" type="Frontend"/>
+      <monitoredTarget class="Method"/>
     </monitoredTargets>
     <collectedMetric metricName="EstimationCI_AvarageEffectiveResponseTime">
       <parameter name="window">60000</parameter>
@@ -78,7 +78,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
   <monitoringRule id="sdaForecastFirst" timeStep="300" timeWindow="300">
     <monitoredTargets>
-      <monitoredTarget class="VM" type="Frontend"/>
+      <monitoredTarget class="Method"/>
     </monitoredTargets>
     <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload_5Min">
       <parameter name="order">1</parameter>
@@ -98,7 +98,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
   <monitoringRule id="sdaForecastSecond" timeStep="300" timeWindow="300">
     <monitoredTargets>
-      <monitoredTarget class="VM" type="Frontend"/>
+      <monitoredTarget class="Method"/>
     </monitoredTargets>
     <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload_10Min">
       <parameter name="order">1</parameter>
@@ -118,7 +118,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
   <monitoringRule id="sdaForecastThird" timeStep="300" timeWindow="300">
     <monitoredTargets>
-      <monitoredTarget class="VM" type="Frontend"/>
+      <monitoredTarget class="Method"/>
     </monitoredTargets>
     <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload_15Min">
       <parameter name="order">1</parameter>
@@ -138,7 +138,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
   <monitoringRule id="sdaForecastFourth" timeStep="300" timeWindow="300">
     <monitoredTargets>
-      <monitoredTarget class="VM" type="Frontend"/>
+      <monitoredTarget class="Method"/>
     </monitoredTargets>
     <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload_20Min">
       <parameter name="order">1</parameter>
@@ -158,7 +158,7 @@ curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitorin
   </monitoringRule>
   <monitoringRule id="sdaForecastFifth" timeStep="300" timeWindow="300">
     <monitoredTargets>
-      <monitoredTarget class="VM" type="Frontend"/>
+      <monitoredTarget class="Method"/>
     </monitoredTargets>
     <collectedMetric metricName="ForecastingTimeseriesARIMA_Workload_25Min">
       <parameter name="order">1</parameter>
