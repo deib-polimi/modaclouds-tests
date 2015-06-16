@@ -1,6 +1,4 @@
 /bin
 /target
+debug*.log
 .DS_Store
-debug.log
-/target
-/target
