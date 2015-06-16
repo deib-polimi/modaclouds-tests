@@ -15,7 +15,7 @@
 		<version>0.1</version>
 	</parent>
 	<artifactId>cloudmldaemon</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<name>MODAClouds - CloudML Daemon</name>
 
 	<licenses>
@@ -232,10 +232,10 @@
 			<version>2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.10</version>
-		</dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.3</version>
+        </dependency>
 		<dependency>
 			<groupId>com.beust</groupId>
 			<artifactId>jcommander</artifactId>
