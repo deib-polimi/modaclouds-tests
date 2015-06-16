@@ -47,11 +47,13 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static long performTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck) throws Exception {
-		if (!baseJmx.toFile().exists())
+	public static long performTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile) throws Exception {
+		if (baseJmx == null || !new File(baseJmx).exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
-		if (!new File(data).exists())
+		if (data == null || !new File(data).exists())
 			throw new RuntimeException("The provided data file (" + data + ") doesn't exist!");
+		if (loadModelFile != null && !new File(loadModelFile).exists())
+			loadModelFile = null;
 		
 		long init = System.currentTimeMillis();
 		
@@ -63,12 +65,12 @@ public class Test {
 		
 		t.createLoadBalancer();
 		
-		t.initSystem();
+		t.initSystem(loadModelFile);
 		
 		if (onlyStartMachines)
 			return -1;
 		
-		Path path = t.runTest(baseJmx, data);
+		Path path = t.runTest(Paths.get(baseJmx), data);
 		
 		t.destroyLoadBalancer();
 		
@@ -228,7 +230,7 @@ public class Test {
 	
 	private List<Thread> otherThreads;
 	
-	public void initSystem() throws Exception {
+	public void initSystem(String loadModelFile) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -251,26 +253,31 @@ public class Test {
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
-		if (!noSDA) {
-			exec(String.format(
-					LOAD_MODEL_COMMAND,
-					impl.getIp(),
-					impl.getIp()));
-		} else {
+		if (noSDA) {
 			Ssh.execInBackground(impl, 
 					mpl.getParameter("DATA2STDOUT_STARTER"));
 			
 			try { Thread.sleep(5000); } catch (Exception e) { }
-			
-			if (!healthCheck)
-				exec(String.format(
-						LOAD_MODEL_COMMAND_NOSDA,
-						impl.getIp()));
-			else
-				exec(String.format(
-						LOAD_MODEL_COMMAND_HEALTHCHECK,
-						impl.getIp()));
 		}
+		
+		if (loadModelFile != null)
+			exec(String.format("bash %s %s %s",
+					loadModelFile,
+					impl.getIp(),
+					impl.getIp()));
+		else if (!noSDA)
+			exec(String.format(
+					LOAD_MODEL_COMMAND,
+					impl.getIp(),
+					impl.getIp()));
+		else if (!healthCheck)
+			exec(String.format(
+					LOAD_MODEL_COMMAND_NOSDA,
+					impl.getIp()));
+		else
+			exec(String.format(
+					LOAD_MODEL_COMMAND_HEALTHCHECK,
+					impl.getIp()));
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		

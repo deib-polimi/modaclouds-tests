@@ -2,8 +2,6 @@ package it.polimi.modaclouds.scalingrules;
 
 import it.cloud.amazon.ec2.Configuration;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -89,7 +87,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
+			doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -115,9 +113,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size));
+						threads.add(doTestInBackground(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size));
 					else
-						doTest(m.clients, Paths.get(m.baseJmx), m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
+						doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
 				}
 				
 				for (Thread t : threads)
@@ -133,7 +131,7 @@ public class Main {
 		System.exit(0);
 	}
 	
-	public static void doTest(int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
+	public static void doTest(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
@@ -150,9 +148,9 @@ public class Main {
 		}
 	}
 	
-	public static Thread doTestInBackground(int clients, Path baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
+	public static Thread doTestInBackground(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
 		final int fclients = clients;
-		final Path fbaseJmx = baseJmx;
+		final String fbaseJmx = baseJmx;
 		final String fdata = data;
 		final boolean fuseOnDemand = useOnDemand;
 		final boolean freuseInstances = reuseInstances;

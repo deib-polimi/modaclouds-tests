@@ -2,8 +2,6 @@ package it.polimi.modaclouds.sdatests;
 
 import it.cloud.amazon.ec2.Configuration;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +64,9 @@ public class Main {
 	@Parameter(names = "-healthCheck", description = "Just do a health check", hidden = true)
 	private boolean healthCheck = false;
 	
+	@Parameter(names = "-loadModelFile", description = "The path to the load model file")
+	private String loadModelFile = null;
+	
 	public static final String APP_TITLE = "\nSDA Test\n";
 
 	public static void main(String[] args) {
@@ -85,7 +86,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck);
+			doTest(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -111,9 +112,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck));
+						threads.add(doTestInBackground(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile));
 					else
-						doTest(m.size, m.clients, m.servers, Paths.get(m.baseJmx), m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck);
+						doTest(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile);
 				}
 				
 				for (Thread t : threads)
@@ -130,11 +131,11 @@ public class Main {
 		
 	}
 	
-	public static void doTest(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck) {
+	public static void doTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(size, clients, servers, baseJmx, data, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck);
+			long duration = Test.performTest(size, clients, servers, baseJmx, data, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck, loadModelFile);
 			
 			if (duration > -1)
 				logger.info("The test run correctly in {}!", durationToString(duration));
@@ -146,10 +147,10 @@ public class Main {
 		
 	}
 	
-	public static Thread doTestInBackground(String size, int clients, int servers, Path baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck) {
+	public static Thread doTestInBackground(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile) {
 		final String fsize = size;
 		final int fclients = clients;
-		final Path fbaseJmx = baseJmx;
+		final String fbaseJmx = baseJmx;
 		final String fdata = data;
 		final boolean fuseDatabase = useDatabase;
 		final boolean fstartAsOnDemand = startAsOnDemand;
@@ -159,10 +160,11 @@ public class Main {
 		final boolean fnoSDA = noSDA;
 		final int fservers = servers;
 		final boolean fhealthCheck = healthCheck;
+		final String floadModelFile = loadModelFile;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fservers, fbaseJmx, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fnoSDA, fhealthCheck);
+				doTest(fsize, fclients, fservers, fbaseJmx, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fnoSDA, fhealthCheck, floadModelFile);
 			}
 		};
 		

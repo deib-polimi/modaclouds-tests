@@ -19,6 +19,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Date;
@@ -129,12 +130,12 @@ public class Test {
 	
 	public static final int MAX_ATTEMPTS = 5;
 
-	public static long performTest(int clients, Path baseJmx, String data, boolean useOnDemand,
+	public static long performTest(int clients, String baseJmx, String data, boolean useOnDemand,
 			boolean reuseInstances, boolean leaveInstancesOn,
 			boolean onlyStartMachines, String size) throws Exception {
-		if (!baseJmx.toFile().exists())
+		if (baseJmx == null || !new File(baseJmx).exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
-		if (!new File(data).exists())
+		if (data == null || !new File(data).exists())
 			throw new RuntimeException("The provided data file (" + data + ") doesn't exist!");
 		
 		long init = System.currentTimeMillis();
@@ -162,7 +163,7 @@ public class Test {
 		
 		if (status != null && !status.equals("null")) {
 			t.addCPUUtilizationMonitoringRules();
-			t.runTest(baseJmx, data);
+			t.runTest(Paths.get(baseJmx), data);
 		} else {
 			logger.error("CloudML isn't working (the statuses are null).");
 		}
