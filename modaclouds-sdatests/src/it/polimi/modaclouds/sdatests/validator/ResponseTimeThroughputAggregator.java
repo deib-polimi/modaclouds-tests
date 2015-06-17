@@ -31,7 +31,7 @@ public class ResponseTimeThroughputAggregator {
 		if (monitoredWorkload == null || !monitoredWorkload.toFile().exists())
 			throw new RuntimeException(
 					"Monitored workload file not found or wrong path ("
-							+ monitoredWorkload.toString() + ")");
+							+ monitoredWorkload == null ? "null" : monitoredWorkload.toString() + ")");
 
 		try (Scanner input = new Scanner(monitoredWorkload)) {
 			currentHour = 1;
@@ -73,7 +73,7 @@ public class ResponseTimeThroughputAggregator {
 				|| !monitoredResponseTime.toFile().exists())
 			throw new RuntimeException(
 					"Monitored response time file not found or wrong path ("
-							+ monitoredResponseTime.toString() + ")");
+							+ monitoredResponseTime == null ? "null" : monitoredResponseTime.toString() + ")");
 
 		try (Scanner input = new Scanner(monitoredResponseTime)) {
 

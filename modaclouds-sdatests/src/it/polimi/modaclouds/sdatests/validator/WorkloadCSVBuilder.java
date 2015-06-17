@@ -53,7 +53,7 @@ public class WorkloadCSVBuilder {
 						|| !monitoredWorkload.toFile().exists())
 					throw new RuntimeException(
 							"Monitored workload file not found or wrong path ("
-									+ monitoredWorkload.toString() + ")");
+									+ monitoredWorkload == null ? "null" : monitoredWorkload.toString() + ")");
 
 				try (Scanner input = new Scanner(monitoredWorkload);
 						BufferedWriter writer = new BufferedWriter(
@@ -108,7 +108,7 @@ public class WorkloadCSVBuilder {
 						|| !forecastedWorkload.toFile().exists())
 					throw new RuntimeException(
 							"Forecasted workload file not found or wrong path ("
-									+ forecastedWorkload.toString() + ")");
+									+ forecastedWorkload == null ? "null" : forecastedWorkload.toString() + ")");
 
 				try (Scanner input = new Scanner(forecastedWorkload);
 						BufferedWriter writer = new BufferedWriter(

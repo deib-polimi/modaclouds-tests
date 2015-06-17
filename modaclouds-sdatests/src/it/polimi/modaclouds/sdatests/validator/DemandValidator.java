@@ -1,11 +1,14 @@
 package it.polimi.modaclouds.sdatests.validator;
 
+import it.polimi.modaclouds.sdatests.validator.util.Datum;
+
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,268 +19,165 @@ public class DemandValidator {
 			.getLogger(DemandValidator.class);
 
 	private static List<Float> cpu = new ArrayList<Float>();
-
-	private static List<Float> saveRT = new ArrayList<Float>();
-	private static List<Float> regRT = new ArrayList<Float>();
-	private static List<Float> answRT = new ArrayList<Float>();
-
-	private static Float saveDem;
-	private static Float regDem;
-	private static Float answDem;
-
+	
+	private static Map<String, List<Float>> RTs = new HashMap<String, List<Float>>();
+	private static Map<String, Float> Dems = new HashMap<String, Float>();
+	
 	public static void main(String[] args) {
-		perform(Paths.get("."));
+		perform(Paths.get("."), Validator.METHODS);
 	}
 
-	public static final String SDA = "sda.out";
 	public static final String RESULT = "demandAnalysis.csv";
 	
 	public static final String FORECASTED_DEMAND = "demand.out";
 	public static final String MONITORED_RESPONSETIME = "monitored_responseTime.out";
-
-	public static void perform(Path parent) {
-		Path sda = Paths.get(parent.toString(), SDA);
-		if (sda == null || !sda.toFile().exists())
-			throw new RuntimeException("SDA file not found or wrong path ("
-					+ sda.toString() + ")");
-
-		boolean startCollectSDAResult = false;
-		boolean stop = false;
-
-		try (Scanner input = new Scanner(sda);
-				PrintWriter writer = new PrintWriter(Paths.get(
-						parent.toString(), RESULT).toFile(), "UTF-8")) {
-
-			writer.write("AvarageCPUUtil, "
-					+ "AvarageEstimatedDemand_save, AvarageRealResponseTime_save, AvarageEstimatedResponseTime_save, GAP_save,"
-					+ "AvarageEstimatedDemand_reg, AvarageRealResponseTime_reg, AvarageEstimatedResponseTime_reg, GAP_reg,"
-					+ "AvarageEstimatedDemand_answ, AvarageRealResponseTime_answ, AvarageEstimatedResponseTime_answ, GAP_answ\n");
-
-			while (input.hasNextLine()) {
-				String line = input.nextLine();
-
-				if (!startCollectSDAResult
-						&& line.contains("FrontendCPUUtilization")) {
-					startCollectSDAResult = true;
-				}
-
-				// if (line.contains("ENDEND")) {
-				// stop = true;
-				// }
-
-				if (startCollectSDAResult & !stop) {
-
-					if (checkIntervalCompleted()) {
-
-						writer.write(validate() + "\n");
-						flushLists();
-
-					} else {
-
-						if (line.contains("estimationci")) {
-							String[] splitted = line.split(" ");
-							String datum = splitted[splitted.length - 1]
-									.substring(1, splitted[splitted.length - 1]
-											.length() - 1);
-							Float toAdd = Float.parseFloat(datum.split(":")[1]);
-
-							if (datum.split(":")[0]
-									.equals("mic-frontend-mon-saveAnswers")) {
-								saveDem = toAdd;
-							} else if (datum.split(":")[0]
-									.equals("mic-frontend-mon-register")) {
-								regDem = toAdd;
-							} else if (datum.split(":")[0]
-									.equals("mic-frontend-mon-answerQuestions")) {
-								answDem = toAdd;
-							}
-						}
-
-						if (line.contains("AvarageEffectiveResponseTime")) {
-							String[] splitted = line.split(" ");
-							Float toAdd = Float.parseFloat(splitted[2]
-									.split("e")[0]);
-
-							if (splitted[0]
-									.equals("mic-frontend-mon-saveAnswers")) {
-								saveRT.add(toAdd);
-							} else if (splitted[0]
-									.equals("mic-frontend-mon-register")) {
-								regRT.add(toAdd);
-
-							} else if (splitted[0]
-									.equals("mic-frontend-mon-answerQuestions")) {
-								answRT.add(toAdd);
-
-							}
-
-						}
-
-						if (line.contains("FrontendCPUUtilization")) {
-							String[] splitted = line.split(" ");
-							Float toAdd = Float.parseFloat(splitted[2]
-									.split("e")[0]);
-							if (!Float.isNaN(toAdd.floatValue()))
-								cpu.add(toAdd);
-
-						}
-					}
-				}
-
-			}
-
-			writer.flush();
-		} catch (Exception e) {
-			logger.error("Error while considering the demands.", e);
-		}
-
+	public static final String MONITORED_CPU = "cpu.out";
+	
+	public static void perform(Path parent, String[] methods) {
+		perform(parent, methods, Datum.Type.CSV);
 	}
 
-	private static String validate() {
+	public static void perform(Path parent, String[] methods, Datum.Type dataType) {
+		try (PrintWriter writer = new PrintWriter(Paths.get(
+						parent.toString(), RESULT).toFile(), "UTF-8")) {
+			
+			writer.write("AvarageCPUUtil");
+			for (String s : methods)
+				writer.write(String.format(",AvarageEstimatedDemand_%1$s,AvarageRealResponseTime_%1$s,AvarageEstimatedResponseTime_%1$s,GAP_%1$s", s));
+			writer.write("\n");
+			
+			Map<String, List<Datum>> forecastedDemands = new HashMap<String, List<Datum>>();
+			int maxForecastedDemands = Integer.MAX_VALUE;
+			for (int i = 0; i < methods.length; ++i) {
+				List<Datum> forecastedDemand = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), FORECASTED_DEMAND), dataType);
+				forecastedDemands.put(methods[i], forecastedDemand);
+				
+				if (maxForecastedDemands > forecastedDemand.size())
+					maxForecastedDemands = forecastedDemand.size();
+			}
+			
+			Map<String, List<Datum>> monitoredRTs = new HashMap<String, List<Datum>>();
+			for (int i = 0; i < methods.length; ++i) {
+				List<Datum> monitoredRT = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), MONITORED_RESPONSETIME), dataType);
+				monitoredRTs.put(methods[i], monitoredRT);
+			}
+			
+			List<Datum> monitoredCpu = Datum.getAllData(Paths.get(parent.toString(), MONITORED_CPU), Datum.Type.CSV);
+			
+			Map<String, Integer> iRTs = new HashMap<String, Integer>();
+			for (String s : methods)
+				iRTs.put(s, 0);
+			
+			int iCpu = 0;
+			
+			for (int i = 0; i < maxForecastedDemands; ++i) {
+				long maxTimestamp = Long.MAX_VALUE;
+				
+				for (String s : methods) {
+					Datum d = forecastedDemands.get(s).get(i);
+					
+					Dems.put(s, d.value.floatValue());
+					
+					if (maxTimestamp > d.timestamp)
+						maxTimestamp = d.timestamp;
+				}
+				
+				for (String s : methods) {
+					int iRT = iRTs.get(s);
+					List<Datum> monitoredRT = monitoredRTs.get(s);
+					List<Float> RT = RTs.get(s);
+					if (RT == null) {
+						RT = new ArrayList<Float>();
+						RTs.put(s, RT);
+					}
+					
+					boolean goOn = true;
+					for (; iRT < monitoredRT.size() && goOn; ++iRT) {
+						Datum rt = monitoredRT.get(iRT);
+						if (rt.timestamp > maxTimestamp) {
+							goOn = false;
+							iRTs.put(s, iRT);
+							continue;
+						}
+						RT.add(rt.value.floatValue());
+					}
+				}
+				
+				boolean goOn = true;
+				for (; iCpu < monitoredCpu.size() && goOn; ++iCpu) {
+					Datum util = monitoredCpu.get(iCpu);
+					if (util.timestamp > maxTimestamp) {
+						goOn = false;
+						iCpu--;
+						continue;
+					}
+					cpu.add(util.value.floatValue());
+				}
+				
+				writer.write(validate(methods) + "\n");
+				flushLists();
+			}
+			
+			writer.flush();
+		} catch (Exception e) {
+			logger.error("Error while getting the data from the result files.", e);
+		}
+	}
 
+	private static String validate(String[] methods) {
 		// System.out.println("VALIDATION");
 
 		float temp = 0;
-		float U;
-
-		float[] saveResult;
-		float[] regResult;
-		float[] answResult;
-
-		for (Float f : cpu) {
+		for (Float f : cpu)
 			temp = temp + f.floatValue();
-		}
 
 		/*
 		 * if(Float.isNaN(temp)){ for(Float f: cpu){
 		 * if(Float.isNaN(f.floatValue())){ System.out.println(f.floatValue());
 		 * } } System.out.println("####################"); }
 		 */
-		U = temp / cpu.size();
+		float U = temp / cpu.size();
 
-		saveResult = validateSave(U);
-		regResult = validateRegister(U);
-		answResult = validateAnsw(U);
+		StringBuilder res = new StringBuilder();
+		
+		res.append(U);
+		
+		for (String s : methods) {
+			float[] result = validate(RTs.get(s), Dems.get(s), U);
+			for (float f : result)
+				res.append("," + f);
+		}
 
-		return U + "," + saveResult[0] + "," + saveResult[1] + ","
-				+ saveResult[2] + "," + saveResult[3] + "," + regResult[0]
-				+ "," + regResult[1] + "," + regResult[2] + "," + regResult[3]
-				+ "," + answResult[0] + "," + answResult[1] + ","
-				+ answResult[2] + "," + answResult[3];
-
+		return res.toString();
 	}
-
-	private static float[] validateRegister(float cpuUtil) {
-
+	
+	private static float[] validate(List<Float> responseTimes, Float estimatedDemand, float utilization) {
 		float[] toReturn = new float[4];
 
 		float temp = 0;
-		float RTreg;
-		float RTregEstim;
-		float GAP;
+		for (Float f : responseTimes)
+			temp += f;
 
-		for (Float f : regRT) {
-			temp = temp + f.floatValue();
-		}
+		float avgResponseTime = temp / responseTimes.size();
 
-		RTreg = temp / regRT.size();
+		float estimatedResponseTime = estimatedDemand / (1 - utilization);
 
-		RTregEstim = regDem / (1 - cpuUtil);
+		float GAP = Math.abs((estimatedResponseTime - avgResponseTime) / avgResponseTime) * 100;
 
-		GAP = Math.abs((RTregEstim - RTreg) / RTreg) * 100;
-
-		temp = 0;
-
-		toReturn[0] = regDem;
-		toReturn[1] = RTreg;
-		toReturn[2] = RTregEstim;
-		toReturn[3] = GAP;
-
-		return toReturn;
-
-	}
-
-	private static float[] validateSave(float cpuUtil) {
-
-		float[] toReturn = new float[4];
-
-		float temp = 0;
-		float RTsave;
-		float RTsaveEstim;
-		float GAP;
-
-		for (Float f : saveRT) {
-			temp = temp + f.floatValue();
-		}
-
-		RTsave = temp / saveRT.size();
-
-		RTsaveEstim = saveDem / (1 - cpuUtil);
-
-		GAP = Math.abs((RTsaveEstim - RTsave) / RTsave) * 100;
-
-		temp = 0;
-
-		toReturn[0] = saveDem;
-		toReturn[1] = RTsave;
-		toReturn[2] = RTsaveEstim;
-		toReturn[3] = GAP;
-
-		return toReturn;
-
-	}
-
-	private static float[] validateAnsw(float cpuUtil) {
-
-		float[] toReturn = new float[4];
-
-		float temp = 0;
-		float RTansw;
-		float RTanswEstim;
-		float GAP;
-
-		for (Float f : answRT) {
-			temp = temp + f.floatValue();
-		}
-
-		RTansw = temp / answRT.size();
-
-		RTanswEstim = answDem / (1 - cpuUtil);
-
-		GAP = Math.abs((RTanswEstim - RTansw) / RTansw) * 100;
-
-		temp = 0;
-
-		toReturn[0] = answDem;
-		toReturn[1] = RTansw;
-		toReturn[2] = RTanswEstim;
+		toReturn[0] = estimatedDemand;
+		toReturn[1] = avgResponseTime;
+		toReturn[2] = estimatedResponseTime;
 		toReturn[3] = GAP;
 
 		return toReturn;
 	}
 
 	private static void flushLists() {
-
-		cpu.removeAll(cpu);
-
-		saveRT.removeAll(saveRT);
-
-		regRT.removeAll(regRT);
-
-		answRT.removeAll(answRT);
-
-		saveDem = null;
-		answDem = null;
-		regDem = null;
-
-	}
-
-	private static boolean checkIntervalCompleted() {
-
-		if (saveDem == null | answDem == null | regDem == null)
-			return false;
-		else
-			return true;
-
+		cpu.clear();
+		
+		for (String s : RTs.keySet()) {
+			RTs.put(s, new ArrayList<Float>());
+			Dems.put(s, null);
+		}
 	}
 }

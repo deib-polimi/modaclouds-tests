@@ -30,10 +30,12 @@ public class Validator {
 			"cpu.out", "cpuSteal.out", "d.out", "rt.out", "thresholds.out", "wl.out",
 			"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
 			};
+	
+	public static final String[] METHODS = new String[] { "reg", "save", "answ" };
 
 	public static void perform(Path parent, boolean dontConvertFromJsonToCSV) {
 		if (parent == null || !parent.toFile().exists())
-			throw new RuntimeException("Parent folder not found! (" + parent.toString() + ")");
+			throw new RuntimeException("Parent folder not found! (" + parent == null ? "null" : parent.toString() + ")");
 		
 		try {
 			if (!dontConvertFromJsonToCSV) {
@@ -51,17 +53,15 @@ public class Validator {
 			exec(String.format(INIT_COMMAND, createModifiedBash(parent).toString()));
 			
 			logger.info("Launching the DemandValidator class...");
-			DemandValidator.perform(parent);
+			DemandValidator.perform(parent, METHODS);
 			
-			String[] methods = new String[] { "reg", "save", "answ" };
-			
-			for (int i = 1; i <= methods.length; ++i) {
-				logger.info("Launching the WorkloadCSVBuilder for {} method...", methods[i-1]);
+			for (int i = 1; i <= METHODS.length; ++i) {
+				logger.info("Launching the WorkloadCSVBuilder for {} method...", METHODS[i-1]);
 				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i));
 			}
 			
 			logger.info("Generating the full results file...");
-			ResultsBuilder.perform(parent, methods);
+			ResultsBuilder.perform(parent, METHODS);
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}

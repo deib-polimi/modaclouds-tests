@@ -30,7 +30,7 @@ public class ResultsBuilder {
 	public static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
-					+ f.toString() + ")");
+					+ f == null ? "null" : f.toString() + ")");
 		
 		if (ss == null || ss.length == 0)
 			throw new RuntimeException("You should specify at least one column name.");
@@ -105,7 +105,7 @@ public class ResultsBuilder {
 	private static Map<String, Integer> getRequestsPerPageFromSingleFile(Path f, boolean onlyOk) {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
-					+ f.toString() + ")");
+					+ f == null ? "null" : f.toString() + ")");
 		
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
@@ -156,14 +156,14 @@ public class ResultsBuilder {
 		Path demand = Paths.get(parent.toString(), DemandValidator.RESULT);
 		if (demand == null || !demand.toFile().exists())
 			throw new RuntimeException("Demand file not found or wrong path ("
-					+ demand.toString() + ")");
+					+ demand == null ? "null" : demand.toString() + ")");
 		
 		ArrayList<Path> methods = new ArrayList<Path>();
 		for (int i = 1; i <= methodsNames.length; ++i) {
 			Path method = Paths.get(parent.toString(), "method" + i, WorkloadGapCalculator.RESULT);
 			if (method == null || !method.toFile().exists())
 				throw new RuntimeException("Method file not found or wrong path ("
-						+ method.toString() + ")");
+						+ method == null ? "null" : method.toString() + ")");
 			methods.add(method);
 		}
 		

@@ -25,7 +25,7 @@ public class CpuStealValidator {
 		if (stolen == null || !stolen.toFile().exists())
 			throw new RuntimeException(
 					"CPU stolen file not found or wrong path ("
-							+ stolen.toString() + ")");
+							+ stolen == null ? "null" : stolen.toString() + ")");
 
 		List<String> highValues = new ArrayList<String>();
 		int window = 83;
