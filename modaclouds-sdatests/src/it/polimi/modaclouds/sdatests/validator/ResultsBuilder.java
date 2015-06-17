@@ -146,6 +146,10 @@ public class ResultsBuilder {
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
 	public static void perform(Path parent, String[] methodsNames) {
+		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW);
+	}
+	
+	public static void perform(Path parent, String[] methodsNames, int window) {
 		if (methodsNames == null || methodsNames.length == 0)
 			throw new RuntimeException("You should specify at least one method name.");
 		
@@ -238,11 +242,16 @@ public class ResultsBuilder {
 			
 			int tot = 0;
 			
+			// NOTE:
+			// all the datum must be considered times window, because they're an average computed on that window!
+			// plus the first 5 data are skipped, and they should be considered too in the count.
+			
 			for (int j = 0; j < methodsNames.length; ++j) {
 				List<Double> workload = methodsWorkloads.get(j);
-				int methodTot = methodsWorkloadTot.get(j);
+				int methodTot = methodsWorkloadTot.get(j) * window; 
+				methodTot += workload.get(0).intValue() * 5 * window;
 				for (int i = maxCommonLength; i < workload.size(); ++i)
-					methodTot += workload.get(i).intValue();
+					methodTot += workload.get(i).intValue() * window;
 				out.print(methodTot + ",");
 				tot += methodTot;
 			}

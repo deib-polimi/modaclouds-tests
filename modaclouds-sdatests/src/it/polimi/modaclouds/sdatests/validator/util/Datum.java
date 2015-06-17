@@ -33,10 +33,10 @@ public class Datum {
 		String[] splitted = csv.split(",");
 		if (splitted.length != 5)
 			throw new Exception("The given string is not a correct CSV with 5 comma-separated values.");
-		resourceId = splitted[0];
-		metric = splitted[1];
-		value = Double.parseDouble(splitted[2]);
-		timestamp = Long.parseLong(splitted[3]);
+		resourceId = splitted[1];
+		metric = splitted[2];
+		value = Double.parseDouble(splitted[3]);
+		timestamp = Long.parseLong(splitted[0]);
 	}
 	
 	public Datum(String resourceId, String metric, Double value, Long timestamp) {
