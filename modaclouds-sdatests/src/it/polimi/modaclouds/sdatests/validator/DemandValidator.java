@@ -31,6 +31,9 @@ public class DemandValidator {
 
 	public static final String SDA = "sda.out";
 	public static final String RESULT = "demandAnalysis.csv";
+	
+	public static final String FORECASTED_DEMAND = "demand.out";
+	public static final String MONITORED_RESPONSETIME = "monitored_responseTime.out";
 
 	public static void perform(Path parent) {
 		Path sda = Paths.get(parent.toString(), SDA);

@@ -1,6 +1,7 @@
 package it.polimi.modaclouds.sdatests.validator;
 
-import it.polimi.modaclouds.sdatests.validator.util.FileFormatConverter;
+import it.polimi.modaclouds.sdatests.validator.util.Datum;
+import it.polimi.modaclouds.sdatests.validator.util.FileHelper;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,6 +25,11 @@ public class Validator {
 	public static void perform(Path parent) {
 		perform(parent, true);
 	}
+	
+	public static final String[] RESULT_FILES = new String[] {
+			"cpu.out", "cpuSteal.out", "d.out", "rt.out", "thresholds.out", "wl.out",
+			"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
+			};
 
 	public static void perform(Path parent, boolean dontConvertFromJsonToCSV) {
 		if (parent == null || !parent.toFile().exists())
@@ -32,13 +38,9 @@ public class Validator {
 		try {
 			if (!dontConvertFromJsonToCSV) {
 				logger.info("Converting the results from JSON to CSV...");
-				String[] files = new String[] {
-						"cpu.out", "cpuSteal.out", "d.out", "rt.out", "thresholds.out", "wl.out",
-						"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
-						};
-				for (String f : files) {
+				for (String f : RESULT_FILES) {
 					try {
-						FileFormatConverter.rewriteJsonAsCsv(Paths.get(parent.toString(), f), FileFormatConverter.DataType.TOWER_JSON);
+						FileHelper.rewriteJsonAsCsv(Paths.get(parent.toString(), f), Datum.Type.TOWER_JSON);
 					} catch (Exception e) {
 						logger.error("Error while converting the file.", e);
 					}

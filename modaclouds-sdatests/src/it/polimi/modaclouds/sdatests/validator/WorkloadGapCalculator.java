@@ -22,6 +22,9 @@ public class WorkloadGapCalculator {
 	public static void calculate(Path parent, List<Workload> monitored,
 			List<Workload> first, List<Workload> second, List<Workload> third,
 			List<Workload> fourth, List<Workload> fifth) {
+		
+		if (monitored.size() < 6)
+			logger.debug("You have only {} monitored workload values, while you needed at least 6. Next time perform a longer test.", monitored.size());
 
 		float avarageGapFirst = 0;
 		float avarageGapSecond = 0;

@@ -20,7 +20,7 @@ public class Main {
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
-//		args = new String[] { "-parent", "/Users/ft/Lavoro/tmp/sdatests-0.0.10/tests/1606151742-m3.large-500x1/mpl1/home/ubuntu", "-dontConvert" };
+		args = new String[] { "-parent", "/Users/ft/Lavoro/tmp/sdatests-0.0.10/tests/1606151742-m3.large-500x1/mpl1/home/ubuntu", "-dontConvert" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
