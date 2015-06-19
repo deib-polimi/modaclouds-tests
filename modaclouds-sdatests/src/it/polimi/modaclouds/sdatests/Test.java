@@ -385,6 +385,11 @@ public class Test {
 		
 		RunInstance run = test.createModifiedFile(baseJmx);
 		
+		String javaParameters = clients.getParameter("JAVA_PARAMETERS");
+		if (javaParameters != null && (javaParameters.trim().length() == 0 || !javaParameters.startsWith("-")))
+			javaParameters = null;
+		JMeterTest.javaParameters = javaParameters;
+		
 		logger.info("Test starting...");
 		
 		test.performTest(clients, run);
