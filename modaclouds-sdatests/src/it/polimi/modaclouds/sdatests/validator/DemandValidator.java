@@ -32,12 +32,8 @@ public class DemandValidator {
 	public static final String FORECASTED_DEMAND = "demand.out";
 	public static final String MONITORED_RESPONSETIME = "monitored_responseTime.out";
 	public static final String MONITORED_CPU = "cpu.out";
-	
-	public static void perform(Path parent, String[] methods) {
-		perform(parent, methods, Datum.Type.CSV);
-	}
 
-	public static void perform(Path parent, String[] methods, Datum.Type dataType) {
+	public static void perform(Path parent, String[] methods) {
 		try (PrintWriter writer = new PrintWriter(Paths.get(
 						parent.toString(), RESULT).toFile(), "UTF-8")) {
 			
@@ -49,7 +45,7 @@ public class DemandValidator {
 			Map<String, List<Datum>> forecastedDemands = new HashMap<String, List<Datum>>();
 			int maxForecastedDemands = Integer.MAX_VALUE;
 			for (int i = 0; i < methods.length; ++i) {
-				List<Datum> forecastedDemand = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), FORECASTED_DEMAND), dataType);
+				List<Datum> forecastedDemand = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), FORECASTED_DEMAND));
 				forecastedDemands.put(methods[i], forecastedDemand);
 				
 				if (maxForecastedDemands > forecastedDemand.size())
@@ -58,11 +54,11 @@ public class DemandValidator {
 			
 			Map<String, List<Datum>> monitoredRTs = new HashMap<String, List<Datum>>();
 			for (int i = 0; i < methods.length; ++i) {
-				List<Datum> monitoredRT = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), MONITORED_RESPONSETIME), dataType);
+				List<Datum> monitoredRT = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), MONITORED_RESPONSETIME));
 				monitoredRTs.put(methods[i], monitoredRT);
 			}
 			
-			List<Datum> monitoredCpu = Datum.getAllData(Paths.get(parent.toString(), MONITORED_CPU), Datum.Type.CSV);
+			List<Datum> monitoredCpu = Datum.getAllData(Paths.get(parent.toString(), MONITORED_CPU));
 			
 			Map<String, Integer> iRTs = new HashMap<String, Integer>();
 			for (String s : methods)
@@ -114,7 +110,8 @@ public class DemandValidator {
 					cpu.add(util.value.floatValue());
 				}
 				
-				writer.write(validate(methods) + "\n");
+				if (hasEnoughValues())
+					writer.write(validate(methods) + "\n");
 				flushLists();
 			}
 			
@@ -179,5 +176,17 @@ public class DemandValidator {
 			RTs.put(s, new ArrayList<Float>());
 			Dems.put(s, null);
 		}
+	}
+	
+	private static boolean hasEnoughValues() {
+		boolean res = true;
+		
+		res &= (cpu.size() > 0);
+		for (String s : RTs.keySet()) {
+			res &= (RTs.get(s).size() > 0);
+			res &= (Dems.get(s) != null);
+		}
+		
+		return res;
 	}
 }

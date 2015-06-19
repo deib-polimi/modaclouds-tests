@@ -140,16 +140,16 @@ public class ResultsBuilder {
 	private static DecimalFormat doubleFormatter() {
 		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.getDefault());
 		otherSymbols.setDecimalSeparator('.');
-		DecimalFormat myFormatter = new DecimalFormat("0.000#######", otherSymbols);
+		DecimalFormat myFormatter = new DecimalFormat("0.000", otherSymbols);
 		return myFormatter;
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
 	public static void perform(Path parent, String[] methodsNames) {
-		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW);
+		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW, true);
 	}
 	
-	public static void perform(Path parent, String[] methodsNames, int window) {
+	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests) {
 		if (methodsNames == null || methodsNames.length == 0)
 			throw new RuntimeException("You should specify at least one method name.");
 		
@@ -226,21 +226,24 @@ public class ResultsBuilder {
 		}
 		
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_REQS).toFile())) {
-			for (int i = 0; i < methodsNames.length; ++i)
-				out.printf("Requests_%s,", methodsNames[i]);
-			out.print("TotalRequests,");
+			if (!printOnlyTotalRequests)
+				for (int i = 0; i < methodsNames.length; ++i)
+					out.printf("Requests_%s,", methodsNames[i]);
+			out.print("TotalRequestsConsidered,");
 			
 			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, false);
-			for (String key : requestsPerPage.keySet())
-				out.printf("ActualRequests_%s,", key);
+			if (!printOnlyTotalRequests)
+				for (String key : requestsPerPage.keySet())
+					out.printf("ActualRequests_%s,", key);
 			out.print("TotalActualRequests,");
 			
 			Map<String, Integer> requestsPerPageOnlyOk = getRequestsPerPage(parent, true);
-			for (String key : requestsPerPageOnlyOk.keySet())
-				out.printf("ActualRequestsOk_%s,", key);
-			out.println("TotalActualRequestsOk");
+			if (!printOnlyTotalRequests)
+				for (String key : requestsPerPageOnlyOk.keySet())
+					out.printf("ActualRequestsOk_%s,", key);
+			out.println("TotalActualRequestsOk,PercentageLost,PercentageOkLost");
 			
-			int tot = 0;
+			int consideredRequests = 0;
 			
 			// NOTE:
 			// all the datum must be considered times window, because they're an average computed on that window!
@@ -252,28 +255,31 @@ public class ResultsBuilder {
 				methodTot += workload.get(0).intValue() * 5 * window;
 				for (int i = maxCommonLength; i < workload.size(); ++i)
 					methodTot += workload.get(i).intValue() * window;
-				out.print(methodTot + ",");
-				tot += methodTot;
+				if (!printOnlyTotalRequests)
+					out.print(methodTot + ",");
+				consideredRequests += methodTot;
 			}
-			out.print(tot + ",");
+			out.print(consideredRequests + ",");
 			
-			tot = 0;
+			int actualRequests = 0;
 			
 			for (String key : requestsPerPage.keySet()) {
 				int methodTot = requestsPerPage.get(key);
-				out.print(methodTot + ",");
-				tot += methodTot;
+				if (!printOnlyTotalRequests)
+					out.print(methodTot + ",");
+				actualRequests += methodTot;
 			}
-			out.print(tot + ",");
+			out.print(actualRequests + ",");
 			
-			tot = 0;
+			int actualRequestsOk = 0;
 			
 			for (String key : requestsPerPageOnlyOk.keySet()) {
 				int methodTot = requestsPerPageOnlyOk.get(key);
-				out.print(methodTot + ",");
-				tot += methodTot;
+				if (!printOnlyTotalRequests)
+					out.print(methodTot + ",");
+				actualRequestsOk += methodTot;
 			}
-			out.println(tot);
+			out.println(actualRequestsOk + "," + doubleFormatter.format(((actualRequests - consideredRequests)/(double)actualRequests) * 100) + "%," + doubleFormatter.format((actualRequestsOk - consideredRequests)/(double)actualRequestsOk * 100) + "%");
 			
 			out.flush();
 			

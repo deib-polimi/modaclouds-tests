@@ -14,13 +14,10 @@ public class Main {
 	@Parameter(names = "-parent", description = "The parent folder", required = true)
 	private String parent = null;
 	
-	@Parameter(names = "-dontConvert", description = "Don't convert the files from JSON to CSV")
-	private boolean dontConvertFromJsonToCSV = false;
-	
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
-//		args = new String[] { "-parent", "/Users/ft/Lavoro/tmp/sdatests-0.0.10/tests/1706151102-m3.large-500x1/mpl1/home/ubuntu", "-dontConvert" };
+		args = new String[] { "-parent", "/Users/ft/Lavoro/tmp/sdatests-0.0.11/tests/1806151551-m3.large-625x2/mpl1/home/ubuntu" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
@@ -34,7 +31,7 @@ public class Main {
 		
 		Path parent = Paths.get(m.parent);
 		
-		Validator.perform(parent, m.dontConvertFromJsonToCSV);
+		Validator.perform(parent);
 	}
 
 }

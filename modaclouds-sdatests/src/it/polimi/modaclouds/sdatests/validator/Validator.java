@@ -1,6 +1,5 @@
 package it.polimi.modaclouds.sdatests.validator;
 
-import it.polimi.modaclouds.sdatests.validator.util.Datum;
 import it.polimi.modaclouds.sdatests.validator.util.FileHelper;
 
 import java.io.BufferedReader;
@@ -22,10 +21,6 @@ public class Validator {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Validator.class);
 	
-	public static void perform(Path parent) {
-		perform(parent, true);
-	}
-	
 	public static final String[] RESULT_FILES = new String[] {
 			"cpu.out", "cpuSteal.out", "d.out", "rt.out", "thresholds.out", "wl.out",
 			"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
@@ -33,19 +28,17 @@ public class Validator {
 	
 	public static final String[] METHODS = new String[] { "reg", "save", "answ" };
 
-	public static void perform(Path parent, boolean dontConvertFromJsonToCSV) {
+	public static void perform(Path parent) {
 		if (parent == null || !parent.toFile().exists())
 			throw new RuntimeException("Parent folder not found! (" + parent == null ? "null" : parent.toString() + ")");
 		
 		try {
-			if (!dontConvertFromJsonToCSV) {
-				logger.info("Converting the results from JSON to CSV...");
-				for (String f : RESULT_FILES) {
-					try {
-						FileHelper.rewriteJsonAsCsv(Paths.get(parent.toString(), f), Datum.Type.TOWER_JSON);
-					} catch (Exception e) {
-						logger.error("Error while converting the file.", e);
-					}
+			logger.info("Converting the results from JSON to CSV...");
+			for (String f : RESULT_FILES) {
+				try {
+					FileHelper.rewriteJsonAsCsv(Paths.get(parent.toString(), f));
+				} catch (Exception e) {
+					logger.error("Error while converting the file.", e);
 				}
 			}
 			

@@ -53,43 +53,40 @@ public class WorkloadGapCalculator {
 
 			for (int i = 6; i <= monitored.size(); i++) {
 
-				real = WorkloadHelper.getWorkloadByTimestep(monitored, i)
-						.getValue();
-				firstPrediction = WorkloadHelper.getWorkloadByTimestep(first,
-						i - 1).getValue();
-				secondPrediction = WorkloadHelper.getWorkloadByTimestep(second,
-						i - 2).getValue();
-				thirdPrediction = WorkloadHelper.getWorkloadByTimestep(third,
-						i - 3).getValue();
-				fourthPrediction = WorkloadHelper.getWorkloadByTimestep(fourth,
-						i - 4).getValue();
-				fifthPrediction = WorkloadHelper.getWorkloadByTimestep(fifth,
-						i - 5).getValue();
-
-				writer.write(real + "," + firstPrediction + ","
-						+ Math.abs((real - firstPrediction) / real) * 100
-						+ "%," + secondPrediction + ","
-						+ Math.abs((real - secondPrediction) / real) * 100
-						+ "%," + thirdPrediction + ","
-						+ Math.abs((real - thirdPrediction) / real) * 100
-						+ "%," + fourthPrediction + ","
-						+ Math.abs((real - fourthPrediction) / real) * 100
-						+ "%," + fifthPrediction + ","
-						+ Math.abs((real - fifthPrediction) / real) * 100
-						+ "%\n");
-
-				avarageGapFirst = avarageGapFirst
-						+ Math.abs((real - firstPrediction) / real);
-				avarageGapSecond = avarageGapSecond
-						+ Math.abs((real - secondPrediction) / real);
-				avarageGapThird = avarageGapThird
-						+ Math.abs((real - thirdPrediction) / real);
-				avarageGapFourth = avarageGapFourth
-						+ Math.abs((real - fourthPrediction) / real);
-				avarageGapFifth = avarageGapFifth
-						+ Math.abs((real - fifthPrediction) / real);
-
-				cont++;
+				try {
+					real = WorkloadHelper.getWorkloadByTimestep(monitored, i)
+							.getValue();
+					firstPrediction = WorkloadHelper.getWorkloadByTimestep(first,
+							i - 1).getValue();
+					secondPrediction = WorkloadHelper.getWorkloadByTimestep(second,
+							i - 2).getValue();
+					thirdPrediction = WorkloadHelper.getWorkloadByTimestep(third,
+							i - 3).getValue();
+					fourthPrediction = WorkloadHelper.getWorkloadByTimestep(fourth,
+							i - 4).getValue();
+					fifthPrediction = WorkloadHelper.getWorkloadByTimestep(fifth,
+							i - 5).getValue();
+	
+					writer.write(real + "," + firstPrediction + ","
+							+ Math.abs((real - firstPrediction) / real) * 100
+							+ "%," + secondPrediction + ","
+							+ Math.abs((real - secondPrediction) / real) * 100
+							+ "%," + thirdPrediction + ","
+							+ Math.abs((real - thirdPrediction) / real) * 100
+							+ "%," + fourthPrediction + ","
+							+ Math.abs((real - fourthPrediction) / real) * 100
+							+ "%," + fifthPrediction + ","
+							+ Math.abs((real - fifthPrediction) / real) * 100
+							+ "%\n");
+	
+					avarageGapFirst += Math.abs((real - firstPrediction) / real);
+					avarageGapSecond += Math.abs((real - secondPrediction) / real);
+					avarageGapThird += Math.abs((real - thirdPrediction) / real);
+					avarageGapFourth += Math.abs((real - fourthPrediction) / real);
+					avarageGapFifth += Math.abs((real - fifthPrediction) / real);
+	
+					cont++;
+				} catch (Exception e) { }
 			}
 			writer.write("--------," + "--------," + avarageGapFirst / cont
 					* 100 + "% ," + "--------," + avarageGapSecond / cont * 100

@@ -65,35 +65,29 @@ public class WorkloadCSVBuilder {
 
 					float sum = 0;
 					
-					logger.debug("workload at timestep {}", cont);
-					
 					while (input.hasNextLine()) {
 						String line = input.nextLine();
 						String[] splitted = line.split(",");
 						float value = 0;
 
 						value = Float.parseFloat(splitted[3]);
-						logger.debug("{}", value);
 						sum += value;
 						
 						j++;
 
 						if (j == window - 1) {
-							logger.debug("-------------------");
 							int avg = (int) Math.round(sum / window);
-							logger.debug("AVG={}", avg);
+							logger.trace("AVG workload at timestep {}: {}", cont, avg);
 							writer.write(cont + "," + avg + "\n");
 							monitored.add(new Workload(cont, avg));
 							cont++;
 							j = 0;
 							sum = 0;
-							logger.debug("workload at timestep {}", cont);
 						}
 					}
 					
-					logger.debug("-------------------");
 					int avg = (int) Math.round(sum / window);
-					logger.debug("AVG={}", avg);
+					logger.trace("AVG workload at timestep {}: {}", cont, avg);
 					writer.write(cont + "," + avg + "\n");
 					monitored.add(new Workload(cont, avg));
 

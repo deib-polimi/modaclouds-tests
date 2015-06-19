@@ -1,5 +1,7 @@
 package it.polimi.modaclouds.sdatests.validator.util;
 
+import it.polimi.modaclouds.sdatests.validator.util.Datum.Type;
+
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,11 +16,15 @@ public abstract class FileHelper {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FileHelper.class);
 	
-	public static void rewriteJsonAsCsv(Path file, Datum.Type origDataType) {
+	public static void rewriteJsonAsCsv(Path file) {
 		if (!file.toFile().exists())
 			throw new RuntimeException("The file doesn't exists!");
 		
 		try {
+			Type origDataType = Datum.getTypeFromFile(file);
+			if (origDataType == Type.CSV)
+				return;
+			
 			Path p = Files.createTempFile("file", ".out");
 			jsonToCsv(file, p, origDataType);
 			Files.move(file, Paths.get(file.toFile().getParent(), file.toFile().getName() + "-bak"), StandardCopyOption.REPLACE_EXISTING);
@@ -29,6 +35,9 @@ public abstract class FileHelper {
 	}
 	
 	public static void jsonToCsv(Path file, Path newFile, Datum.Type origDataType) {
+		if (origDataType == Type.CSV)
+			throw new RuntimeException("The file is already CSV!");
+		
 		try {
 			List<Datum> data = Datum.getAllData(file, origDataType);
 			

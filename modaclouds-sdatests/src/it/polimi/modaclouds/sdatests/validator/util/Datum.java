@@ -63,6 +63,50 @@ public class Datum {
 		return timestamp + "," + resourceId + "," + metric + "," + value + "," + timestamp;
 	}
 	
+	public static Type getTypeFromFile(Path p) throws Exception {
+		if (p == null || !p.toFile().exists())
+			throw new RuntimeException("File null or not found.");
+		
+		try (Scanner sc = new Scanner(p)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				
+				Type t = getTypeFromString(line);
+				if (t != null)
+					return t;
+			}
+		}
+		
+		return null;
+	}
+
+	public static Type getTypeFromString(String line) {
+		try {
+			JSONArray array = new JSONArray(line);
+			JSONObject obj = array.getJSONObject(0);
+			new Datum(obj, Type.TOWER_JSON);
+			return Type.TOWER_JSON;
+		} catch (Exception e) { }
+		
+		try {
+			JSONArray array = new JSONArray(line);
+			JSONObject obj = array.getJSONObject(0);
+			new Datum(obj, Type.RDF_JSON);
+			return Type.RDF_JSON;
+		} catch (Exception e) { }
+		
+		try {
+			new Datum(line);
+			return Type.CSV;
+		} catch (Exception e) { }
+		
+		return null;
+	}
+	
+	public static List<Datum> getAllData(Path p) throws Exception {
+		return getAllData(p, getTypeFromFile(p));
+	}
+	
 	public static List<Datum> getAllData(Path p, Type origDataType) throws Exception {
 		if (p == null || !p.toFile().exists())
 			throw new RuntimeException("File null or not found.");
