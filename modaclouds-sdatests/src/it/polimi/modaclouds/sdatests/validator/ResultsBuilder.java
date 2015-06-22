@@ -24,7 +24,7 @@ public class ResultsBuilder {
 	public static final String RESULT_WORKLOAD = "workload.csv";
 	
 	public static void main(String[] args) {
-		perform(Paths.get("."), new String[] { "reg", "save", "answ" });
+		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, "m3.large");
 	}
 	
 	public static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
@@ -145,8 +145,8 @@ public class ResultsBuilder {
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
-	public static void perform(Path parent, String[] methodsNames) {
-		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW, true);
+	public static void perform(Path parent, String[] methodsNames, String resourceType) {
+		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW, true, resourceType);
 	}
 	
 	private static List<List<Double>> methodsWorkloads = null;
@@ -203,7 +203,18 @@ public class ResultsBuilder {
 				methodsWorkloadTot.put(j, methodsWorkloadTot.get(j) + methodsWorkloads.get(j).get(i).intValue());
 	}
 	
-	public static void createDemandAnalysis(Path parent, String[] methodsNames) {
+	public static int getCores(String resourceName) {
+		switch (resourceName) {
+		case "m3.large":
+			return 2;
+		case "m3.xlarge":
+			return 4;
+		default:
+			return 1;
+		}
+	}
+	
+	public static void createDemandAnalysis(Path parent, String[] methodsNames, String resourceName) {
 		logger.info("Creating the demand analysis report...");
 		
 		if (methodsNames == null || methodsNames.length == 0)
@@ -217,12 +228,14 @@ public class ResultsBuilder {
 				out.printf("Demand_%1$s,X_%1$s,", methodsNames[i]);
 			out.println("U_actual,U_measured,U_aoverm");
 			
+			int cores = getCores(resourceName);
+			
 			for (int i = 0; i < maxCommonLength; ++i) {
 				double u = 0;
 				StringBuilder sb = new StringBuilder();
 				for (int j = 0; j < methodsNames.length; ++j) {
 					double d = demands.get(DEMAND_COLUMN_PREFIX + methodsNames[j]).get(i);
-					double x = methodsWorkloads.get(j).get(i) / TIME_SLOT_SIZE;
+					double x = methodsWorkloads.get(j).get(i) / (TIME_SLOT_SIZE * cores);
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
 				}
@@ -358,8 +371,8 @@ public class ResultsBuilder {
 	
 	public static final int DEFAULT_TIMESTEPS = 5;
 	
-	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests) {
-		createDemandAnalysis(parent, methodsNames);
+	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests, String resourceType) {
+		createDemandAnalysis(parent, methodsNames, resourceType);
 		createRequestsAnalysis(parent, methodsNames, window, printOnlyTotalRequests);
 		createWorkloadAnalysis(parent, methodsNames, DEFAULT_TIMESTEPS);
 	}

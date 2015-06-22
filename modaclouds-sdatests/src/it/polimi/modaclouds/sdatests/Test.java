@@ -80,7 +80,7 @@ public class Test {
 			t.stopMachines();
 		
 		if (!noSDA)
-			Validator.perform(path);
+			Validator.perform(path, size);
 		else
 			Data2StdoutParser.perform(path);
 		
