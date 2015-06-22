@@ -1,7 +1,6 @@
 package it.polimi.modaclouds.scalingrules;
 
 import it.cloud.amazon.Configuration;
-import it.cloud.amazon.cloudwatch.CloudWatch;
 import it.cloud.amazon.ec2.AmazonEC2;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
@@ -554,10 +553,27 @@ public class Test {
 		
 		logger.info("Retrieving the data from the metrics...");
 		
-		mpl.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
-		clients.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
+		int period = getSuggestedPeriod(date);
+		
+		mpl.retrieveMetrics(localPath, date, period, Statistic.Average, null);
+		clients.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 
 		logger.info("Done!");
+	}
+	
+	private static int getSuggestedPeriod(Date date) {
+		Date now = new Date();
+		long diff = now.getTime() - date.getTime();
+		diff /= 1000 * 60;
+		final int maxData = 1440;
+		
+		double res = (double)diff / maxData;
+		res = Math.ceil(res);
+		
+		if (res < 1)
+			res = 1;
+		
+		return (int)res * 60;
 	}
 
 }

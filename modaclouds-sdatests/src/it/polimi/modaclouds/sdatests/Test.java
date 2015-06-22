@@ -1,7 +1,6 @@
 package it.polimi.modaclouds.sdatests;
 
 import it.cloud.Configuration;
-import it.cloud.amazon.cloudwatch.CloudWatch;
 import it.cloud.amazon.ec2.AmazonEC2;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
@@ -409,15 +408,32 @@ public class Test {
 		
 		logger.info("Retrieving the data from the metrics...");
 		
-		mic.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
-		mpl.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
-		clients.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
+		int period = getSuggestedPeriod(date);
+		
+		mic.retrieveMetrics(localPath, date, period, Statistic.Average, null);
+		mpl.retrieveMetrics(localPath, date, period, Statistic.Average, null);
+		clients.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		if (useDatabase)
-			database.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
+			database.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		
 		logger.info("Done!");
 		
 		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
+	}
+	
+	private static int getSuggestedPeriod(Date date) {
+		Date now = new Date();
+		long diff = now.getTime() - date.getTime();
+		diff /= 1000 * 60;
+		final int maxData = 1440;
+		
+		double res = (double)diff / maxData;
+		res = Math.ceil(res);
+		
+		if (res < 1)
+			res = 1;
+		
+		return (int)res * 60;
 	}
 	
 	public int getTotalCountResponseTime(Path path) {
@@ -429,12 +445,6 @@ public class Test {
 		}
 		
 		return 0;
-	}
-	
-	public static void main(String[] args) throws Exception {
-		VirtualMachine tmp = VirtualMachine.getVM("mpl", "m3.large", 1);
-		
-		Ssh.exec("54.154.106.241", tmp, "cd /home/ubuntu/modaclouds-sda && source ~/.bashrc && sudo -E bash run_main.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81 tower4clouds > /home/ubuntu/sda.out 2>&1 &");
 	}
 
 }
