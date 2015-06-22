@@ -20,8 +20,8 @@ public class ResultsBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(ResultsBuilder.class);
 
 	public static final String RESULT = "results.csv";
-	
 	public static final String RESULT_REQS = "requests.csv";
+	public static final String RESULT_WORKLOAD = "workload.csv";
 	
 	public static void main(String[] args) {
 		perform(Paths.get("."), new String[] { "reg", "save", "answ" });
@@ -149,7 +149,12 @@ public class ResultsBuilder {
 		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW, true);
 	}
 	
-	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests) {
+	private static List<List<Double>> methodsWorkloads = null;
+	private static Map<Integer, Integer> methodsWorkloadTot = null;
+	private static Map<String, List<Double>> demands = null;
+	private static int maxCommonLength = -1;
+	
+	private static void init(Path parent, String[] methodsNames) {
 		if (methodsNames == null || methodsNames.length == 0)
 			throw new RuntimeException("You should specify at least one method name.");
 		
@@ -172,16 +177,16 @@ public class ResultsBuilder {
 			neededColumnsDemands[i] = DEMAND_COLUMN_PREFIX + methodsNames[i];
 		neededColumnsDemands[neededColumnsDemands.length - 1] = CPU_UTIL_COLUMN;
 		
-		int maxCommonLength = 0;
+		maxCommonLength = 0;
 		
 		logger.info("Reading the demands file...");
 		
-		Map<String, List<Double>> demands = getAsMap(demand, neededColumnsDemands);
+		demands = getAsMap(demand, neededColumnsDemands);
 		maxCommonLength = demands.get(CPU_UTIL_COLUMN).size();
 		
 		logger.info("Reading the workloads for the methods...");
 		
-		ArrayList<List<Double>> methodsWorkloads = new ArrayList<List<Double>>();
+		methodsWorkloads = new ArrayList<List<Double>>();
 		for (Path p : methods) {
 			List<Double> tmp = getAsMap(p, new String[] { WORKLOAD_COLUMN }).get(WORKLOAD_COLUMN);
 			if (tmp.size() < maxCommonLength)
@@ -189,11 +194,23 @@ public class ResultsBuilder {
 			methodsWorkloads.add(tmp);
 		}
 		
-		logger.info("Writing the results file...");
-		
-		HashMap<Integer, Integer> methodsWorkloadTot = new HashMap<Integer, Integer>(); 
+		methodsWorkloadTot = new HashMap<Integer, Integer>(); 
 		for (int i = 0; i < methodsNames.length; ++i)
 			methodsWorkloadTot.put(i, 0);
+		
+		for (int i = 0; i < maxCommonLength; ++i)
+			for (int j = 0; j < methodsNames.length; ++j)
+				methodsWorkloadTot.put(j, methodsWorkloadTot.get(j) + methodsWorkloads.get(j).get(i).intValue());
+	}
+	
+	public static void createDemandAnalysis(Path parent, String[] methodsNames) {
+		logger.info("Creating the demand analysis report...");
+		
+		if (methodsNames == null || methodsNames.length == 0)
+			throw new RuntimeException("You should specify at least one method name.");
+		
+		if (methodsWorkloads == null || methodsWorkloadTot == null || demands == null || maxCommonLength == -1)
+			init(parent, methodsNames);
 		
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT).toFile())) {
 			for (int i = 0; i < methodsNames.length; ++i)
@@ -208,8 +225,6 @@ public class ResultsBuilder {
 					double x = methodsWorkloads.get(j).get(i) / TIME_SLOT_SIZE;
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
-					
-					methodsWorkloadTot.put(j, methodsWorkloadTot.get(j) + methodsWorkloads.get(j).get(i).intValue());
 				}
 				u /= methodsNames.length;
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
@@ -224,6 +239,16 @@ public class ResultsBuilder {
 		} catch (Exception e) {
 			logger.error("Error while dealing with the result file.", e);
 		}
+	}
+	
+	public static void createRequestsAnalysis(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests) {
+		logger.info("Creating the requests analysis report...");
+		
+		if (methodsNames == null || methodsNames.length == 0)
+			throw new RuntimeException("You should specify at least one method name.");
+		
+		if (methodsWorkloads == null || methodsWorkloadTot == null || demands == null || maxCommonLength == -1)
+			init(parent, methodsNames);
 		
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_REQS).toFile())) {
 			if (!printOnlyTotalRequests)
@@ -286,6 +311,57 @@ public class ResultsBuilder {
 		} catch (Exception e) {
 			logger.error("Error while dealing with the result file.", e);
 		}
+	}
+	
+	public static void createWorkloadAnalysis(Path parent, String[] methodsNames, int timesteps) {
+		logger.info("Creating the workload analysis report...");
+		
+		if (methodsNames == null || methodsNames.length == 0)
+			throw new RuntimeException("You should specify at least one method name.");
+		if (timesteps < 1)
+			throw new RuntimeException("You need at least 1 timestep!");
+		
+		if (methodsWorkloads == null || methodsWorkloadTot == null || demands == null || maxCommonLength == -1)
+			init(parent, methodsNames);
+		
+		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_WORKLOAD).toFile())) {
+			out.print("ErrorTimestep1");
+			for (int i = 2; i <= timesteps; ++i)
+				out.printf(",ErrorTimestep%d", i);
+			out.println();
+			
+			double[] sums = new double[timesteps];
+			for (int i = 0; i < timesteps; ++i)
+				sums[i] = 0.0;
+			
+			for (int i = 1; i <= methodsNames.length; ++i) {
+				try (Scanner sc = new Scanner(Paths.get(parent.toString(), "method" + i, WorkloadGapCalculator.RESULT))) {
+					while (sc.hasNextLine()) {
+						String line = sc.nextLine();
+						if (line.contains(WorkloadGapCalculator.EMPTY)) {
+							String[] splitted = line.split(",");
+							for (int k = 0, j = 2; k < timesteps; ++k, j+=2)
+								sums[k] += Double.valueOf(splitted[j].replaceAll("%", ""));
+						}
+					}
+				}
+			}
+			
+			out.printf("%s%%", doubleFormatter.format(sums[0] / methodsNames.length));
+			for (int i = 1; i < timesteps; ++i)
+				out.printf(",%s%%", doubleFormatter.format(sums[i] / methodsNames.length));
+			out.println();
+		} catch (Exception e) {
+			logger.error("Error while dealing with the result file.", e);
+		}
+	}
+	
+	public static final int DEFAULT_TIMESTEPS = 5;
+	
+	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests) {
+		createDemandAnalysis(parent, methodsNames);
+		createRequestsAnalysis(parent, methodsNames, window, printOnlyTotalRequests);
+		createWorkloadAnalysis(parent, methodsNames, DEFAULT_TIMESTEPS);
 	}
 
 }

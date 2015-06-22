@@ -1,6 +1,6 @@
 package it.polimi.modaclouds.sdatests;
 
-import it.cloud.amazon.ec2.Configuration;
+import it.cloud.Configuration;
 
 import java.util.ArrayList;
 import java.util.Scanner;

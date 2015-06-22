@@ -7,7 +7,7 @@
         <version>0.1</version>
     </parent>
 	<artifactId>sdatests</artifactId>
-	<version>0.0.11</version>
+	<version>0.0.12</version>
     <name>MODAClouds - SDA Tests</name>
 
 	<repositories>
@@ -105,7 +105,7 @@
 		<dependency>
 			<groupId>it.cloud.cloud-runner</groupId>
 			<artifactId>cloud-runner</artifactId>
-			<version>0.0.6</version>
+			<version>0.0.7</version>
 		</dependency>
 		<dependency>
             <groupId>com.beust</groupId>

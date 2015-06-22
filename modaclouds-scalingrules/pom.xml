@@ -15,7 +15,7 @@
 		<version>0.1</version>
 	</parent>
 	<artifactId>scalingrules</artifactId>
-	<version>0.0.7</version>
+	<version>0.0.8</version>
 	<name>MODAClouds - Scaling Rules</name>
 
 	<licenses>
@@ -377,7 +377,7 @@
 		<dependency>
 			<groupId>it.cloud.cloud-runner</groupId>
 			<artifactId>cloud-runner</artifactId>
-			<version>0.0.6</version>
+			<version>0.0.7</version>
 		</dependency>
 		<dependency>
             <groupId>ch.qos.logback</groupId>

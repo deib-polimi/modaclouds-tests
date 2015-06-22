@@ -51,21 +51,21 @@ public class CloudML implements PropertyChangeListener {
 		cml.deploy(
 				Test.getActualDeploymentModel(cloudMLIp, vm).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
-				it.cloud.amazon.ec2.Configuration.REGION,
+				it.cloud.amazon.Configuration.REGION,
 				String.format(
 						it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER.replaceAll("&&", " ; "),
 						mplIp),
 				String.format(
 						it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER.replaceAll("&&", " ; "),
-						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						it.cloud.amazon.ec2.Configuration.REGION,
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.Configuration.REGION,
 						loadBalancer),
 				String.format(
 						it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER.replaceAll("&&", " ; "),
-						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						it.cloud.amazon.ec2.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						it.cloud.amazon.ec2.Configuration.REGION,
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.Configuration.REGION,
 						loadBalancer));
 		
 		logger.info("Starting the test...");

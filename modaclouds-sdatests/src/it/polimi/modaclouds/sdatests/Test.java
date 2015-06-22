@@ -1,7 +1,8 @@
 package it.polimi.modaclouds.sdatests;
 
+import it.cloud.Configuration;
+import it.cloud.amazon.cloudwatch.CloudWatch;
 import it.cloud.amazon.ec2.AmazonEC2;
-import it.cloud.amazon.ec2.Configuration;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.cloud.amazon.elb.ElasticLoadBalancing;
@@ -26,6 +27,8 @@ import java.util.Scanner;
 import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.amazonaws.services.cloudwatch.model.Statistic;
 
 public class Test {
 	
@@ -403,6 +406,14 @@ public class Test {
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
 		if (useDatabase)
 			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
+		
+		logger.info("Retrieving the data from the metrics...");
+		
+		mic.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
+		mpl.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
+		clients.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
+		if (useDatabase)
+			database.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
 		
 		logger.info("Done!");
 		

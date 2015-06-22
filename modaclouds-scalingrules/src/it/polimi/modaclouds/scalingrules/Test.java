@@ -1,7 +1,8 @@
 package it.polimi.modaclouds.scalingrules;
 
+import it.cloud.amazon.Configuration;
+import it.cloud.amazon.cloudwatch.CloudWatch;
 import it.cloud.amazon.ec2.AmazonEC2;
-import it.cloud.amazon.ec2.Configuration;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.cloud.amazon.elb.ElasticLoadBalancing;
@@ -37,6 +38,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.amazonaws.services.cloudwatch.model.Statistic;
 
 public class Test {
 
@@ -548,6 +551,11 @@ public class Test {
 				"/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath,
 				"/home/" + clients.getParameter("SSH_USER"));
+		
+		logger.info("Retrieving the data from the metrics...");
+		
+		mpl.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
+		clients.retrieveMetrics(localPath, date, CloudWatch.DEFAULT_PERIOD, Statistic.Average, null);
 
 		logger.info("Done!");
 	}

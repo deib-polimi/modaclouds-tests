@@ -1,6 +1,6 @@
 package it.polimi.modaclouds.scalingrules;
 
-import it.cloud.amazon.ec2.Configuration;
+import it.cloud.amazon.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;

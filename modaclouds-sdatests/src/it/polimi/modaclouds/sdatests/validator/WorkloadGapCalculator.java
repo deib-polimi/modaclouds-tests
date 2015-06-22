@@ -88,15 +88,17 @@ public class WorkloadGapCalculator {
 					cont++;
 				} catch (Exception e) { }
 			}
-			writer.write("--------," + "--------," + avarageGapFirst / cont
-					* 100 + "% ," + "--------," + avarageGapSecond / cont * 100
-					+ "% ," + "--------," + avarageGapThird / cont * 100
-					+ "% ," + "--------," + avarageGapFourth / cont * 100
-					+ "% ," + "--------," + avarageGapFifth / cont * 100 + "%");
+			writer.write(EMPTY + "," + EMPTY + "," + avarageGapFirst / cont
+					* 100 + "% ," + EMPTY + "," + avarageGapSecond / cont * 100
+					+ "% ," + EMPTY + "," + avarageGapThird / cont * 100
+					+ "% ," + EMPTY + "," + avarageGapFourth / cont * 100
+					+ "% ," + EMPTY + "," + avarageGapFifth / cont * 100 + "%");
 
 			writer.flush();
 		} catch (Exception e) {
 			logger.error("Error while analyzing the gap.", e);
 		}
 	}
+	
+	public static final String EMPTY = "--------";
 }
