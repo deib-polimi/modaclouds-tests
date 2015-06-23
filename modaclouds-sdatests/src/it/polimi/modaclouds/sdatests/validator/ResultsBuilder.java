@@ -27,7 +27,7 @@ public class ResultsBuilder {
 	public static final String RESULT_WORKLOAD = "workload.csv";
 	public static final String RESULT_RES_TIMES = "responseTimes.csv";
 	
-	public static void mainAaa(String[] args) {
+	public static void main(String[] args) {
 		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, 2);
 	}
 	
