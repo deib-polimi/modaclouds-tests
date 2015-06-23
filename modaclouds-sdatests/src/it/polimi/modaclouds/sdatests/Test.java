@@ -407,7 +407,7 @@ public class Test {
 		JMeterTest.javaParameters = javaParameters;
 		
 		for (Instance imic : mic.getInstances())
-			exec(String.format(START_GLASSFISH_MONITORING, imic.getIp()));
+			exec(String.format(START_GLASSFISH_MONITORING_COMMAND, imic.getIp()));
 		
 		logger.info("Test starting...");
 		
@@ -421,7 +421,7 @@ public class Test {
 		{
 			int i = 1;
 			for (Instance imic : mic.getInstances())
-				exec(String.format(STOP_GLASSFISH_MONITORING, imic.getIp(), Paths.get(localPath, "client" + i++)));
+				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, imic.getIp(), Paths.get(localPath, "client" + i++)));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
