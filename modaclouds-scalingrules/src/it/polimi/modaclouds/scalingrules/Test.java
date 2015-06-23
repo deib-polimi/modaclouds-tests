@@ -566,11 +566,11 @@ public class Test {
 	
 	private static int getSuggestedPeriod(Date date) {
 		Date now = new Date();
-		long diff = now.getTime() - date.getTime();
+		double diff = now.getTime() - date.getTime();
 		diff /= 1000 * 60;
 		final int maxData = 1440;
 		
-		double res = (double)diff / maxData;
+		double res = diff / maxData;
 		res = Math.ceil(res);
 		
 		if (res < 1)

@@ -1,6 +1,7 @@
 package it.polimi.modaclouds.sdatests;
 
 import it.cloud.Configuration;
+import it.cloud.amazon.cloudwatch.CloudWatch;
 import it.cloud.amazon.ec2.AmazonEC2;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
@@ -428,13 +429,21 @@ public class Test {
 		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
 	}
 	
+	public static void main(String[] args) {
+		int period = (int)(getSuggestedPeriod(CloudWatch.fourHoursAgo()) * 2.2);
+		System.out.println(period);
+		if (period % 60 != 0)
+			period = (period / 60) * 60;
+		System.out.println(period);
+	}
+	
 	private static int getSuggestedPeriod(Date date) {
 		Date now = new Date();
-		long diff = now.getTime() - date.getTime();
+		double diff = now.getTime() - date.getTime();
 		diff /= 1000 * 60;
 		final int maxData = 1440;
 		
-		double res = (double)diff / maxData;
+		double res = diff / maxData;
 		res = Math.ceil(res);
 		
 		if (res < 1)
