@@ -265,10 +265,11 @@ public class Test {
 		int cores = getCores();
 		
 		if (loadModelFile != null)
-			exec(String.format("bash %s %s %s",
+			exec(String.format("bash %s %s %s %d",
 					loadModelFile,
 					impl.getIp(),
-					impl.getIp()));
+					impl.getIp(),
+					cores));
 		else if (!noSDA)
 			exec(String.format(
 					LOAD_MODEL_COMMAND,
