@@ -76,6 +76,16 @@
       <outputDirectory></outputDirectory>
       <destName>grep_methodResult</destName>
     </file>
+    <file>
+      <source>resources/startGlassfishMonitoring.sh</source>
+      <outputDirectory></outputDirectory>
+      <destName>startGlassfishMonitoring.sh</destName>
+    </file>
+    <file>
+      <source>resources/stopGlassfishMonitoring.sh</source>
+      <outputDirectory></outputDirectory>
+      <destName>stopGlassfishMonitoring.sh</destName>
+    </file>
   </files>
 
   <fileSets>

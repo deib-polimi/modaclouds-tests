@@ -7,11 +7,14 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.apache.commons.io.FileUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,11 +27,11 @@ public class ResultsBuilder {
 	public static final String RESULT_WORKLOAD = "workload.csv";
 	public static final String RESULT_RES_TIMES = "responseTimes.csv";
 	
-	public static void main(String[] args) {
+	public static void mainAaa(String[] args) {
 		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, 2);
 	}
 	
-	public static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
+	private static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
 					+ f == null ? "null" : f.toString() + ")");
@@ -80,7 +83,7 @@ public class ResultsBuilder {
 	
 	public static final String JMETER_LOG = "test_aggregate.jtl";
 	
-	public static Map<String, Integer> getRequestsPerPage(Path parent, boolean onlyOk) {
+	private static Map<String, Integer> getRequestsPerPage(Path parent, boolean onlyOk) {
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
 		boolean goOn = true;
@@ -133,8 +136,8 @@ public class ResultsBuilder {
 		return res;
 	}
 	
-	public static Map<String, String> getLatenciesPerPage(Path parent, boolean onlyOk) {
-		HashMap<String, String> res = new HashMap<String, String>();
+	private static Map<String, String> getLatenciesPerPage(Path parent, boolean onlyOk) {
+		LinkedHashMap<String, String> res = new LinkedHashMap<String, String>();
 		
 		boolean goOn = true;
 		for (int i = 1; goOn; ++i) {
@@ -459,7 +462,14 @@ public class ResultsBuilder {
 			
 			for (String key : latenciesPerPage.keySet()) {
 				String res = latenciesPerPage.get(key);
-				out.printf("%s,%s\n", key, res);
+				out.printf("%s_JMeter,%s\n", key, res);
+			}
+			
+			Map<String, String> glassfishLatenciesPerPage = getLatenciesPerPageFromGlassfish(parent, methodsNames);
+			
+			for (String key : glassfishLatenciesPerPage.keySet()) {
+				String res = glassfishLatenciesPerPage.get(key);
+				out.printf("%s_Glassfish,%s\n", key, res);
 			}
 			
 			out.flush();
@@ -467,6 +477,38 @@ public class ResultsBuilder {
 		} catch (Exception e) {
 			logger.error("Error while dealing with the result file.", e);
 		}
+	}
+	
+	private static Map<String, String> getLatenciesPerPageFromGlassfish(Path parent, String[] methodsNames) throws Exception {
+		LinkedHashMap<String, String> res = new LinkedHashMap<String, String>();
+		
+		boolean goOn = true;
+		for (int i = 1; goOn; ++i) {
+			for (String method : methodsNames) {
+				Path jsonFile = Paths.get(parent.getParent().getParent().getParent().toString(), "client" + i, method + ".json");
+				if (!jsonFile.toFile().exists()) {
+					goOn = false;
+					continue;
+				}
+				
+				res.put(method + "_client" + i, parseGlassfishJson(jsonFile));
+			}
+		}
+		
+		return res;
+	}
+	
+	private static String parseGlassfishJson(Path jsonFile) throws Exception {
+		String json = FileUtils.readFileToString(jsonFile.toFile());
+		
+		JSONObject obj = new JSONObject(json);
+		JSONObject extraProperties = obj.getJSONObject("extraProperties");
+		JSONObject entity = extraProperties.getJSONObject("entity");
+		
+		JSONObject maxtime = entity.getJSONObject("maxtime");
+		JSONObject processingtime = entity.getJSONObject("processingtime");
+		
+		return processingtime.getInt("count") + ",0," + maxtime.getInt("count");
 	}
 	
 	public static final int DEFAULT_TIMESTEPS = 5;

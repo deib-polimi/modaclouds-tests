@@ -230,6 +230,12 @@ public class Test {
 	public static String LOAD_MODEL_COMMAND_NOSDA = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-noSDA") + " %s %d";
 	public static String LOAD_MODEL_COMMAND_HEALTHCHECK = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-healthCheck") + " %s %d";
 	
+	public static final String START_GLASSFISH_MONITORING = "startGlassfishMonitoring.sh";
+	public static final String STOP_GLASSFISH_MONITORING = "stopGlassfishMonitoring.sh";
+	
+	public static String START_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(START_GLASSFISH_MONITORING) + " %s %s";
+	public static String STOP_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(STOP_GLASSFISH_MONITORING) + " %s";
+	
 	public static final String SDA_CONFIG = "sdaconfig.properties";
 	
 	private List<Thread> otherThreads;
@@ -400,6 +406,9 @@ public class Test {
 			javaParameters = null;
 		JMeterTest.javaParameters = javaParameters;
 		
+		for (Instance imic : mic.getInstances())
+			exec(String.format(START_GLASSFISH_MONITORING, imic.getIp()));
+		
 		logger.info("Test starting...");
 		
 		test.performTest(clients, run);
@@ -409,6 +418,11 @@ public class Test {
 		logger.info("Retrieving the files from the instances...");
 		
 		mic.retrieveFiles(localPath, "/home/" + mic.getParameter("SSH_USER"));
+		{
+			int i = 1;
+			for (Instance imic : mic.getInstances())
+				exec(String.format(STOP_GLASSFISH_MONITORING, imic.getIp(), Paths.get(localPath, "client" + i++)));
+		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
 		if (useDatabase)
