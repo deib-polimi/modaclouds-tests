@@ -135,7 +135,7 @@ public class Main {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(size, clients, servers, baseJmx, data, useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck, loadModelFile);
+			long duration = Test.performTest(size, clients, servers, Configuration.getPathToFile(baseJmx).toString(), Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null);
 			
 			if (duration > -1)
 				logger.info("The test run correctly in {}!", durationToString(duration));

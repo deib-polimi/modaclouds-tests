@@ -13,13 +13,13 @@ public class Main {
 	@Parameter(names = "-parent", description = "The parent folder", required = true)
 	private String parent = null;
 	
-	@Parameter(names = "-size", description = "The size of the machines used", required = true)
-	private String size = null;
+	@Parameter(names = "-cores", description = "The number of cores of the machines used", required = true)
+	private int cores = 2;
 	
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
-//		args = new String[] { "-parent", "/Users/ft/Lavoro/tmp/sdatests-0.0.11/tests/1806151550-m3.large-800x2/mpl1/home/ubuntu", "-size", "m3.large" };
+//		args = new String[] { "-parent", "/Users/ft/Lavoro/tmp/sdatests-0.0.11/tests/1806151550-m3.large-800x2/mpl1/home/ubuntu", "-cores", "2" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
@@ -31,7 +31,7 @@ public class Main {
 			System.exit(0);
 		}
 		
-		Validator.perform(Paths.get(m.parent), m.size);
+		Validator.perform(Paths.get(m.parent), m.cores);
 	}
 
 }

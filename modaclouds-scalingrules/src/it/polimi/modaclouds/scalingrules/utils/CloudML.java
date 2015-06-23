@@ -40,8 +40,6 @@ public class CloudML implements PropertyChangeListener {
 		String mplIp = "52.17.223.188";
 		String cloudMLIp = mplIp;
 		VirtualMachine vm = VirtualMachine.getVM("mpl", "m3.large", 1);
-//		String cloudMLIp = "127.0.0.1";
-//		VirtualMachine vm = null;
 		String loadBalancer = "ScalingRules638";
 		
 		CloudML cml = new CloudML(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);

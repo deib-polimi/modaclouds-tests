@@ -28,7 +28,7 @@ public class Validator {
 	
 	public static final String[] METHODS = new String[] { "reg", "save", "answ" };
 
-	public static void perform(Path parent, String resourceType) {
+	public static void perform(Path parent, int cores) {
 		if (parent == null || !parent.toFile().exists())
 			throw new RuntimeException("Parent folder not found! (" + parent == null ? "null" : parent.toString() + ")");
 		
@@ -54,7 +54,7 @@ public class Validator {
 			}
 			
 			logger.info("Generating the full results file...");
-			ResultsBuilder.perform(parent, METHODS, resourceType);
+			ResultsBuilder.perform(parent, METHODS, cores);
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}

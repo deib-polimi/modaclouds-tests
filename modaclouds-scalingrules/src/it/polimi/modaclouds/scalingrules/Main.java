@@ -56,7 +56,7 @@ public class Main {
 	public static final String APP_TITLE = "\nScaling Rules Test\n";
 	
 	public static void main(String[] args) {
-//		args = new String[] { "-data", "tests.txt", "-useOnDemand", "-size", "m3.large", "-clients", "1", "-leaveInstancesOn" }; //, "-reuseInstances" };
+		args = new String[] { "-data", "tests.txt", "-useOnDemand", "-size", "m3.large", "-clients", "1", "-leaveInstancesOn" }; //, "-reuseInstances" };
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
@@ -135,7 +135,7 @@ public class Main {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(clients, baseJmx, data, useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size);
+			long duration = Test.performTest(clients, Configuration.getPathToFile(baseJmx).toString(), Configuration.getPathToFile(data).toString(), useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size);
 		
 			if (duration == Test.ERROR_STATUS_NULL)
 				logger.error("There was the status == null problem...");

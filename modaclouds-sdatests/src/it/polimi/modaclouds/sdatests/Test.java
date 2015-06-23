@@ -80,7 +80,7 @@ public class Test {
 			t.stopMachines();
 		
 		if (!noSDA)
-			Validator.perform(path, size);
+			Validator.perform(path, t.getCores());
 		else
 			Data2StdoutParser.perform(path);
 		
@@ -224,9 +224,9 @@ public class Test {
 	
 	public static final String LOAD_MODEL_FILE = "MPloadModel";
 	
-	public static String LOAD_MODEL_COMMAND = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE) + " %s %s";
-	public static String LOAD_MODEL_COMMAND_NOSDA = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-noSDA") + " %s";
-	public static String LOAD_MODEL_COMMAND_HEALTHCHECK = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-healthCheck") + " %s";
+	public static String LOAD_MODEL_COMMAND = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE) + " %s %s %d";
+	public static String LOAD_MODEL_COMMAND_NOSDA = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-noSDA") + " %s %d";
+	public static String LOAD_MODEL_COMMAND_HEALTHCHECK = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-healthCheck") + " %s %d";
 	
 	public static final String SDA_CONFIG = "sdaconfig.properties";
 	
@@ -262,6 +262,8 @@ public class Test {
 			try { Thread.sleep(5000); } catch (Exception e) { }
 		}
 		
+		int cores = getCores();
+		
 		if (loadModelFile != null)
 			exec(String.format("bash %s %s %s",
 					loadModelFile,
@@ -271,15 +273,18 @@ public class Test {
 			exec(String.format(
 					LOAD_MODEL_COMMAND,
 					impl.getIp(),
-					impl.getIp()));
+					impl.getIp(),
+					cores));
 		else if (!healthCheck)
 			exec(String.format(
 					LOAD_MODEL_COMMAND_NOSDA,
-					impl.getIp()));
+					impl.getIp(),
+					cores));
 		else
 			exec(String.format(
 					LOAD_MODEL_COMMAND_HEALTHCHECK,
-					impl.getIp()));
+					impl.getIp(),
+					cores));
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
@@ -445,6 +450,21 @@ public class Test {
 		}
 		
 		return 0;
+	}
+	
+	public static int getCores(String resourceName) {
+		switch (resourceName) {
+		case "m3.large":
+			return 2;
+		case "m3.xlarge":
+			return 4;
+		default:
+			return 1;
+		}
+	}
+	
+	public int getCores() {
+		return getCores(mic.getSize());
 	}
 
 }

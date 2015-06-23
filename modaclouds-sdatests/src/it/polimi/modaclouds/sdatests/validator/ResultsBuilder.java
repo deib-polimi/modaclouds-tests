@@ -24,7 +24,7 @@ public class ResultsBuilder {
 	public static final String RESULT_WORKLOAD = "workload.csv";
 	
 	public static void main(String[] args) {
-		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, "m3.large");
+		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, 2);
 	}
 	
 	public static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
@@ -145,8 +145,8 @@ public class ResultsBuilder {
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
-	public static void perform(Path parent, String[] methodsNames, String resourceType) {
-		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW, true, resourceType);
+	public static void perform(Path parent, String[] methodsNames, int cores) {
+		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW, true, cores);
 	}
 	
 	private static List<List<Double>> methodsWorkloads = null;
@@ -203,18 +203,7 @@ public class ResultsBuilder {
 				methodsWorkloadTot.put(j, methodsWorkloadTot.get(j) + methodsWorkloads.get(j).get(i).intValue());
 	}
 	
-	public static int getCores(String resourceName) {
-		switch (resourceName) {
-		case "m3.large":
-			return 2;
-		case "m3.xlarge":
-			return 4;
-		default:
-			return 1;
-		}
-	}
-	
-	public static void createDemandAnalysis(Path parent, String[] methodsNames, String resourceName) {
+	public static void createDemandAnalysis(Path parent, String[] methodsNames, int cores) {
 		logger.info("Creating the demand analysis report...");
 		
 		if (methodsNames == null || methodsNames.length == 0)
@@ -227,8 +216,6 @@ public class ResultsBuilder {
 			for (int i = 0; i < methodsNames.length; ++i)
 				out.printf("Demand_%1$s,X_%1$s,", methodsNames[i]);
 			out.println("U_actual,U_measured,U_aoverm");
-			
-			int cores = getCores(resourceName);
 			
 			for (int i = 0; i < maxCommonLength; ++i) {
 				double u = 0;
@@ -371,8 +358,8 @@ public class ResultsBuilder {
 	
 	public static final int DEFAULT_TIMESTEPS = 5;
 	
-	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests, String resourceType) {
-		createDemandAnalysis(parent, methodsNames, resourceType);
+	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests, int cores) {
+		createDemandAnalysis(parent, methodsNames, cores);
 		createRequestsAnalysis(parent, methodsNames, window, printOnlyTotalRequests);
 		createWorkloadAnalysis(parent, methodsNames, DEFAULT_TIMESTEPS);
 	}

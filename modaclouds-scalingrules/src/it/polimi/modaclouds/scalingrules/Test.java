@@ -57,14 +57,14 @@ public class Test {
 		loadBalancer = null;
 	}
 	
-	public static String getActualCredentials(String ip, VirtualMachine vm, String filePath) throws Exception {
+	public static String getActualCredentials(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
 		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath));
 		
 		Path p = Files.createTempFile("credentials", ".properties");
 		FileUtils.writeStringToFile(p.toFile(), body);
 		
 		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
-			String remotePath = vm.getParameter("REMOTE_PATH");
+			String remotePath = vm.getParameter("REMOTE_PATH") + "/" + folder;
 			String newFile = remotePath + "/" + p.toFile().getName();
 			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
 			Ssh.sendFile(ip, vm, p.toString(), newFile);
@@ -74,11 +74,11 @@ public class Test {
 		return p.toString();
 	}
 	
-	public static String getActualKey(String ip, VirtualMachine vm, String filePath) throws Exception {
+	public static String getActualKey(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
 		Path p = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath).toPath();
 		
 		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
-			String remotePath = vm.getParameter("REMOTE_PATH");
+			String remotePath = vm.getParameter("REMOTE_PATH") + "/" + folder;
 			String newFile = remotePath + "/" + p.toFile().getName();
 			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
 			Ssh.sendFile(ip, vm, p.toString(), newFile);
@@ -94,13 +94,16 @@ public class Test {
 		
 		JSONObject jsonObject = new JSONObject(body);
 		
+		Date date = new Date();
+		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM",	date);
+		
 		if (jsonObject.has("providers")) {
 			JSONArray array = jsonObject.getJSONArray("providers");
 			for (int i = 0; i < array.length(); ++i) {
 				JSONObject provider = array.getJSONObject(i);
 				if (provider.has("credentials")) {
 					String credentials = provider.getString("credentials");
-					String s = Test.getActualCredentials(ip, vm, credentials);
+					String s = Test.getActualCredentials(ip, vm, credentials, now);
 					provider.put("credentials", s);
 					
 					body = body.replaceAll(credentials, s);
@@ -114,7 +117,7 @@ public class Test {
 				JSONObject vmo = array.getJSONObject(i);
 				if (vmo.has("privateKey")) {
 					String privateKey = vmo.getString("privateKey");
-					String s = Test.getActualKey(ip, vm, privateKey);
+					String s = Test.getActualKey(ip, vm, privateKey, now);
 					vmo.put("privateKey", s);
 					
 					body = body.replaceAll(privateKey, s);
@@ -125,7 +128,7 @@ public class Test {
 		Path p = Files.createTempFile("model", ".json");
 		FileUtils.writeStringToFile(p.toFile(), body);
 		
-		System.out.println(body);
+		logger.trace(body);
 		
 		return p;
 	}
@@ -470,7 +473,7 @@ public class Test {
 		String body = sw.toString();
 		body = body.substring(body.indexOf("<monitoringRules"));
 		
-		System.out.println(body);
+		logger.trace(body);
 	}
 
 	public void addCPUUtilizationMonitoringRules() throws Exception {
