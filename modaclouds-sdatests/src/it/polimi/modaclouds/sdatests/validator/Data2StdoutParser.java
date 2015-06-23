@@ -1,4 +1,7 @@
-package it.polimi.modaclouds.sdatests;
+package it.polimi.modaclouds.sdatests.validator;
+
+import it.polimi.modaclouds.sdatests.validator.util.Datum;
+import it.polimi.modaclouds.sdatests.validator.util.Datum.Type;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,7 +14,6 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,36 +23,19 @@ public class Data2StdoutParser {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Data2StdoutParser.class);
 	
-	public static enum DataType { RDF_JSON, TOWER_JSON, GRAPHITE, INFLUXDB };
-	
-	public static class Element {
-		public String resourceId;
-		public String metric;
-		public Double value;
-		public Long timestamp;
-		
-		public Element(JSONObject obj) throws JSONException {
-			resourceId = obj.getString("resourceId");
-			metric = obj.getString("metric");
-			value = obj.getDouble("value");
-			timestamp = obj.getLong("timestamp");
-		}
-		
-		public String getActualResourceId() {
-			return resourceId.substring(0, resourceId.lastIndexOf("_"));
-		}
-		
-		public String toString() {
-			return this.getClass().getName() + "[resourceId: " + resourceId + ", metric: " + metric + ", value: " + value + ", timestamp: " + timestamp + "]";
-		}
-	}
-	
 	private Path file;
-	private DataType type;
-	private Map<String, Map<String, List<Element>>> data;
+	private Type type;
+	private Map<String, Map<String, List<Datum>>> data;
+	
+	public Data2StdoutParser(Path file) throws Exception {
+		this(file, null);
+	}
 
-	public Data2StdoutParser(Path file, DataType type) throws IOException {
+	public Data2StdoutParser(Path file, Type type) throws Exception {
 		this.file = file;
+		
+		if (type == null)
+			type = Datum.getTypeFromFile(file);
 		this.type = type;
 		data = null;
 		
@@ -58,7 +43,7 @@ public class Data2StdoutParser {
 	}
 	
 	private void parse() throws IOException {
-		data = new HashMap<String, Map<String, List<Element>>>();
+		data = new HashMap<String, Map<String, List<Datum>>>();
 		
 		try (Scanner sc = new Scanner(file)) {
 			while (sc.hasNextLine()) {
@@ -70,18 +55,18 @@ public class Data2StdoutParser {
 						JSONArray array = new JSONArray(line);
 						for (int i = 0; i < array.length(); ++i) {
 							JSONObject obj = array.getJSONObject(i);
-							Element el = new Element(obj);
+							Datum el = new Datum(obj);
 							
-							Map<String, List<Element>> map = data.get(el.metric);
+							Map<String, List<Datum>> map = data.get(el.metric);
 							if (map == null) {
-								map = new HashMap<String, List<Element>>();
+								map = new HashMap<String, List<Datum>>();
 								data.put(el.metric, map);
-								List<Element> list = new ArrayList<Element>();
+								List<Datum> list = new ArrayList<Datum>();
 								map.put(el.getActualResourceId(), list);
 							}
-							List<Element> list = map.get(el.getActualResourceId());
+							List<Datum> list = map.get(el.getActualResourceId());
 							if (list == null) {
-								list = new ArrayList<Element>();
+								list = new ArrayList<Datum>();
 								map.put(el.getActualResourceId(), list);
 							}
 							list.add(el);
@@ -95,7 +80,7 @@ public class Data2StdoutParser {
 		}
 	}
 	
-	public Map<String, Map<String, List<Element>>> getData() {
+	public Map<String, Map<String, List<Datum>>> getData() {
 		return data;
 	}
 	
@@ -106,14 +91,14 @@ public class Data2StdoutParser {
 	public double getTotalPerMetric(String metric, String resourceId) {
 		double res = 0.0;
 		
-		Map<String, List<Element>> map = data.get(metric);
+		Map<String, List<Datum>> map = data.get(metric);
 		if (map == null)
 			return res;
 		
 		for (String key : map.keySet()) {
 			if (resourceId == null || resourceId.equals(key)) {
-				List<Element> list = map.get(key);
-				for (Element el : list)
+				List<Datum> list = map.get(key);
+				for (Datum el : list)
 					res += el.value;
 			}
 		}
@@ -128,7 +113,7 @@ public class Data2StdoutParser {
 	public int getCountPerMetric(String metric, String resourceId) {
 		int res = 0;
 		
-		Map<String, List<Element>> map = data.get(metric);
+		Map<String, List<Datum>> map = data.get(metric);
 		if (map == null)
 			return res;
 		
@@ -228,7 +213,7 @@ public class Data2StdoutParser {
 //				out.printf("ActualRequestsOk_%s,", key);
 			out.println("TotalActualRequestsOk");
 			
-			Data2StdoutParser parser = new Data2StdoutParser(log, DataType.TOWER_JSON);
+			Data2StdoutParser parser = new Data2StdoutParser(log, Type.TOWER_JSON);
 			int tot = (int)parser.getTotalPerMetric("CountResponseTime");
 			
 			out.print(tot + ",");

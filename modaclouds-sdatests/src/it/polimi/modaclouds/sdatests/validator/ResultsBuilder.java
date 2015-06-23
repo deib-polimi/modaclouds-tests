@@ -22,6 +22,7 @@ public class ResultsBuilder {
 	public static final String RESULT = "results.csv";
 	public static final String RESULT_REQS = "requests.csv";
 	public static final String RESULT_WORKLOAD = "workload.csv";
+	public static final String RESULT_RES_TIMES = "responseTimes.csv";
 	
 	public static void main(String[] args) {
 		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, 2);
@@ -127,6 +128,92 @@ public class ResultsBuilder {
 			}
 		} catch (Exception e) {
 			logger.error("Error while dealing with the file.", e);
+		}
+		
+		return res;
+	}
+	
+	public static Map<String, String> getLatenciesPerPage(Path parent, boolean onlyOk) {
+		HashMap<String, String> res = new HashMap<String, String>();
+		
+		boolean goOn = true;
+		for (int i = 1; goOn; ++i) {
+			Path jmeterAggregate = Paths.get(parent.getParent().getParent().getParent().toString(), "client" + i, JMETER_LOG);
+			if (!jmeterAggregate.toFile().exists()) {
+				goOn = false;
+				continue;
+			}
+			
+			Map<String, String> tmp = getLatenciesPerPageFromSingleFile(jmeterAggregate, onlyOk);
+			for (String key : tmp.keySet()) {
+				String val = tmp.get(key);
+				res.put(key + "_client" + i, val);
+			}
+		}
+		
+		return res;
+	}
+	
+	private static Map<String, String> getLatenciesPerPageFromSingleFile(Path f, boolean onlyOk) {
+		if (f == null || !f.toFile().exists())
+			throw new RuntimeException("File not found or wrong path ("
+					+ f == null ? "null" : f.toString() + ")");
+		
+		HashMap<String, String> res = new HashMap<String, String>();
+		
+		HashMap<String, Integer> sums = new HashMap<String, Integer>();
+		HashMap<String, Integer> mins = new HashMap<String, Integer>();
+		HashMap<String, Integer> maxs = new HashMap<String, Integer>();
+		HashMap<String, Integer> counts = new HashMap<String, Integer>();
+		
+		try (Scanner sc = new Scanner(f)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String[] values = line.split(",");
+				
+				String page = values[2];
+				String resultReq = values[4];
+				if (onlyOk && !resultReq.equals("OK"))
+					continue;
+				
+				Integer latency = Integer.parseInt(values[11]);
+				
+				Integer sum = sums.get(page);
+				if (sum == null)
+					sum = 0;
+				
+				Integer count = counts.get(page);
+				if (count == null)
+					count = 0;
+				
+				Integer max = maxs.get(page);
+				if (max == null)
+					max = Integer.MIN_VALUE;
+				Integer min = mins.get(page);
+				if (min == null)
+					min = Integer.MAX_VALUE;
+				
+				if (latency > max)
+					max = latency;
+				if (latency < min)
+					min = latency;
+
+				sums.put(page, sum+latency);
+				counts.put(page, count+1);
+				maxs.put(page, max);
+				mins.put(page, min);
+			}
+		} catch (Exception e) {
+			logger.error("Error while dealing with the file.", e);
+		}
+		
+		for (String key : sums.keySet()) {
+			int sum = sums.get(key);
+			int count = counts.get(key);
+			int max = maxs.get(key);
+			int min = mins.get(key);
+			
+			res.put(key, doubleFormatter.format((double)sum/count) + "," + min + "," + max);
 		}
 		
 		return res;
@@ -356,12 +443,39 @@ public class ResultsBuilder {
 		}
 	}
 	
+	public static void createResponseTimesAnalysis(Path parent, String[] methodsNames) {
+		logger.info("Creating the response times analysis report...");
+		
+		if (methodsNames == null || methodsNames.length == 0)
+			throw new RuntimeException("You should specify at least one method name.");
+		
+		if (methodsWorkloads == null || methodsWorkloadTot == null || demands == null || maxCommonLength == -1)
+			init(parent, methodsNames);
+		
+		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_RES_TIMES).toFile())) {
+			out.println("Method,AvgResponseTime,MinResponseTime,MaxResponseTime");
+			
+			Map<String, String> latenciesPerPage = getLatenciesPerPage(parent, true);
+			
+			for (String key : latenciesPerPage.keySet()) {
+				String res = latenciesPerPage.get(key);
+				out.printf("%s,%s\n", key, res);
+			}
+			
+			out.flush();
+			
+		} catch (Exception e) {
+			logger.error("Error while dealing with the result file.", e);
+		}
+	}
+	
 	public static final int DEFAULT_TIMESTEPS = 5;
 	
 	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests, int cores) {
 		createDemandAnalysis(parent, methodsNames, cores);
 		createRequestsAnalysis(parent, methodsNames, window, printOnlyTotalRequests);
 		createWorkloadAnalysis(parent, methodsNames, DEFAULT_TIMESTEPS);
+		createResponseTimesAnalysis(parent, methodsNames);
 	}
 
 }

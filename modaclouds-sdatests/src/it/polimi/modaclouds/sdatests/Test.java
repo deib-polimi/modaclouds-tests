@@ -10,6 +10,7 @@ import it.cloud.utils.CloudException;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
 import it.cloud.utils.Ssh;
+import it.polimi.modaclouds.sdatests.validator.Data2StdoutParser;
 import it.polimi.modaclouds.sdatests.validator.Validator;
 
 import java.io.BufferedReader;
@@ -444,7 +445,7 @@ public class Test {
 	
 	public int getTotalCountResponseTime(Path path) {
 		try {
-			Data2StdoutParser parser = new Data2StdoutParser(path, Data2StdoutParser.DataType.TOWER_JSON);
+			Data2StdoutParser parser = new Data2StdoutParser(path);
 			return (int)parser.getTotalPerMetric("CountResponseTime");
 		} catch (Exception e) {
 			logger.error("Error while parsing the output.", e);
