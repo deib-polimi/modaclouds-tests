@@ -61,7 +61,7 @@ public class Test {
 		Path p = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath).toPath();
 		
 		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
-			String remotePath = vm.getParameter("REMOTE_PATH"); // + "/" + folder;
+			String remotePath = vm.getParameter("REMOTE_PATH") + "/" + folder;
 			String newFile = remotePath + "/" + p.toFile().getName();
 			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
 			Ssh.sendFile(ip, vm, p.toString(), newFile);
