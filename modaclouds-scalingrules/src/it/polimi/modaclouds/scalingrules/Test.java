@@ -168,7 +168,11 @@ public class Test {
 		
 		if (status != null && !status.equals("null")) {
 			t.addCPUUtilizationMonitoringRules();
-			t.runTest(Paths.get(baseJmx), data);
+			try {
+				t.runTest(Paths.get(baseJmx), data);
+			} catch (Exception e) {
+				logger.error("Error while performing the test.", e);
+			}
 		} else {
 			logger.error("CloudML isn't working (the statuses are null).");
 		}

@@ -74,7 +74,12 @@ public class Test {
 		if (onlyStartMachines)
 			return -1;
 		
-		Path path = t.runTest(Paths.get(baseJmx), data);
+		Path path = null;
+		try {
+			path = t.runTest(Paths.get(baseJmx), data);
+		} catch (Exception e) {
+			logger.error("Error while performing the test.", e);
+		}
 		
 		t.destroyLoadBalancer();
 		
