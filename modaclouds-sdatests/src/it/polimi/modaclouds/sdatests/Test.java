@@ -233,8 +233,8 @@ public class Test {
 	public static final String START_GLASSFISH_MONITORING = "startGlassfishMonitoring.sh";
 	public static final String STOP_GLASSFISH_MONITORING = "stopGlassfishMonitoring.sh";
 	
-	public static String START_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(START_GLASSFISH_MONITORING) + " %s %s";
-	public static String STOP_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(STOP_GLASSFISH_MONITORING) + " %s";
+	public static String START_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(START_GLASSFISH_MONITORING) + " %s";
+	public static String STOP_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(STOP_GLASSFISH_MONITORING) + " %s %s";
 	
 	public static final String SDA_CONFIG = "sdaconfig.properties";
 	
