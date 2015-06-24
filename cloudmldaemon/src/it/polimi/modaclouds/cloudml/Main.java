@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -28,6 +29,15 @@ public class Main {
 	private boolean stop = false;
 	
 	public static final String APP_TITLE = "\nCloudML Daemon\n";
+	
+	static {
+		// Optionally remove existing handlers attached to j.u.l root logger
+		SLF4JBridgeHandler.removeHandlersForRootLogger();  // (since SLF4J 1.6.5)
+	
+		// add SLF4JBridgeHandler to j.u.l's root logger, should be done once during
+		// the initialization phase of your application
+		SLF4JBridgeHandler.install();
+	}
 	
 	public static void main(String[] args) {
 		Main m = new Main();

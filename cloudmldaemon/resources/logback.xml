@@ -18,27 +18,63 @@
 <configuration>
     <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<target>System.out</target>
-		<encoder>
-			<pattern>%d{HH:mm:ss} [CloudMLDaemon] %m%n
-			</pattern>
-		</encoder>
-	</appender>
+	<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <!-- reset all previous level configurations of all j.u.l. loggers -->
+        <resetJUL>true</resetJUL>
+    </contextListener>
 
-	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<prudent>true</prudent>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>debug.%d{yyyy-MM-dd}.log</fileNamePattern>
-      		<!-- keep 3 days' worth of history -->
-			<maxHistory>3</maxHistory>
-		</rollingPolicy>
+    <evaluator name="DISP_CALLER_EVAL">
+        <expression>level >= WARN</expression>
+    </evaluator>
 
-		<encoder>
-			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
-			</pattern>
-		</encoder>
-	</appender>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator>
+                <expression>
+                    level >= WARN
+                </expression>
+            </evaluator>
+            <OnMismatch>NEUTRAL</OnMismatch>
+            <OnMatch>DENY</OnMatch>
+        </filter>
+        <target>System.out</target>
+        <encoder>
+            <pattern>%d{HH:mm:ss} [CloudMLDaemon] %m%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator>
+                <expression>
+                    level >= WARN
+                </expression>
+            </evaluator>
+            <OnMismatch>DENY</OnMismatch>
+            <OnMatch>NEUTRAL</OnMatch>
+        </filter>
+        <target>System.err</target>
+        <encoder>
+            <pattern>%d{HH:mm:ss} [CloudMLDaemon] %m%n%caller{5}
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <prudent>true</prudent>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>debug.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- keep 3 days' worth of history -->
+            <maxHistory>3</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%caller{5, DISP_CALLER_EVAL}
+            </pattern>
+        </encoder>
+    </appender>
 
 	<logger name="it.polimi" level="TRACE" />
 	

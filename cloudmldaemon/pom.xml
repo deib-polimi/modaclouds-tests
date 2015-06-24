@@ -15,7 +15,7 @@
 		<version>0.1</version>
 	</parent>
 	<artifactId>cloudmldaemon</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 	<name>MODAClouds - CloudML Daemon</name>
 
 	<licenses>
@@ -246,5 +246,15 @@
 			<artifactId>aws-ec2</artifactId>
 			<version>1.7.2</version>
 		</dependency>
+		<dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <version>2.7.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>1.7.12</version>
+        </dependency>
 	</dependencies>
 </project>

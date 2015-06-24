@@ -57,14 +57,11 @@ public class Test {
 		loadBalancer = null;
 	}
 	
-	public static String getActualCredentials(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
-		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath));
-		
-		Path p = Files.createTempFile("credentials", ".properties");
-		FileUtils.writeStringToFile(p.toFile(), body);
+	public static String getActualFile(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
+		Path p = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath).toPath();
 		
 		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
-			String remotePath = vm.getParameter("REMOTE_PATH") + "/" + folder;
+			String remotePath = vm.getParameter("REMOTE_PATH"); // + "/" + folder;
 			String newFile = remotePath + "/" + p.toFile().getName();
 			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
 			Ssh.sendFile(ip, vm, p.toString(), newFile);
@@ -75,18 +72,12 @@ public class Test {
 	}
 	
 	public static String getActualKey(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
-		Path p = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(filePath).toPath();
+		String newFile = getActualFile(ip, vm, filePath, folder);
 		
-		if (!ip.equals("localhost") && !ip.equals("127.0.0.1")) {
-			String remotePath = vm.getParameter("REMOTE_PATH") + "/" + folder;
-			String newFile = remotePath + "/" + p.toFile().getName();
-			Ssh.exec(ip, vm, "mkdir -p " + remotePath);
-			Ssh.sendFile(ip, vm, p.toString(), newFile);
+		if (!ip.equals("localhost") && !ip.equals("127.0.0.1"))
 			Ssh.exec(ip, vm, "chmod 400 " + newFile);
-			return newFile;
-		}
 		
-		return p.toString();
+		return newFile;
 	}
 	
 	public static Path getActualDeploymentModel(String ip, VirtualMachine vm) throws Exception {
@@ -103,7 +94,7 @@ public class Test {
 				JSONObject provider = array.getJSONObject(i);
 				if (provider.has("credentials")) {
 					String credentials = provider.getString("credentials");
-					String s = Test.getActualCredentials(ip, vm, credentials, now);
+					String s = Test.getActualFile(ip, vm, credentials, now);
 					provider.put("credentials", s);
 					
 					body = body.replaceAll(credentials, s);
@@ -127,8 +118,6 @@ public class Test {
 		
 		Path p = Files.createTempFile("model", ".json");
 		FileUtils.writeStringToFile(p.toFile(), body);
-		
-		logger.trace(body);
 		
 		return p;
 	}
