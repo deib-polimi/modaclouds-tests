@@ -1,4 +1,4 @@
-<monitoringRules xmlns="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
+<monitoringRules xmlns="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
   <monitoringRule id="cpuUtilizationAboveRule" timeStep="3" timeWindow="3">
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>

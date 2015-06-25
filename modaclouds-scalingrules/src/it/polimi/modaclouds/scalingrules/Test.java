@@ -16,7 +16,6 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 
 import java.io.File;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,7 +27,6 @@ import java.util.Locale;
 import java.util.Scanner;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.FileUtils;
@@ -49,6 +47,7 @@ public class Test {
 
 	public Test(int clients, String size) throws Exception {
 		mpl = VirtualMachine.getVM("mpl", size, 1);
+		mic = VirtualMachine.getVM("mic", size, 1);
 		this.clients = VirtualMachine.getVM("client", size, clients);
 
 		running = false;
@@ -452,38 +451,6 @@ public class Test {
 						doubleFormatter.format(underValue), cloudMLIp, cloudMLPort, APP_NAME));
 
 		monitoringPlatform.installRules(rules);
-	}
-	
-	public static void main(String[] args) throws Exception {
-		double aboveValue = 0.6;
-		double underValue = 0.2;
-		String cloudMLIp = "127.0.0.1";
-		int cloudMLPort = 9000;
-		String APP_NAME = "MIC";
-		
-		MonitoringRules rules = new MonitoringRules();
-		rules.getMonitoringRules()
-				.addAll(getMonitoringRulesFromFile(
-						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
-						doubleFormatter.format(aboveValue), cloudMLIp, cloudMLPort, APP_NAME));
-		rules.getMonitoringRules()
-				.addAll(getMonitoringRulesFromFile(
-						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
-						doubleFormatter.format(underValue), cloudMLIp, cloudMLPort, APP_NAME));
-		
-		JAXBContext context = JAXBContext
-				.newInstance(MonitoringRules.class);
-		Marshaller marshaller = context.createMarshaller();
-		marshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
-		marshaller.setProperty("jaxb.schemaLocation", "http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema");
-		StringWriter sw = new StringWriter();
-
-		marshaller.marshal(rules, sw);
-		
-		String body = sw.toString();
-		body = body.substring(body.indexOf("<monitoringRules"));
-		
-		logger.trace(body);
 	}
 
 	public void addCPUUtilizationMonitoringRules() throws Exception {
