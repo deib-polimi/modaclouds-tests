@@ -1,14 +1,17 @@
 package it.polimi.modaclouds.scalingrules.utils;
 
+import it.cloud.amazon.ec2.VirtualMachine;
 import it.polimi.modaclouds.scalingrules.Configuration;
+import it.polimi.modaclouds.scalingrules.Test;
 
-import java.net.InetAddress;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
@@ -23,16 +26,13 @@ import org.cloudml.facade.events.ComponentList;
 import org.cloudml.facade.events.Data;
 import org.cloudml.facade.events.Event;
 import org.cloudml.facade.events.EventHandler;
-import org.cloudml.facade.events.Message;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CloudMLNew implements EventHandler {
 	
-	private static final Logger logger = LoggerFactory.getLogger(CloudML.class);
-	private static final Logger loggerCml = LoggerFactory.getLogger("org.cloudml.facade.CloudML");
+	protected static final Logger logger = LoggerFactory.getLogger(CloudMLNew.class);
+	protected static final Logger loggerCml = LoggerFactory.getLogger("org.cloudml.facade.CloudML");
 	
 	private org.cloudml.facade.CloudML cml;
 	private CommandFactory fcommand;
@@ -40,54 +40,100 @@ public class CloudMLNew implements EventHandler {
 	private String ip;
 	private int port;
 	private boolean isConnected;
+	
+	public static void main(String[] args) throws Exception {
+		String mplIp = "54.77.91.67";
+		String cloudMLIp = mplIp;
+		VirtualMachine vm = VirtualMachine.getVM("mpl", "m3.large", 1);
+		String loadBalancer = "ScalingRules545";
+		
+		CloudMLNew cml = new CloudMLNew(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);
+		
+		logger.info("Deploy the system...");
+		
+		cml.deploy(
+				Test.getActualDeploymentModel(cloudMLIp, vm, false).toFile(),
+				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
+				it.cloud.amazon.Configuration.REGION,
+				String.format(
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER.replaceAll("&&", " ; "),
+						mplIp),
+				String.format(
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER.replaceAll("&&", " ; "),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.Configuration.REGION,
+						loadBalancer),
+				String.format(
+						it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER.replaceAll("&&", " ; "),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.Configuration.REGION,
+						loadBalancer));
+		
+		logger.info("Starting the test...");
+		
+		cml.scale("MIC", 1);
+		
+		cml.scale("MIC", oneAmong(-1, 1));
+		
+		cml.scale("MIC", oneAmong(-1, 1));
+		
+		cml.terminateAllInstances();
+		
+		logger.info("Test ended!");
+		
+	}
+	
+	private static final Random RND = new Random();
+	
+	public static int oneAmong(int... vals) {
+		if (vals == null || vals.length == 0)
+			return 0;
+		
+		int i = RND.nextInt(vals.length);
+		return vals[i];
+	}
+	
+	public String getTierStatus(String tier) {
+		Instances ins = instancesPerTier.get(tier);
+		if (ins == null)
+			return null;
+		return ins.getTierStatus();
+	}
+	
+	public String getTierIp(String tier) {
+		Instances ins = instancesPerTier.get(tier);
+		if (ins == null)
+			return null;
+		return ins.getTierIp();
+	}
+	
+	@SuppressWarnings("unused")
+	private void printStatus() {
+		if (instancesPerTier.size() == 0)
+			logger.info("No instances found!");
+		
+		for (String tier : instancesPerTier.keySet()) {
+			Instances i = instancesPerTier.get(tier);
+			logger.info(i.toString());
+		}
+	}
 
-	public CloudMLNew(String ip, int port) {
+	public CloudMLNew(String ip, int port) throws Exception {
 		this.ip = ip;
 		this.port = port;
-		isConnected = false;
 		
-		instancesPerTier = new HashMap<String, CloudMLNew.Instances>();
+		instancesPerTier = new HashMap<String, Instances>();
 		
 		init();
 	}
 	
-	public static void main(String[] args) {
-		CloudMLNew cml = new CloudMLNew("127.0.0.1", Configuration.DEFAULT_CLOUDML_PORT);
-		
-		cml.deploy();
-		
-		cml.printStatus();
-		
-		cml.printStatus();
-		
-//		cml.scale("MIC", 1);
-//		
-//		cml.printStatus();
-		
-		cml.scale("MIC", -1);
-		
-		cml.printStatus();
-	}
-	
-	public static void startDaemon(int port) {
-		try {
-			org.cloudml.websocket.Daemon.main(new String[] { Integer.valueOf(port).toString() });
-		} catch (Exception e) { }
-	}
-	
-	public void init() {
+	private void init() {
 		if (isConnected)
 			return;
 		
 		logger.debug("Initiating the connection to {}:{}...", ip, port);
-		
-		if (ip.equals("127.0.0.1") || ip.equals("localhost")) {
-			startDaemon(port);
-			
-			try {
-				Thread.sleep(1000); // give it time to start...
-			} catch (Exception e2) { }
-		}
 		
 		cml = Factory.getInstance().getCloudML(String.format("ws://%s:%d", ip, port));
 		
@@ -112,20 +158,12 @@ public class CloudMLNew implements EventHandler {
 		isConnected = false;
 	}
 	
-	private void pushDeploymentModel() {
+	private void pushDeploymentModel(File orig, Object... substitutions) {
 		if (!isConnected)
 			return;
 		
-		logger.debug("Pushing the deployment model...");
+		String model = getDeploymentModelFromFile(orig, substitutions);
 		
-		StringBuilder body = new StringBuilder();
-		
-		try (Scanner sc = new Scanner(Configuration.getInputStream(Configuration.CLOUDML_DEPLOYMENT_MODEL))) {
-			while (sc.hasNextLine())
-				body.append(" " + sc.nextLine().trim());
-		}
-		
-		String model = String.format(body.toString(), RandomStringUtils.randomNumeric(3));
 		Path tmp;
 		try {
 			tmp = Files.createTempFile("deploymentModel", "json");
@@ -140,11 +178,32 @@ public class CloudMLNew implements EventHandler {
 		logger.debug("...done!");
 	}
 	
-	public void deploy() {
+	protected String getDeploymentModelFromFile(File orig, Object... substitutions) {
+		StringBuilder body = new StringBuilder();
+		
+		try (Scanner sc = new Scanner(orig)) {
+			while (sc.hasNextLine())
+				body.append(" " + sc.nextLine().trim());
+		} catch (Exception e) {
+			logger.error("Error while reading the file.", e);
+			return null;
+		}
+		
+		Object[] newSubstitutions = new Object[substitutions.length + 1];
+		newSubstitutions[0] = RandomStringUtils.randomNumeric(3);
+		for (int i = 0; i < substitutions.length; ++i)
+			newSubstitutions[i+1] = substitutions[i];
+		
+		String model = String.format(body.toString(), newSubstitutions);
+		
+		return model;
+	}
+	
+	public void deploy(File orig, Object... substitutions) {
 		if (!isConnected)
 			return;
 		
-		pushDeploymentModel();
+		pushDeploymentModel(orig, substitutions);
 		
 		logger.debug("Deploy...");
 		
@@ -156,11 +215,11 @@ public class CloudMLNew implements EventHandler {
 		getDeploymentModel();
 	}
 	
-	public void scaleOut(String vmId, int times) {
+	private void scaleOut(String vmId, int times) {
 		if (!isConnected)
 			return;
 		
-		logger.debug("Scaling out the resource {} of {} instances...", vmId, times);
+		logger.debug("Scaling out {} instances", times);
 		
 		CloudMlCommand cmd = fcommand.scaleOut(vmId, times);
 		cml.fireAndWait(cmd);
@@ -174,16 +233,17 @@ public class CloudMLNew implements EventHandler {
 		if (!isConnected)
 			return;
 		
-		logger.debug("Retrieving the deployment model...");
+		logger.info("Asking for the deployment model...");
 		
-		CloudMlCommand cmd = fcommand.snapshot("/");
+		CloudMlCommand cmd = fcommand.getDeployment();
 		cml.fireAndWait(cmd);
 
 		logger.debug("...done!");
 	}
 
-	public void getInstanceInfo(String id) {
-		if (!isConnected)
+	@SuppressWarnings("unused")
+	private void getInstanceInfo(String id) {
+		if (id == null || !isConnected)
 			return;
 		
 		logger.debug("Retrieving the information about the instance {}...", id);
@@ -194,14 +254,8 @@ public class CloudMLNew implements EventHandler {
 
 		logger.debug("...done!");
 	}
-	
-	public void stopInstance(String instance) {
-		ArrayList<String> instances = new ArrayList<String>();
-		instances.add(instance);
-		stopInstances(instances);
-	}
 
-	public void stopInstances(List<String> instances) {
+	private void stopInstances(List<String> instances) {
 		if (!isConnected)
 			return;
 		
@@ -218,13 +272,14 @@ public class CloudMLNew implements EventHandler {
 		logger.debug("...done!");
 	}
 	
-	public void startInstance(String instance) {
-		ArrayList<String> instances = new ArrayList<String>();
-		instances.add(instance);
-		startInstances(instances);
+	public void terminateAllInstances() {
+		for (String tier : instancesPerTier.keySet()) {
+			Instances instances = instancesPerTier.get(tier);
+			stopInstances(instances.running);
+		}
 	}
 
-	public void startInstances(List<String> instances) {
+	private void startInstances(List<String> instances) {
 		if (!isConnected)
 			return;
 		
@@ -241,60 +296,52 @@ public class CloudMLNew implements EventHandler {
 		logger.debug("...done!");
 	}
 	
-	private boolean isMachineUp(String ip) {
-		try {
-			return InetAddress.getByName(ip).isReachable(5000);
-		} catch (Exception e) {
-			return false;
+	public static enum Command {
+		SCALE("SCALE", null, false, true),
+		SCALE_OUT("SCALE_OUT",
+				"!extended { name: ScaleOut, params: [ %1$s , %2$s ] }", true, true),
+		START_INSTANCE("START_INSTANCE",
+				"!extended { name: StartComponent, params: [ %1$s ] }", true, true),
+		STOP_INSTANCE("STOP_INSTANCE",
+				"!extended { name: StopComponent, params: [ %1$s ] }", true, true),
+		GET_STATUS("GET_STATUS",
+				"!getSnapshot { path : / }", true, true),
+		GET_INSTANCE_STATUS("GET_INSTANCE_STATUS",
+				"!getSnapshot\n" +
+						"path : /componentInstances[id='%1$s']\n" +
+						"multimaps : { vm : name, tier : type/name, id : id, status : status, ip : publicAddress }", true, false),
+		DEPLOY("DEPLOY", "!extended { name : Deploy }", false, true),
+		LOAD_DEPLOYMENT("LOAD_DEPLOYMENT",
+				"!extended { name : LoadDeployment }\n" +
+				"!additional json-string: %s", true, false);
+
+		public String name;
+		public String command;
+		public boolean actualCommand;
+		public boolean blocking;
+
+		private Command(String name, String command, boolean actualCommand, boolean blocking) {
+			this.name = name;
+			this.command = command;
+			this.actualCommand = actualCommand;
+			this.blocking = blocking;
+		}
+
+		public static Command getByName(String name) {
+			for (Command c : values())
+				if (c.name.equalsIgnoreCase(name))
+					return c;
+			return null;
+		}
+
+		public static String getList() {
+			StringBuilder sb = new StringBuilder();
+			for (Command c : values())
+				sb.append(c.name + ", ");
+			return sb.substring(0, sb.lastIndexOf(","));
 		}
 	}
-	
-	private void printStatus() {
-		for (String tier : instancesPerTier.keySet()) {
-			Instances i = instancesPerTier.get(tier);
-			logger.info(i.toString());
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private void parseJSONArrayOfInstances(JSONArray instances) {
-		instancesPerTier = new HashMap<String, CloudMLNew.Instances>();
-		
-		for (int i = 0; i < instances.length(); i++) {
-			try {
-				JSONObject instance = instances.getJSONObject(i);
-				if (instance.get("id") != null) {
-					String id = instance.getString("id");
-					String tier = instance.getString("type");
-					tier = tier.substring(tier.indexOf('[')+1, tier.indexOf(']'));
-					boolean scaledOut = false;
-					if (tier.indexOf("fromImage") > -1) {
-						scaledOut = true;
-						tier = tier.substring(0, tier.indexOf('('));
-					}
-					String name = instance.getString("name");
-					String ip = instance.getString("publicAddress");
-					
-					Instances ins = instancesPerTier.get(tier);
-					if (ins == null) {
-						ins = new Instances();
-						ins.tier = tier;
-						instancesPerTier.put(tier, ins);
-					}
-					if (!scaledOut)
-						ins.vm = name;
-					
-					if (isMachineUp(ip))
-						ins.running.add(id);
-					else
-						ins.stopped.add(id);
-					
-					ins.ips.put(id, ip);
-				}
-			} catch (Exception e) { }
-		}
-	}
-	
+
 	private Map<String, Instances> instancesPerTier;
 	
 	private class Instances {
@@ -302,7 +349,22 @@ public class CloudMLNew implements EventHandler {
 		String tier = null;
 		List<String> running = new ArrayList<String>();
 		List<String> stopped = new ArrayList<String>();
-		Map<String, String> ips = new HashMap<String, String>();
+		Map<String, String> ipPerId = new HashMap<String, String>();
+		Map<String, String> idPerName = new HashMap<String, String>();
+		Map<String, String> statusPerId = new HashMap<String, String>();
+		
+		public Instances clone() {
+			Instances ret = new Instances();
+			ret.vm = vm;
+			ret.tier = tier;
+			ret.running.addAll(running);
+			ret.stopped.addAll(stopped);
+			ret.ipPerId.putAll(ipPerId);
+			ret.idPerName.putAll(idPerName);
+			ret.statusPerId.putAll(statusPerId);
+			
+			return ret;
+		}
 		
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
@@ -323,6 +385,19 @@ public class CloudMLNew implements EventHandler {
 			}
 			
 			return sb.toString();
+		}
+		
+		@SuppressWarnings("unused")
+		public int count() {
+			return running.size() + stopped.size();
+		}
+		
+		public String getTierStatus() {
+			return statusPerId.get(idPerName.get(vm));
+		}
+		
+		public String getTierIp() {
+			return ipPerId.get(idPerName.get(vm));
 		}
 	}
 	
@@ -372,10 +447,67 @@ public class CloudMLNew implements EventHandler {
 	public void handle(Event e) {
 		loggerCml.info("handle(Event arg0)");
 	}
+	
+	public static class Message {
+		public static enum Type {
+			Ack("!ack"), Updated("!updated");
+			
+			String actual;
+			private Type(String actual) {
+				this.actual = actual;
+			}
+			public static Type getFromValue(String actual) {
+				for (Type t : values())
+					if (t.actual.equals(actual))
+						return t;
+				return null;
+			}
+		}
+		
+		public Type type;
+		public Map<String, String> body;
+		
+		public Message(String body) {
+			this.body = new HashMap<String, String>();
+			
+			String type = body.substring(0, body.indexOf(' '));
+			this.type = Type.getFromValue(type);
+			if (this.type != null) {
+				String actualBody = body.substring(body.indexOf('{')+1, body.lastIndexOf('}'));
+				String[] splitted = actualBody.split(", ");
+				for (String s : splitted) {
+					String[] values = s.split(": ");
+					this.body.put(values[0], values[1]);
+				}
+			}
+		}
+		
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			
+			sb.append(this.getClass().getName() + "[");
+			
+			sb.append("Type: " + type);
+			for (String key : body.keySet())
+				sb.append(", " + key + ": " + body.get(key));
+			
+			sb.append("]");
+			
+			return sb.toString();
+		}
+	}
 
 	@Override
-	public void handle(Message m) {
-		loggerCml.debug(m.getBody());
+	public void handle(org.cloudml.facade.events.Message m) {
+		String body = m.getBody();
+		
+		Message msg = new Message(body);
+		if (msg.type == Message.Type.Ack && msg.body.get("status").equals("completed")) {
+			if (msg.body.get("fromPeer").contains("Deploy"))
+				logger.info("Deployment completed!");
+		}
+		
+		loggerCml.debug(body);
 	}
 
 	@Override

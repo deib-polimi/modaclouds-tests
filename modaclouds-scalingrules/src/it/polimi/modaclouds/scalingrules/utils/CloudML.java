@@ -29,22 +29,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public class CloudML implements PropertyChangeListener {
 	
 	protected static final Logger logger = LoggerFactory.getLogger(CloudML.class);
 	
 	private WSClient wsClient;
-	
-	static {
-		// Optionally remove existing handlers attached to j.u.l root logger
-		SLF4JBridgeHandler.removeHandlersForRootLogger();  // (since SLF4J 1.6.5)
-	
-		// add SLF4JBridgeHandler to j.u.l's root logger, should be done once during
-		// the initialization phase of your application
-		SLF4JBridgeHandler.install();
-	}
 	
 	public static void main(String[] args) throws Exception {
 		String mplIp = "52.17.80.195";
@@ -208,7 +198,7 @@ public class CloudML implements PropertyChangeListener {
 	public void deploy(File orig, Object... substitutions) {
 		pushDeploymentModel(orig, substitutions);
 		
-		wsClient.sendBlocking(Command.DEPLOY.command, -1, Command.DEPLOY);
+		wsClient.sendBlocking(Command.DEPLOY.command, WSClient.TIMEOUT*2, Command.DEPLOY);
 	}
 	
 	private void scaleOut(String vmId, int times) {
@@ -437,8 +427,10 @@ public class CloudML implements PropertyChangeListener {
 			super.send(command);
 		}
 		
+		public static final int TIMEOUT = 600000;
+		
 		public void sendBlocking(String command, Command cmd) throws NotYetConnectedException {
-			sendBlocking(command, 300000, cmd); // 600000
+			sendBlocking(command, TIMEOUT, cmd);
 		}
 		
 		public void sendBlocking(String command, long timeout, Command cmd) throws NotYetConnectedException {
