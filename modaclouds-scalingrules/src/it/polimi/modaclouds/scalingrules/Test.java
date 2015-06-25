@@ -80,7 +80,12 @@ public class Test {
 		return newFile;
 	}
 	
-	public static Path getActualDeploymentModel(String ip, VirtualMachine vm, boolean remotePathIfNecessary) throws Exception {
+	public Path getActualDeploymentModel(boolean remotePathIfNecessary) throws Exception {
+		String ipMpl = mpl.getInstances().get(0).getIp();
+		return getActualDeploymentModel(ipMpl, mpl, mic, loadBalancer, remotePathIfNecessary);
+	}
+	
+	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine mic, String loadBalancer, boolean remotePathIfNecessary) throws Exception {
 		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL));
 		
 		JSONObject jsonObject = new JSONObject(body);
@@ -96,7 +101,7 @@ public class Test {
 					String credentials = provider.getString("credentials");
 					String s = null;
 					if (remotePathIfNecessary)
-						s = Test.getActualFile(ip, vm, credentials, now);
+						s = Test.getActualFile(ipMpl, mpl, credentials, now);
 					else
 						s = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(credentials).toString();
 					provider.put("credentials", s);
@@ -114,7 +119,7 @@ public class Test {
 					String privateKey = vmo.getString("privateKey");
 					String s = null;
 					if (remotePathIfNecessary)
-						s = Test.getActualKey(ip, vm, privateKey, now);
+						s = Test.getActualKey(ipMpl, mpl, privateKey, now);
 					else
 						s = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(privateKey).toString();
 					vmo.put("privateKey", s);
@@ -123,6 +128,27 @@ public class Test {
 				}
 			}
 		}
+		
+		body = String.format(body,
+				mic.getImageId(),
+				it.cloud.amazon.Configuration.REGION,
+				String.format(
+						mic.getParameter("STARTER").replaceAll("&&", " ; "),
+						ipMpl),
+				String.format(
+						mic.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.Configuration.REGION,
+						loadBalancer),
+				String.format(
+						mic.getParameter("DEL_FROM_LOAD_BALANCER").replaceAll("&&", " ; "),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+						it.cloud.amazon.Configuration.REGION,
+						loadBalancer),
+				mic.getSize()
+				);
 		
 		Path p = Files.createTempFile("model", ".json");
 		FileUtils.writeStringToFile(p.toFile(), body);
@@ -196,7 +222,7 @@ public class Test {
 
 		loadBalancer = "ScalingRules" + RandomStringUtils.randomNumeric(3);
 
-		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(it.polimi.modaclouds.scalingrules.Configuration.MIC_PORT)));
+		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(mic.getParameter("PORT"))));
 	}
 
 	private void destroyLoadBalancer() {
@@ -215,6 +241,7 @@ public class Test {
 	}
 
 	private VirtualMachine mpl;
+	private VirtualMachine mic;
 	private VirtualMachine clients;
 
 	static {
@@ -375,25 +402,7 @@ public class Test {
 			
 		}
 		
-		cloudML.deploy(
-				getActualDeploymentModel(cloudMLIp, mpl, true).toFile(),
-				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
-				Configuration.REGION,
-				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER.replaceAll("&&", " ; "),
-						mplIp),
-				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER.replaceAll("&&", " ; "),
-						Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						Configuration.REGION,
-						loadBalancer),
-				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER.replaceAll("&&", " ; "),
-						Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						Configuration.REGION,
-						loadBalancer));
+		cloudML.deploy(getActualDeploymentModel(true).toFile());
 		
 		logger.info("CloudML initialized!");
 
@@ -526,9 +535,9 @@ public class Test {
 
 		String remotePath = clients.getParameter("REMOTE_PATH") + "/" + now;
 
-		String protocol = "http";
+		String protocol = mic.getParameter("PROTOCOL");
 
-		String port = it.polimi.modaclouds.scalingrules.Configuration.MIC_PORT;
+		String port = mic.getParameter("PORT");
 
 		JMeterTest test = new JMeterTest(clients.getParameter("AMI"),
 				clients.getInstancesRunning(), localPath, remotePath,

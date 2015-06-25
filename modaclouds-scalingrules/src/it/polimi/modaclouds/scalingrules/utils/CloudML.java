@@ -39,32 +39,15 @@ public class CloudML implements PropertyChangeListener {
 	public static void main(String[] args) throws Exception {
 		String mplIp = "52.17.80.195";
 		String cloudMLIp = mplIp;
-		VirtualMachine vm = VirtualMachine.getVM("mpl", "m3.large", 1);
+		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.large", 1);
+		VirtualMachine mic = VirtualMachine.getVM("mic", "m3.large", 1);
 		String loadBalancer = "ScalingRules545";
 		
 		CloudML cml = new CloudML(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);
 		
 		logger.info("Deploy the system...");
 		
-		cml.deploy(
-				Test.getActualDeploymentModel(cloudMLIp, vm, true).toFile(),
-				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
-				it.cloud.amazon.Configuration.REGION,
-				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_STARTER.replaceAll("&&", " ; "),
-						mplIp),
-				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_ADD_TO_LOAD_BALANCER.replaceAll("&&", " ; "),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						it.cloud.amazon.Configuration.REGION,
-						loadBalancer),
-				String.format(
-						it.polimi.modaclouds.scalingrules.Configuration.MIC_DEL_FROM_LOAD_BALANCER.replaceAll("&&", " ; "),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						it.cloud.amazon.Configuration.REGION,
-						loadBalancer));
+		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, mic, loadBalancer, true).toFile());
 		
 		logger.info("Starting the test...");
 		

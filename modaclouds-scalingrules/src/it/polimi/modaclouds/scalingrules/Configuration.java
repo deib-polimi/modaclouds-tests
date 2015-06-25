@@ -27,12 +27,6 @@ public class Configuration {
 	public static final int DEFAULT_CLOUDML_PORT = 9000;
 	public static int CLOUDML_PORT = DEFAULT_CLOUDML_PORT;
 	
-	public static String MIC_AMI = "";
-	public static String MIC_STARTER = "";
-	public static String MIC_ADD_TO_LOAD_BALANCER = "";
-	public static String MIC_DEL_FROM_LOAD_BALANCER = "";
-	public static String MIC_PORT = "";
-	
 	static {
 		try {
 			loadConfiguration(CONFIGURATION);
@@ -86,11 +80,7 @@ public class Configuration {
 		FileOutputStream fos = new FileOutputStream(filePath);
 		Properties prop = new Properties();
 		
-		prop.put("MIC_AMI", MIC_AMI);
-		prop.put("MIC_STARTER", MIC_STARTER);
-		prop.put("MIC_ADD_TO_LOAD_BALANCER", MIC_ADD_TO_LOAD_BALANCER);
-		prop.put("MIC_DEL_FROM_LOAD_BALANCER", MIC_DEL_FROM_LOAD_BALANCER);
-		prop.put("MIC_PORT", MIC_PORT);
+		prop.put("CLOUDML_PORT", CLOUDML_PORT);
 		
 		prop.store(fos, "ScalingRule configuration properties");
 		fos.flush();
@@ -101,11 +91,7 @@ public class Configuration {
 		InputStream is = getInputStream(filePath);
 		prop.load(is);
 		
-		MIC_AMI = prop.getProperty("MIC_AMI", MIC_AMI);
-		MIC_STARTER = prop.getProperty("MIC_STARTER", MIC_STARTER);
-		MIC_ADD_TO_LOAD_BALANCER = prop.getProperty("MIC_ADD_TO_LOAD_BALANCER", MIC_ADD_TO_LOAD_BALANCER);
-		MIC_DEL_FROM_LOAD_BALANCER = prop.getProperty("MIC_DEL_FROM_LOAD_BALANCER", MIC_DEL_FROM_LOAD_BALANCER);
-		MIC_PORT = prop.getProperty("MIC_PORT", MIC_PORT);
+		CLOUDML_PORT = Integer.parseInt(prop.getProperty("CLOUDML_PORT", Integer.valueOf(CLOUDML_PORT).toString()));
 	}
 	
 	public static List<String> checkValidity() {

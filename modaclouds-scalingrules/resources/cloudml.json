@@ -45,7 +45,7 @@
             "imageId": "%3$s/%2$s",
             "is64os": true,
             "location": "%3$s",
-            "providerSpecificTypeName": "m3.large",
+            "providerSpecificTypeName": "%7$s",
             "maxStorage": "8",
             "minStorage": "8",
             "name": "MIC",
