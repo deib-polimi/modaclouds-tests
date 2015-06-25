@@ -426,7 +426,7 @@ public class Test {
 		{
 			int i = 1;
 			for (Instance imic : mic.getInstances())
-				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, imic.getIp(), Paths.get(localPath, "client" + i++)));
+				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, imic.getIp(), Paths.get(localPath, "mic" + i++)));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));

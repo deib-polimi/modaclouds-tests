@@ -29,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public class CloudML implements PropertyChangeListener {
 	
@@ -36,18 +37,27 @@ public class CloudML implements PropertyChangeListener {
 	
 	private WSClient wsClient;
 	
+	static {
+		// Optionally remove existing handlers attached to j.u.l root logger
+		SLF4JBridgeHandler.removeHandlersForRootLogger();  // (since SLF4J 1.6.5)
+	
+		// add SLF4JBridgeHandler to j.u.l's root logger, should be done once during
+		// the initialization phase of your application
+		SLF4JBridgeHandler.install();
+	}
+	
 	public static void main(String[] args) throws Exception {
-		String mplIp = "52.17.223.188";
+		String mplIp = "52.17.80.195";
 		String cloudMLIp = mplIp;
 		VirtualMachine vm = VirtualMachine.getVM("mpl", "m3.large", 1);
-		String loadBalancer = "ScalingRules638";
+		String loadBalancer = "ScalingRules545";
 		
 		CloudML cml = new CloudML(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);
 		
 		logger.info("Deploy the system...");
 		
 		cml.deploy(
-				Test.getActualDeploymentModel(cloudMLIp, vm).toFile(),
+				Test.getActualDeploymentModel(cloudMLIp, vm, true).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				it.cloud.amazon.Configuration.REGION,
 				String.format(

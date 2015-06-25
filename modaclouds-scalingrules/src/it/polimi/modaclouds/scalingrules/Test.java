@@ -80,7 +80,7 @@ public class Test {
 		return newFile;
 	}
 	
-	public static Path getActualDeploymentModel(String ip, VirtualMachine vm) throws Exception {
+	public static Path getActualDeploymentModel(String ip, VirtualMachine vm, boolean remotePathIfNecessary) throws Exception {
 		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL));
 		
 		JSONObject jsonObject = new JSONObject(body);
@@ -94,7 +94,11 @@ public class Test {
 				JSONObject provider = array.getJSONObject(i);
 				if (provider.has("credentials")) {
 					String credentials = provider.getString("credentials");
-					String s = Test.getActualFile(ip, vm, credentials, now);
+					String s = null;
+					if (remotePathIfNecessary)
+						s = Test.getActualFile(ip, vm, credentials, now);
+					else
+						s = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(credentials).toString();
 					provider.put("credentials", s);
 					
 					body = body.replaceAll(credentials, s);
@@ -108,7 +112,11 @@ public class Test {
 				JSONObject vmo = array.getJSONObject(i);
 				if (vmo.has("privateKey")) {
 					String privateKey = vmo.getString("privateKey");
-					String s = Test.getActualKey(ip, vm, privateKey, now);
+					String s = null;
+					if (remotePathIfNecessary)
+						s = Test.getActualKey(ip, vm, privateKey, now);
+					else
+						s = it.polimi.modaclouds.scalingrules.Configuration.getAsFile(privateKey).toString();
 					vmo.put("privateKey", s);
 					
 					body = body.replaceAll(privateKey, s);
@@ -368,7 +376,7 @@ public class Test {
 		}
 		
 		cloudML.deploy(
-				getActualDeploymentModel(cloudMLIp, mpl).toFile(),
+				getActualDeploymentModel(cloudMLIp, mpl, true).toFile(),
 				it.polimi.modaclouds.scalingrules.Configuration.MIC_AMI,
 				Configuration.REGION,
 				String.format(

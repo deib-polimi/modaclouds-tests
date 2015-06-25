@@ -485,7 +485,7 @@ public class ResultsBuilder {
 		boolean goOn = true;
 		for (int i = 1; goOn; ++i) {
 			for (String method : methodsNames) {
-				Path jsonFile = Paths.get(parent.getParent().getParent().getParent().toString(), "client" + i, method + ".json");
+				Path jsonFile = Paths.get(parent.getParent().getParent().getParent().toString(), "mic" + i, method + ".json");
 				if (!jsonFile.toFile().exists()) {
 					goOn = false;
 					continue;
