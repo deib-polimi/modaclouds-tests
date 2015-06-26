@@ -316,7 +316,6 @@ public class ResultsBuilder {
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
 				}
-				u /= methodsNames.length;
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
 				
 				sb.append(doubleFormatter.format(u) + "," + doubleFormatter.format(uMeasured) + "," + doubleFormatter.format(u / uMeasured));

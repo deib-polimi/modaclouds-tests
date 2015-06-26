@@ -352,6 +352,8 @@ public class Test {
 		int mplPort = Integer.parseInt(mpl.getParameter("MP_PORT"));
 		
 		impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
+		
+		try { Thread.sleep(10000); } catch (Exception e) { }
 
 		monitoringPlatform = new MonitoringPlatform(mplIp, mplPort);
 		// monitoringPlatform.loadModel();
