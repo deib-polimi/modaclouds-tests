@@ -61,7 +61,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
     <collectedMetric metricName=\"EstimationCI_AvarageEffectiveResponseTime\">
-      <parameter name=\"window\">60000</parameter>
+      <parameter name=\"window\">60</parameter>
       <parameter name=\"nCPU\">$3</parameter>
       <parameter name=\"CPUUtilTarget\">MIC</parameter>
       <parameter name=\"CPUUtilMetric\">FrontendCPUUtilization</parameter>
