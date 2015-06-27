@@ -141,11 +141,11 @@ public class CloudMLNew implements EventHandler {
 		isConnected = false;
 	}
 	
-	private void pushDeploymentModel(File orig, Object... substitutions) {
+	private void pushDeploymentModel(File orig) {
 		if (!isConnected)
 			return;
 		
-		String model = getDeploymentModelFromFile(orig, substitutions);
+		String model = getDeploymentModelFromFile(orig);
 		
 		Path tmp;
 		try {
@@ -182,11 +182,11 @@ public class CloudMLNew implements EventHandler {
 		return model;
 	}
 	
-	public void deploy(File orig, Object... substitutions) {
+	public void deploy(File orig) {
 		if (!isConnected)
 			return;
 		
-		pushDeploymentModel(orig, substitutions);
+		pushDeploymentModel(orig);
 		
 		logger.debug("Deploy...");
 		

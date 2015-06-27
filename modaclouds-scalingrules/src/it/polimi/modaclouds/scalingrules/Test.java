@@ -129,6 +129,7 @@ public class Test {
 		}
 		
 		body = String.format(body,
+				RandomStringUtils.randomNumeric(3),
 				mic.getImageId(),
 				it.cloud.amazon.Configuration.REGION,
 				String.format(

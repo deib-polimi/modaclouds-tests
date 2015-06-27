@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.java_websocket.WebSocket.READYSTATE;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -139,17 +138,17 @@ public class CloudML implements PropertyChangeListener {
 //		wsClient.send("!extended { name : Terminate }");
 	}
 	
-	private void pushDeploymentModel(File orig, Object... substitutions) {
+	private void pushDeploymentModel(File orig) {
 		String[] commands = Command.LOAD_DEPLOYMENT.command.split("\n");
 		if (commands.length < 2)
 			return;
 		
 		wsClient.send(commands[0]);
 		
-		wsClient.send(String.format(commands[1], getDeploymentModelFromFile(orig, substitutions)));
+		wsClient.send(String.format(commands[1], getDeploymentModelFromFile(orig)));
 	}
 	
-	protected String getDeploymentModelFromFile(File orig, Object... substitutions) {
+	protected String getDeploymentModelFromFile(File orig) {
 		StringBuilder body = new StringBuilder();
 		
 		try (Scanner sc = new Scanner(orig)) {
@@ -160,14 +159,7 @@ public class CloudML implements PropertyChangeListener {
 			return null;
 		}
 		
-		Object[] newSubstitutions = new Object[substitutions.length + 1];
-		newSubstitutions[0] = RandomStringUtils.randomNumeric(3);
-		for (int i = 0; i < substitutions.length; ++i)
-			newSubstitutions[i+1] = substitutions[i];
-		
-		String model = String.format(body.toString(), newSubstitutions);
-		
-		return model;
+		return body.toString();
 	}
 	
 	public void send(String command) {
@@ -178,8 +170,8 @@ public class CloudML implements PropertyChangeListener {
 		wsClient.sendBlocking(command, cmd);
 	}
 	
-	public void deploy(File orig, Object... substitutions) {
-		pushDeploymentModel(orig, substitutions);
+	public void deploy(File orig) {
+		pushDeploymentModel(orig);
 		
 		wsClient.sendBlocking(Command.DEPLOY.command, WSClient.TIMEOUT*2, Command.DEPLOY);
 	}
