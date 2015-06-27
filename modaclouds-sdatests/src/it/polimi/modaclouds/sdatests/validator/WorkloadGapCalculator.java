@@ -21,10 +21,13 @@ public class WorkloadGapCalculator {
 
 	public static void calculate(Path parent, List<Workload> monitored,
 			List<Workload> first, List<Workload> second, List<Workload> third,
-			List<Workload> fourth, List<Workload> fifth) {
+			List<Workload> fourth, List<Workload> fifth, int firstInstancesToSkip) {
 		
-		if (monitored.size() < 6)
-			logger.debug("You have only {} monitored workload values, while you needed at least 6. Next time perform a longer test.", monitored.size());
+		if (firstInstancesToSkip < 0)
+			firstInstancesToSkip = 0;
+		
+		if (monitored.size() < 6 + firstInstancesToSkip)
+			logger.debug("You have only {} monitored workload values, while you needed at least {}. Next time perform a longer test.", monitored.size(), firstInstancesToSkip);
 
 		float avarageGapFirst = 0;
 		float avarageGapSecond = 0;
@@ -51,7 +54,7 @@ public class WorkloadGapCalculator {
 					+ "prediction_4_timestep, error_4_timestep,"
 					+ "prediction_5_timestep, error_5_timestep \n");
 
-			for (int i = 6; i <= monitored.size(); i++) {
+			for (int i = 6 + firstInstancesToSkip; i <= monitored.size(); i++) {
 
 				try {
 					real = WorkloadHelper.getWorkloadByTimestep(monitored, i)

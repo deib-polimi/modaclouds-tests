@@ -1,6 +1,7 @@
 package it.polimi.modaclouds.sdatests;
 
 import it.cloud.Configuration;
+import it.polimi.modaclouds.sdatests.validator.Validator;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -67,6 +68,9 @@ public class Main {
 	@Parameter(names = "-loadModelFile", description = "The path to the load model file")
 	private String loadModelFile = null;
 	
+	@Parameter(names = "-skip", description = "The number of inital instances that will be skipped")
+	private int firstInstancesToSkip = Validator.FIRST_INSTANCES_TO_SKIP;
+	
 	public static final String APP_TITLE = "\nSDA Test\n";
 
 	public static void main(String[] args) {
@@ -86,7 +90,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile);
+			doTest(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile, m.firstInstancesToSkip);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -112,9 +116,9 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile));
+						threads.add(doTestInBackground(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile, m.firstInstancesToSkip));
 					else
-						doTest(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile);
+						doTest(m.size, m.clients, m.servers, m.baseJmx, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.noSDA, m.healthCheck, m.loadModelFile, m.firstInstancesToSkip);
 				}
 				
 				for (Thread t : threads)
@@ -131,11 +135,11 @@ public class Main {
 		
 	}
 	
-	public static void doTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile) {
+	public static void doTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile, int firstInstancesToSkip) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(size, clients, servers, Configuration.getPathToFile(baseJmx).toString(), Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null);
+			long duration = Test.performTest(size, clients, servers, Configuration.getPathToFile(baseJmx).toString(), Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, noSDA, healthCheck, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip);
 			
 			if (duration > -1)
 				logger.info("The test run correctly in {}!", durationToString(duration));
@@ -147,7 +151,7 @@ public class Main {
 		
 	}
 	
-	public static Thread doTestInBackground(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile) {
+	public static Thread doTestInBackground(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile, int firstInstancesToSkip) {
 		final String fsize = size;
 		final int fclients = clients;
 		final String fbaseJmx = baseJmx;
@@ -161,10 +165,11 @@ public class Main {
 		final int fservers = servers;
 		final boolean fhealthCheck = healthCheck;
 		final String floadModelFile = loadModelFile;
+		final int ffirstInstancesToSkip = firstInstancesToSkip;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fservers, fbaseJmx, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fnoSDA, fhealthCheck, floadModelFile);
+				doTest(fsize, fclients, fservers, fbaseJmx, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fnoSDA, fhealthCheck, floadModelFile, ffirstInstancesToSkip);
 			}
 		};
 		

@@ -27,8 +27,10 @@ public class Validator {
 			};
 	
 	public static final String[] METHODS = new String[] { "reg", "save", "answ" };
+	
+	public static final int FIRST_INSTANCES_TO_SKIP = 4;
 
-	public static void perform(Path parent, int cores) {
+	public static void perform(Path parent, int cores, int firstInstancesToSkip) {
 		if (parent == null || !parent.toFile().exists())
 			throw new RuntimeException("Parent folder not found! (" + parent == null ? "null" : parent.toString() + ")");
 		
@@ -50,7 +52,7 @@ public class Validator {
 			
 			for (int i = 1; i <= METHODS.length; ++i) {
 				logger.info("Launching the WorkloadCSVBuilder for {} method...", METHODS[i-1]);
-				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i));
+				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i), firstInstancesToSkip);
 			}
 			
 			logger.info("Generating the full results file...");

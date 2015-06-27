@@ -50,7 +50,7 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static long performTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile) throws Exception {
+	public static long performTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile, int firstInstancesToSkip) throws Exception {
 		if (baseJmx == null || !new File(baseJmx).exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
 		if (data == null || !new File(data).exists())
@@ -86,7 +86,7 @@ public class Test {
 			t.stopMachines();
 		
 		if (!noSDA)
-			Validator.perform(path, t.getCores());
+			Validator.perform(path, t.getCores(), firstInstancesToSkip);
 		else
 			Data2StdoutParser.perform(path);
 		

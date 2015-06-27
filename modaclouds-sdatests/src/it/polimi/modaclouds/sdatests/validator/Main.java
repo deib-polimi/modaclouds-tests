@@ -16,6 +16,9 @@ public class Main {
 	@Parameter(names = "-cores", description = "The number of cores of the machines used", required = true)
 	private int cores = 2;
 	
+	@Parameter(names = "-skip", description = "The number of inital instances that will be skipped")
+	private int firstInstancesToSkip = Validator.FIRST_INSTANCES_TO_SKIP;
+	
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
@@ -31,7 +34,7 @@ public class Main {
 			System.exit(0);
 		}
 		
-		Validator.perform(Paths.get(m.parent), m.cores);
+		Validator.perform(Paths.get(m.parent), m.cores, m.firstInstancesToSkip);
 	}
 
 }

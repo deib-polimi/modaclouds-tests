@@ -18,7 +18,7 @@ public class WorkloadCSVBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(WorkloadCSVBuilder.class);
 
 	public static void main(String[] args) {
-		perform(Paths.get("."));
+		perform(Paths.get("."), Validator.FIRST_INSTANCES_TO_SKIP);
 	}
 
 	public static final String MONITORED_WORKLOAD = "monitored_workload.out";
@@ -28,11 +28,11 @@ public class WorkloadCSVBuilder {
 
 	public static final int WINDOW = 30;
 	
-	public static void perform(Path parent) {
-		perform(parent, WINDOW);
+	public static void perform(Path parent, int firstInstancesToSkip) {
+		perform(parent, WINDOW, firstInstancesToSkip);
 	}
 
-	public static void perform(Path parent, int window) {
+	public static void perform(Path parent, int window, int firstInstancesToSkip) {
 		if (window < 1)
 			window = 1;
 
@@ -144,7 +144,7 @@ public class WorkloadCSVBuilder {
 		}
 
 		WorkloadGapCalculator.calculate(parent, monitored, first, second,
-				third, fourth, fifth);
+				third, fourth, fifth, firstInstancesToSkip);
 	}
 
 }
