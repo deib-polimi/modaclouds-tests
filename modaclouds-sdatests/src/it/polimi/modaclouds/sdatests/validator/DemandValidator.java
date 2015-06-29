@@ -66,6 +66,8 @@ public class DemandValidator {
 			
 			int iCpu = 0;
 			
+			int removed = 0;
+			
 			for (int i = 0; i < maxForecastedDemands; ++i) {
 				long maxTimestamp = Long.MAX_VALUE;
 				
@@ -110,7 +112,9 @@ public class DemandValidator {
 					cpu.add(util.value.floatValue());
 				}
 				
-				if (hasEnoughValues())
+				if (removed < firstInstancesToSkip)
+					removed++;
+				else if (hasEnoughValues())
 					writer.write(validate(methods) + "\n");
 				flushLists();
 			}

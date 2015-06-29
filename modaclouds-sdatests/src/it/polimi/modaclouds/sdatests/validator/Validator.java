@@ -1,6 +1,5 @@
 package it.polimi.modaclouds.sdatests.validator;
 
-import it.polimi.modaclouds.sdatests.validator.util.Datum;
 import it.polimi.modaclouds.sdatests.validator.util.FileHelper;
 
 import java.io.BufferedReader;
@@ -58,23 +57,11 @@ public class Validator {
 			
 			logger.info("Generating the full results file...");
 			ResultsBuilder.perform(parent, METHODS, cores);
+			
+			logger.info("Done!");
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}
-	}
-	
-	public static long getFirstGoodTimestamp(Path parent, int firstInstancesToSkip) throws Exception {
-		if (firstInstancesToSkip <= 0)
-			return 0L;
-		
-		Path p = Paths.get(parent.toString(), "method1", DemandValidator.FORECASTED_DEMAND);
-		
-		List<Datum> data = Datum.getAllData(p, true).get(Datum.MIXED);
-		
-		if (firstInstancesToSkip < data.size())
-			return data.get(firstInstancesToSkip).timestamp;
-		else
-			return data.get(0).timestamp;
 	}
 	
 	public static List<String> exec(String command) throws IOException {
