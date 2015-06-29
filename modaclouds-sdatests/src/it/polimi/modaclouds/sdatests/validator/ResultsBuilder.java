@@ -86,7 +86,7 @@ public class ResultsBuilder {
 	
 	public static final String JMETER_LOG = "test_aggregate.jtl";
 	
-	private static Map<String, Integer> getRequestsPerPage(Path parent, boolean onlyOk) {
+	private static Map<String, Integer> getRequestsPerPage(Path parent, boolean onlyOk) throws Exception {
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
 		boolean goOn = true;
@@ -109,37 +109,23 @@ public class ResultsBuilder {
 		return res;
 	}
 	
-	private static Map<String, Integer> getRequestsPerPageFromSingleFile(Path f, boolean onlyOk) {
+	private static Map<String, Integer> getRequestsPerPageFromSingleFile(Path f, boolean onlyOk) throws Exception {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
 					+ f == null ? "null" : f.toString() + ")");
 		
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
-		try (Scanner sc = new Scanner(f)) {
-			while (sc.hasNextLine()) {
-				String line = sc.nextLine();
-				String[] values = line.split(",");
-				
-				String page = values[2];
-				String resultReq = values[4];
-				if (onlyOk && !resultReq.equals("OK"))
-					continue;
-				
-				Integer val = res.get(page);
-				if (val == null)
-					val = 0;
-
-				res.put(page, val+1);
-			}
-		} catch (Exception e) {
-			logger.error("Error while dealing with the file.", e);
+		Map<String, List<Datum>> data = Datum.getAllData(f, onlyOk ? Datum.Type.JMETER_CSV_OK : Datum.Type.JMETER_CSV);
+		
+		for (String resourceId : data.keySet()) {
+			res.put(resourceId, data.get(resourceId).size());
 		}
 		
 		return res;
 	}
 	
-	private static Map<String, String> getLatenciesPerPage(Path parent, boolean onlyOk) {
+	private static Map<String, String> getLatenciesPerPage(Path parent, boolean onlyOk) throws Exception {
 		LinkedHashMap<String, String> res = new LinkedHashMap<String, String>();
 		
 		boolean goOn = true;
@@ -160,69 +146,41 @@ public class ResultsBuilder {
 		return res;
 	}
 	
-	private static Map<String, String> getLatenciesPerPageFromSingleFile(Path f, boolean onlyOk) {
+	private static Map<String, String> getLatenciesPerPageFromSingleFile(Path f, boolean onlyOk) throws Exception {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
 					+ f == null ? "null" : f.toString() + ")");
 		
 		HashMap<String, String> res = new HashMap<String, String>();
 		
-		HashMap<String, Integer> sums = new HashMap<String, Integer>();
-		HashMap<String, Integer> mins = new HashMap<String, Integer>();
-		HashMap<String, Integer> maxs = new HashMap<String, Integer>();
-		HashMap<String, Integer> counts = new HashMap<String, Integer>();
+		Map<String, List<Datum>> data = Datum.getAllData(f, onlyOk ? Datum.Type.JMETER_CSV_OK : Datum.Type.JMETER_CSV);
 		
-		try (Scanner sc = new Scanner(f)) {
-			while (sc.hasNextLine()) {
-				String line = sc.nextLine();
-				String[] values = line.split(",");
-				
-				String page = values[2];
-				String resultReq = values[4];
-				if (onlyOk && !resultReq.equals("OK"))
-					continue;
-				
-				Integer latency = Integer.parseInt(values[11]);
-				
-				Integer sum = sums.get(page);
-				if (sum == null)
-					sum = 0;
-				
-				Integer count = counts.get(page);
-				if (count == null)
-					count = 0;
-				
-				Integer max = maxs.get(page);
-				if (max == null)
-					max = Integer.MIN_VALUE;
-				Integer min = mins.get(page);
-				if (min == null)
-					min = Integer.MAX_VALUE;
-				
-				if (latency > max)
-					max = latency;
-				if (latency < min)
-					min = latency;
-
-				sums.put(page, sum+latency);
-				counts.put(page, count+1);
-				maxs.put(page, max);
-				mins.put(page, min);
-			}
-		} catch (Exception e) {
-			logger.error("Error while dealing with the file.", e);
-		}
-		
-		for (String key : sums.keySet()) {
-			int sum = sums.get(key);
-			int count = counts.get(key);
-			int max = maxs.get(key);
-			int min = mins.get(key);
+		for (String resourceId : data.keySet()) {
+			List<Datum> dataRes = data.get(resourceId);
 			
-			double avg = (double)sum/count;
+			double min = Double.MAX_VALUE;
+			double max = Double.MIN_VALUE;
+			double avg = 0.0;
+			
+			for (Datum d : dataRes) {
+				if (d.value > max)
+					max = d.value;
+				if (d.value < min)
+					min = d.value;
+				avg += d.value;
+			}
+			
+			avg /= dataRes.size();
+			
 			double stdDev = 0;
 			
-			res.put(key, String.format("%s,%s,%d,%d", doubleFormatter.format(avg), doubleFormatter.format(stdDev), min, max));
+			for (Datum d : dataRes)
+				stdDev += Math.pow(d.value - avg, 2);
+			
+			stdDev /= dataRes.size();
+			stdDev = Math.sqrt(stdDev);
+			
+			res.put(resourceId, String.format("%s,%s,%s,%s", doubleFormatter.format(avg), doubleFormatter.format(stdDev), doubleFormatter.format(min), doubleFormatter.format(max)));
 		}
 		
 		return res;
@@ -522,14 +480,14 @@ public class ResultsBuilder {
 		JSONObject maxtime = entity.getJSONObject("maxtime");
 		JSONObject processingtime = entity.getJSONObject("processingtime");
 		
-		return String.format("%d,0,0,%d", processingtime.getInt("count"), maxtime.getInt("count"));
+		return String.format("%d.000,0.000,0.000,%d.000", processingtime.getInt("count"), maxtime.getInt("count"));
 	}
 	
 	private static Map<String, String> getResponseTimesPerPageFromDataCollector(Path parent, String[] methodsNames) throws Exception {
 		LinkedHashMap<String, String> res = new LinkedHashMap<String, String>();
 		
-		for (int i = 1; i < methodsNames.length; ++i) {
-			Path p = Paths.get(parent.getParent().getParent().getParent().toString(), "mpl1", "method" + i, DemandValidator.MONITORED_RESPONSETIME);
+		for (int i = 1; i <= methodsNames.length; ++i) {
+			Path p = Paths.get(parent.toString(), "method" + i, DemandValidator.MONITORED_RESPONSETIME);
 			
 			Map.Entry<String, String> entry = getResponseTimesPerPageFromSingleFile(p);
 			res.put(entry.getKey(), entry.getValue());
@@ -539,9 +497,9 @@ public class ResultsBuilder {
 	}
 
 	private static Map.Entry<String, String> getResponseTimesPerPageFromSingleFile(Path p) throws Exception {
-		List<Datum> data = Datum.getAllData(p);
+		List<Datum> data = Datum.getAllData(p, true).get(Datum.MIXED);
 		
-		double sum = 0.0;
+		double avg = 0.0;
 		double min = Double.MAX_VALUE;
 		double max = Double.MIN_VALUE;
 		
@@ -550,11 +508,17 @@ public class ResultsBuilder {
 				max = d.value;
 			if (d.value < min)
 				min = d.value;
-			sum += d.value;
+			avg += d.value;
 		}
 		
-		double avg = sum / data.size();
+		avg /= data.size();
 		double stdDev = 0;
+		
+		for (Datum d : data)
+			stdDev += Math.pow(d.value - avg, 2);
+		
+		stdDev /= data.size();
+		stdDev = Math.sqrt(stdDev);
 		
 		return new AbstractMap.SimpleEntry<String, String>(data.get(0).resourceId, String.format("%s,%s,%s,%s", doubleFormatter.format(avg), doubleFormatter.format(stdDev), doubleFormatter.format(min), doubleFormatter.format(max)));
 	}

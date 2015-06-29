@@ -1,7 +1,6 @@
 package it.polimi.modaclouds.sdatests;
 
 import it.cloud.Configuration;
-import it.polimi.modaclouds.sdatests.validator.Validator;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -69,7 +68,7 @@ public class Main {
 	private String loadModelFile = null;
 	
 	@Parameter(names = "-skip", description = "The number of inital instances that will be skipped")
-	private int firstInstancesToSkip = Validator.FIRST_INSTANCES_TO_SKIP;
+	private int firstInstancesToSkip = 0;
 	
 	public static final String APP_TITLE = "\nSDA Test\n";
 

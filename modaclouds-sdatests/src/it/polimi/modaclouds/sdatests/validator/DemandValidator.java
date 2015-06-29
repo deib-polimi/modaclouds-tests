@@ -45,7 +45,7 @@ public class DemandValidator {
 			Map<String, List<Datum>> forecastedDemands = new HashMap<String, List<Datum>>();
 			int maxForecastedDemands = Integer.MAX_VALUE;
 			for (int i = 0; i < methods.length; ++i) {
-				List<Datum> forecastedDemand = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), FORECASTED_DEMAND));
+				List<Datum> forecastedDemand = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), FORECASTED_DEMAND), true).get(Datum.MIXED);
 				forecastedDemands.put(methods[i], forecastedDemand);
 				
 				if (maxForecastedDemands > forecastedDemand.size())
@@ -54,11 +54,11 @@ public class DemandValidator {
 			
 			Map<String, List<Datum>> monitoredRTs = new HashMap<String, List<Datum>>();
 			for (int i = 0; i < methods.length; ++i) {
-				List<Datum> monitoredRT = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), MONITORED_RESPONSETIME));
+				List<Datum> monitoredRT = Datum.getAllData(Paths.get(parent.toString(), "method" + (i+1), MONITORED_RESPONSETIME), true).get(Datum.MIXED);
 				monitoredRTs.put(methods[i], monitoredRT);
 			}
 			
-			List<Datum> monitoredCpu = Datum.getAllData(Paths.get(parent.toString(), MONITORED_CPU));
+			List<Datum> monitoredCpu = Datum.getAllData(Paths.get(parent.toString(), MONITORED_CPU), true).get(Datum.MIXED);
 			
 			Map<String, Integer> iRTs = new HashMap<String, Integer>();
 			for (String s : methods)

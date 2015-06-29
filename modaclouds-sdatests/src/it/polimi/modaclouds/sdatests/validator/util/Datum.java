@@ -2,7 +2,9 @@ package it.polimi.modaclouds.sdatests.validator.util;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.json.JSONArray;
@@ -141,15 +143,25 @@ public class Datum {
 		return null;
 	}
 	
-	public static List<Datum> getAllData(Path p) throws Exception {
-		return getAllData(p, getTypeFromFile(p));
+	public static Map<String, List<Datum>> getAllData(Path p) throws Exception {
+		return getAllData(p, getTypeFromFile(p), false);
 	}
 	
-	public static List<Datum> getAllData(Path p, Type origDataType) throws Exception {
+	public static Map<String, List<Datum>> getAllData(Path p, boolean mixed) throws Exception {
+		return getAllData(p, getTypeFromFile(p), mixed);
+	}
+	
+	public static Map<String, List<Datum>> getAllData(Path p, Type origDataType) throws Exception {
+		return getAllData(p, origDataType, false);
+	}
+	
+	public static final String MIXED = "All";
+	
+	public static Map<String, List<Datum>> getAllData(Path p, Type origDataType, boolean mixed) throws Exception {
 		if (p == null || !p.toFile().exists())
 			throw new RuntimeException("File null or not found.");
 		
-		ArrayList<Datum> res = new ArrayList<Datum>();
+		HashMap<String, List<Datum>> res = new HashMap<String, List<Datum>>();
 		
 		try (Scanner sc = new Scanner(p)) {
 			while (sc.hasNextLine()) {
@@ -162,21 +174,37 @@ public class Datum {
 						for (int i = 0; i < array.length(); ++i) {
 							JSONObject obj = array.getJSONObject(i);
 							Datum el = new Datum(obj, origDataType);
-							res.add(el);
+							
+							List<Datum> data = res.get(mixed ? MIXED : el.resourceId);
+							if (data == null) {
+								data = new ArrayList<Datum>();
+								res.put(mixed ? MIXED : el.resourceId, data);
+							}
+							data.add(el);
 						}
 						break;
 					}
 					case CSV:
 					case JMETER_CSV: {
 						Datum el = new Datum(line, origDataType);
-						res.add(el);
+						List<Datum> data = res.get(mixed ? MIXED : el.resourceId);
+						if (data == null) {
+							data = new ArrayList<Datum>();
+							res.put(mixed ? MIXED : el.resourceId, data);
+						}
+						data.add(el);
 						break;
 					}
 					case JMETER_CSV_OK: {
 						if (!line.contains(",OK,"))
 							continue;
 						Datum el = new Datum(line, origDataType);
-						res.add(el);
+						List<Datum> data = res.get(mixed ? MIXED : el.resourceId);
+						if (data == null) {
+							data = new ArrayList<Datum>();
+							res.put(mixed ? MIXED : el.resourceId, data);
+						}
+						data.add(el);
 						break;
 					}
 					default:

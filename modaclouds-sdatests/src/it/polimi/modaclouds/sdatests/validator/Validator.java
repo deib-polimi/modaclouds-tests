@@ -69,7 +69,7 @@ public class Validator {
 		
 		Path p = Paths.get(parent.toString(), "method1", DemandValidator.FORECASTED_DEMAND);
 		
-		List<Datum> data = Datum.getAllData(p);
+		List<Datum> data = Datum.getAllData(p, true).get(Datum.MIXED);
 		
 		if (firstInstancesToSkip < data.size())
 			return data.get(firstInstancesToSkip).timestamp;

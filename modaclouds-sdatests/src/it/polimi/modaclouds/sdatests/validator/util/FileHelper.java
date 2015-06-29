@@ -39,7 +39,7 @@ public abstract class FileHelper {
 			throw new RuntimeException("The file is already CSV!");
 		
 		try {
-			List<Datum> data = Datum.getAllData(file, origDataType);
+			List<Datum> data = Datum.getAllData(file, origDataType, true).get(Datum.MIXED);
 			
 			try (PrintWriter out = new PrintWriter(newFile.toFile())) {
 				out.println(Datum.getCSVHeader());
