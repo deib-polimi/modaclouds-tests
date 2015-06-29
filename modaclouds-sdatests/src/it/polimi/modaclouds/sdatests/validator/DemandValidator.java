@@ -24,7 +24,7 @@ public class DemandValidator {
 	private static Map<String, Float> Dems = new HashMap<String, Float>();
 	
 	public static void main(String[] args) {
-		perform(Paths.get("."), Validator.METHODS);
+		perform(Paths.get("."), Validator.METHODS, Validator.FIRST_INSTANCES_TO_SKIP);
 	}
 
 	public static final String RESULT = "demandAnalysis.csv";
@@ -33,7 +33,7 @@ public class DemandValidator {
 	public static final String MONITORED_RESPONSETIME = "monitored_responseTime.out";
 	public static final String MONITORED_CPU = "cpu.out";
 
-	public static void perform(Path parent, String[] methods) {
+	public static void perform(Path parent, String[] methods, int firstInstancesToSkip) {
 		try (PrintWriter writer = new PrintWriter(Paths.get(
 						parent.toString(), RESULT).toFile(), "UTF-8")) {
 			

@@ -1,5 +1,6 @@
 package it.polimi.modaclouds.sdatests.validator;
 
+import it.polimi.modaclouds.sdatests.validator.util.Datum;
 import it.polimi.modaclouds.sdatests.validator.util.FileHelper;
 
 import java.io.BufferedReader;
@@ -48,7 +49,7 @@ public class Validator {
 			exec(String.format(INIT_COMMAND, createModifiedBash(parent).toString()));
 			
 			logger.info("Launching the DemandValidator class...");
-			DemandValidator.perform(parent, METHODS);
+			DemandValidator.perform(parent, METHODS, firstInstancesToSkip);
 			
 			for (int i = 1; i <= METHODS.length; ++i) {
 				logger.info("Launching the WorkloadCSVBuilder for {} method...", METHODS[i-1]);
@@ -60,6 +61,20 @@ public class Validator {
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}
+	}
+	
+	public static long getFirstGoodTimestamp(Path parent, int firstInstancesToSkip) throws Exception {
+		if (firstInstancesToSkip <= 0)
+			return 0L;
+		
+		Path p = Paths.get(parent.toString(), "method1", DemandValidator.FORECASTED_DEMAND);
+		
+		List<Datum> data = Datum.getAllData(p);
+		
+		if (firstInstancesToSkip < data.size())
+			return data.get(firstInstancesToSkip).timestamp;
+		else
+			return data.get(0).timestamp;
 	}
 	
 	public static List<String> exec(String command) throws IOException {

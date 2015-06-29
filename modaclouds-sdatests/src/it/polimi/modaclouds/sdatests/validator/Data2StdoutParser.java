@@ -55,7 +55,7 @@ public class Data2StdoutParser {
 						JSONArray array = new JSONArray(line);
 						for (int i = 0; i < array.length(); ++i) {
 							JSONObject obj = array.getJSONObject(i);
-							Datum el = new Datum(obj);
+							Datum el = new Datum(obj, type);
 							
 							Map<String, List<Datum>> map = data.get(el.metric);
 							if (map == null) {

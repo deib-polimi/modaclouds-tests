@@ -9,18 +9,18 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Datum {
-	public static enum Type { RDF_JSON, TOWER_JSON, GRAPHITE, INFLUXDB, CSV };
+	public static enum Type { RDF_JSON, TOWER_JSON, GRAPHITE, INFLUXDB, CSV, JMETER_CSV, JMETER_CSV_OK };
 	
 	public String resourceId;
 	public String metric;
 	public Double value;
 	public Long timestamp;
 	
-	public Datum(JSONObject obj) throws Exception {
-		this(obj, Type.TOWER_JSON);
+	public Datum(JSONObject obj, Type type) throws Exception {
+		setFromJSONObject(obj, type);
 	}
 	
-	public Datum(JSONObject obj, Type type) throws Exception {
+	private void setFromJSONObject(JSONObject obj, Type type) throws Exception {
 		if (type != Type.TOWER_JSON)
 			throw new Exception("The given datum type " + type.toString() + " is not supported at the moment.");
 		resourceId = obj.getString("resourceId");
@@ -29,14 +29,46 @@ public class Datum {
 		timestamp = obj.getLong("timestamp");
 	}
 	
-	public Datum(String csv) throws Exception {
-		String[] splitted = csv.split(",");
-		if (splitted.length != 5)
-			throw new Exception("The given string is not a correct CSV with 5 comma-separated values.");
-		resourceId = splitted[1];
-		metric = splitted[2];
-		value = Double.parseDouble(splitted[3]);
-		timestamp = Long.parseLong(splitted[0]);
+	public Datum(String line) throws Exception {
+		this(line, Type.CSV);
+	}
+	
+	public Datum(String line, Type type) throws Exception {
+		setFromLine(line, type);
+	}
+	
+	private void setFromLine(String line, Type type) throws Exception {
+		switch (type) {
+		case CSV: {
+			String[] splitted = line.split(",");
+			if (splitted.length != 5)
+				throw new Exception("The given string is not a correct CSV with 5 comma-separated values.");
+			resourceId = splitted[1];
+			metric = splitted[2];
+			value = Double.parseDouble(splitted[3]);
+			timestamp = Long.parseLong(splitted[0]);
+			break;
+		}
+		case JMETER_CSV:
+		case JMETER_CSV_OK: {
+			String[] splitted = line.split(",");
+			if (splitted.length != 12)
+				throw new Exception("The given string is not a correct Jmeter-CSV with 12 comma-separated values.");
+			resourceId = splitted[2];
+			metric = "Latency";
+			value = Double.parseDouble(splitted[11]);
+			timestamp = Long.parseLong(splitted[0]);
+			break;
+		}
+		case TOWER_JSON: {
+			JSONArray array = new JSONArray(line);
+			JSONObject obj = array.getJSONObject(0);
+			setFromJSONObject(obj, Type.TOWER_JSON);
+			break;
+		}
+		default:
+			break;
+		}
 	}
 	
 	public Datum(String resourceId, String metric, Double value, Long timestamp) {
@@ -47,7 +79,9 @@ public class Datum {
 	}
 	
 	public String getActualResourceId() {
-		return resourceId.substring(0, resourceId.lastIndexOf("_"));
+		if (resourceId.lastIndexOf("_") > -1)
+			return resourceId.substring(0, resourceId.lastIndexOf("_"));
+		return resourceId;
 	}
 	
 	@Override
@@ -84,20 +118,24 @@ public class Datum {
 		try {
 			JSONArray array = new JSONArray(line);
 			JSONObject obj = array.getJSONObject(0);
-			new Datum(obj, Type.TOWER_JSON);
-			return Type.TOWER_JSON;
+			try {
+				new Datum(obj, Type.TOWER_JSON);
+				return Type.TOWER_JSON;
+			} catch (Exception e) { }
+			try {
+				new Datum(obj, Type.RDF_JSON);
+				return Type.RDF_JSON;
+			} catch (Exception e) { }
 		} catch (Exception e) { }
 		
 		try {
-			JSONArray array = new JSONArray(line);
-			JSONObject obj = array.getJSONObject(0);
-			new Datum(obj, Type.RDF_JSON);
-			return Type.RDF_JSON;
-		} catch (Exception e) { }
-		
-		try {
-			new Datum(line);
+			new Datum(line, Type.CSV);
 			return Type.CSV;
+		} catch (Exception e) { }
+		
+		try {
+			new Datum(line, Type.JMETER_CSV);
+			return Type.JMETER_CSV;
 		} catch (Exception e) { }
 		
 		return null;
@@ -119,7 +157,7 @@ public class Datum {
 				
 				try {
 					switch (origDataType) {
-					case TOWER_JSON:
+					case TOWER_JSON: {
 						JSONArray array = new JSONArray(line);
 						for (int i = 0; i < array.length(); ++i) {
 							JSONObject obj = array.getJSONObject(i);
@@ -127,9 +165,20 @@ public class Datum {
 							res.add(el);
 						}
 						break;
+					}
 					case CSV:
-						Datum el = new Datum(line);
+					case JMETER_CSV: {
+						Datum el = new Datum(line, origDataType);
 						res.add(el);
+						break;
+					}
+					case JMETER_CSV_OK: {
+						if (!line.contains(",OK,"))
+							continue;
+						Datum el = new Datum(line, origDataType);
+						res.add(el);
+						break;
+					}
 					default:
 						break;
 					}

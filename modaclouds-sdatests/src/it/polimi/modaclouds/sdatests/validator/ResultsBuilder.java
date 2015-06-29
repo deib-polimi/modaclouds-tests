@@ -1,10 +1,13 @@
 package it.polimi.modaclouds.sdatests.validator;
 
+import it.polimi.modaclouds.sdatests.validator.util.Datum;
+
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -216,7 +219,10 @@ public class ResultsBuilder {
 			int max = maxs.get(key);
 			int min = mins.get(key);
 			
-			res.put(key, doubleFormatter.format((double)sum/count) + "," + min + "," + max);
+			double avg = (double)sum/count;
+			double stdDev = 0;
+			
+			res.put(key, String.format("%s,%s,%d,%d", doubleFormatter.format(avg), doubleFormatter.format(stdDev), min, max));
 		}
 		
 		return res;
@@ -284,13 +290,15 @@ public class ResultsBuilder {
 			methodsWorkloads.add(tmp);
 		}
 		
-		methodsWorkloadTot = new HashMap<Integer, Integer>(); 
-		for (int i = 0; i < methodsNames.length; ++i)
-			methodsWorkloadTot.put(i, 0);
+		methodsWorkloadTot = new HashMap<Integer, Integer>();
 		
-		for (int i = 0; i < maxCommonLength; ++i)
-			for (int j = 0; j < methodsNames.length; ++j)
-				methodsWorkloadTot.put(j, methodsWorkloadTot.get(j) + methodsWorkloads.get(j).get(i).intValue());
+		for (int i = 0; i < methodsNames.length; ++i) {
+			double sum = 0;
+			List<Double> workload = methodsWorkloads.get(i);
+			for (int j = 0; j < maxCommonLength; ++j)
+				sum += workload.get(j);
+			methodsWorkloadTot.put(i, (int)Math.round(sum));
+		}
 	}
 	
 	public static void createDemandAnalysis(Path parent, String[] methodsNames, int cores) {
@@ -455,7 +463,7 @@ public class ResultsBuilder {
 			init(parent, methodsNames);
 		
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_RES_TIMES).toFile())) {
-			out.println("Method,AvgResponseTime,MinResponseTime,MaxResponseTime");
+			out.println("Method,AvgResponseTime,StdDevResponseTime,MinResponseTime,MaxResponseTime");
 			
 			Map<String, String> latenciesPerPage = getLatenciesPerPage(parent, true);
 			
@@ -469,6 +477,13 @@ public class ResultsBuilder {
 			for (String key : glassfishLatenciesPerPage.keySet()) {
 				String res = glassfishLatenciesPerPage.get(key);
 				out.printf("%s_Glassfish,%s\n", key, res);
+			}
+			
+			Map<String, String> dataCollectorRTsPerPage = getResponseTimesPerPageFromDataCollector(parent, methodsNames);
+			
+			for (String key : dataCollectorRTsPerPage.keySet()) {
+				String res = dataCollectorRTsPerPage.get(key);
+				out.printf("%s_DC,%s\n", key, res);
 			}
 			
 			out.flush();
@@ -490,7 +505,7 @@ public class ResultsBuilder {
 					continue;
 				}
 				
-				res.put(method + "_client" + i, parseGlassfishJson(jsonFile));
+				res.put(method + "_mic" + i, parseGlassfishJson(jsonFile));
 			}
 		}
 		
@@ -507,8 +522,43 @@ public class ResultsBuilder {
 		JSONObject maxtime = entity.getJSONObject("maxtime");
 		JSONObject processingtime = entity.getJSONObject("processingtime");
 		
-		return processingtime.getInt("count") + ",0," + maxtime.getInt("count");
+		return String.format("%d,0,0,%d", processingtime.getInt("count"), maxtime.getInt("count"));
 	}
+	
+	private static Map<String, String> getResponseTimesPerPageFromDataCollector(Path parent, String[] methodsNames) throws Exception {
+		LinkedHashMap<String, String> res = new LinkedHashMap<String, String>();
+		
+		for (int i = 1; i < methodsNames.length; ++i) {
+			Path p = Paths.get(parent.getParent().getParent().getParent().toString(), "mpl1", "method" + i, DemandValidator.MONITORED_RESPONSETIME);
+			
+			Map.Entry<String, String> entry = getResponseTimesPerPageFromSingleFile(p);
+			res.put(entry.getKey(), entry.getValue());
+		}
+		
+		return res;
+	}
+
+	private static Map.Entry<String, String> getResponseTimesPerPageFromSingleFile(Path p) throws Exception {
+		List<Datum> data = Datum.getAllData(p);
+		
+		double sum = 0.0;
+		double min = Double.MAX_VALUE;
+		double max = Double.MIN_VALUE;
+		
+		for (Datum d : data) {
+			if (d.value > max)
+				max = d.value;
+			if (d.value < min)
+				min = d.value;
+			sum += d.value;
+		}
+		
+		double avg = sum / data.size();
+		double stdDev = 0;
+		
+		return new AbstractMap.SimpleEntry<String, String>(data.get(0).resourceId, String.format("%s,%s,%s,%s", doubleFormatter.format(avg), doubleFormatter.format(stdDev), doubleFormatter.format(min), doubleFormatter.format(max)));
+	}
+
 	
 	public static final int DEFAULT_TIMESTEPS = 5;
 	
