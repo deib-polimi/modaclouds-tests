@@ -357,11 +357,6 @@
 			<version>1.47</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.jclouds.provider</groupId>
-			<artifactId>aws-ec2</artifactId>
-			<version>1.7.2</version>
-		</dependency>
-		<dependency>
 			<groupId>it.cloud.cloud-runner</groupId>
 			<artifactId>cloud-runner</artifactId>
 			<version>0.0.7</version>
