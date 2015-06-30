@@ -194,7 +194,7 @@ public class ResultsBuilder {
 	private static DecimalFormat doubleFormatter() {
 		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.getDefault());
 		otherSymbols.setDecimalSeparator('.');
-		DecimalFormat myFormatter = new DecimalFormat("0.000", otherSymbols);
+		DecimalFormat myFormatter = new DecimalFormat("0.0#########", otherSymbols);
 		return myFormatter;
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();

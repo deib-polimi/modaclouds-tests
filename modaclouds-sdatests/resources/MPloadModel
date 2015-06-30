@@ -60,7 +60,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
-    <collectedMetric metricName=\"EstimationCI_AvarageEffectiveResponseTime\">
+    <collectedMetric metricName=\"EstimationUBR_AvarageEffectiveResponseTime\">
       <parameter name=\"window\">60</parameter>
       <parameter name=\"nCPU\">$3</parameter>
       <parameter name=\"CPUUtilTarget\">MIC</parameter>
@@ -83,9 +83,9 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_5Min\">
       <parameter name=\"order\">1</parameter>
       <parameter name=\"forecastPeriod\">30</parameter>
-      <parameter name=\"autoregressive\">1</parameter>
-      <parameter name=\"movingAverage\">1</parameter>
-      <parameter name=\"integrated\">1</parameter>
+      <parameter name=\"autoregressive\"></parameter>
+      <parameter name=\"movingAverage\"></parameter>
+      <parameter name=\"integrated\"></parameter>
       <parameter name=\"samplingTime\">300</parameter>
     </collectedMetric>
     <actions>
@@ -103,9 +103,9 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_10Min\">
       <parameter name=\"order\">1</parameter>
       <parameter name=\"forecastPeriod\">60</parameter>
-      <parameter name=\"autoregressive\">1</parameter>
-      <parameter name=\"movingAverage\">1</parameter>
-      <parameter name=\"integrated\">1</parameter>
+      <parameter name=\"autoregressive\"></parameter>
+      <parameter name=\"movingAverage\"></parameter>
+      <parameter name=\"integrated\"></parameter>
       <parameter name=\"samplingTime\">300</parameter>
     </collectedMetric>
     <actions>
@@ -123,9 +123,9 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_15Min\">
       <parameter name=\"order\">1</parameter>
       <parameter name=\"forecastPeriod\">90</parameter>
-      <parameter name=\"autoregressive\">1</parameter>
-      <parameter name=\"movingAverage\">1</parameter>
-      <parameter name=\"integrated\">1</parameter>
+      <parameter name=\"autoregressive\"></parameter>
+      <parameter name=\"movingAverage\"></parameter>
+      <parameter name=\"integrated\"></parameter>
       <parameter name=\"samplingTime\">300</parameter>
     </collectedMetric>
     <actions>
@@ -143,9 +143,9 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_20Min\">
       <parameter name=\"order\">1</parameter>
       <parameter name=\"forecastPeriod\">120</parameter>
-      <parameter name=\"autoregressive\">1</parameter>
-      <parameter name=\"movingAverage\">1</parameter>
-      <parameter name=\"integrated\">1</parameter>
+      <parameter name=\"autoregressive\"></parameter>
+      <parameter name=\"movingAverage\"></parameter>
+      <parameter name=\"integrated\"></parameter>
       <parameter name=\"samplingTime\">300</parameter>
     </collectedMetric>
     <actions>
@@ -163,9 +163,9 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_25Min\">
       <parameter name=\"order\">1</parameter>
       <parameter name=\"forecastPeriod\">150</parameter>
-      <parameter name=\"autoregressive\">1</parameter>
-      <parameter name=\"movingAverage\">1</parameter>
-      <parameter name=\"integrated\">1</parameter>
+      <parameter name=\"autoregressive\"></parameter>
+      <parameter name=\"movingAverage\"></parameter>
+      <parameter name=\"integrated\"></parameter>
       <parameter name=\"samplingTime\">300</parameter>
     </collectedMetric>
     <actions>

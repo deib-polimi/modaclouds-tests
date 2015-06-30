@@ -475,10 +475,14 @@ public class Test {
 	
 	public static int getCores(String resourceName) {
 		switch (resourceName) {
+		case "m3.medium":
+			return 1;
 		case "m3.large":
 			return 2;
 		case "m3.xlarge":
 			return 4;
+		case "m3.2xlarge":
+			return 8;
 		default:
 			return 1;
 		}
