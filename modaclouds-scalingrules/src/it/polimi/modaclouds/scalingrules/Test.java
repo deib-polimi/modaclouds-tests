@@ -160,7 +160,7 @@ public class Test {
 
 	public static long performTest(int clients, String baseJmx, String data, boolean useOnDemand,
 			boolean reuseInstances, boolean leaveInstancesOn,
-			boolean onlyStartMachines, String size) throws Exception {
+			boolean onlyStartMachines, String size, double highCpu, double lowCpu) throws Exception {
 		if (baseJmx == null || !new File(baseJmx).exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
 		if (data == null || !new File(data).exists())
@@ -190,7 +190,7 @@ public class Test {
 		} while ((status == null || status.equals("null")) && attempt < MAX_ATTEMPTS);
 		
 		if (status != null && !status.equals("null")) {
-			t.addCPUUtilizationMonitoringRules();
+			t.addCPUUtilizationMonitoringRules(highCpu, lowCpu);
 			try {
 				t.runTest(Paths.get(baseJmx), data);
 			} catch (Exception e) {
@@ -439,7 +439,16 @@ public class Test {
 	}
 
 	public void addCPUUtilizationMonitoringRules(double aboveValue,
-			double underValue) throws Exception {
+			double belowValue) throws Exception {
+		if (aboveValue > 1.0)
+			aboveValue = 1.0;
+		if (aboveValue <= 0.0)
+			aboveValue = 0.6;
+		if (belowValue <= 0.0)
+			belowValue = 0.0;
+		if (belowValue >= 1.0)
+			belowValue = 0.1;
+		
 		String cloudMLIp = mpl.getInstances().get(0).getIp();
 		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
 		
@@ -451,13 +460,9 @@ public class Test {
 		rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
-						doubleFormatter.format(underValue), cloudMLIp, cloudMLPort, APP_NAME));
+						doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, APP_NAME));
 
 		monitoringPlatform.installRules(rules);
-	}
-
-	public void addCPUUtilizationMonitoringRules() throws Exception {
-		addCPUUtilizationMonitoringRules(0.6, 0.2);
 	}
 
 	public static int getPeakFromData(String data) {

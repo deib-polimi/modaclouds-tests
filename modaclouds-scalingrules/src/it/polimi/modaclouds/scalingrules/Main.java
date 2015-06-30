@@ -54,6 +54,12 @@ public class Main {
 	@Parameter(names = "-size", description = "The size that will be used for all the machines")
 	private String size = null;
 	
+	@Parameter(names = "-highCpu", description = "The upper bound for the CPU utilization")
+	private double highCpu = 0.6;
+	
+	@Parameter(names = "-lowCpu", description = "The lower bound for the CPU utilization")
+	private double lowCpu = 0.1;
+	
 	public static final String APP_TITLE = "\nScaling Rules Test\n";
 	
 	static {
@@ -97,7 +103,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
+			doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -123,15 +129,15 @@ public class Main {
 					}
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size));
+						threads.add(doTestInBackground(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu));
 					else
-						doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size);
+						doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu);
 				}
 				
 				for (Thread t : threads)
 					t.join();
 				
-				logger.error("Jobs ended!");
+				logger.info("Jobs ended!");
 			} catch (Exception e) {
 				logger.error("Error while reading the file!", e);
 				System.exit(-1);
@@ -141,11 +147,11 @@ public class Main {
 		System.exit(0);
 	}
 	
-	public static void doTest(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
+	public static void doTest(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size, double highCpu, double lowCpu) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(clients, Configuration.getPathToFile(baseJmx).toString(), Configuration.getPathToFile(data).toString(), useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size);
+			long duration = Test.performTest(clients, Configuration.getPathToFile(baseJmx).toString(), Configuration.getPathToFile(data).toString(), useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size, highCpu, lowCpu);
 		
 			if (duration == Test.ERROR_STATUS_NULL)
 				logger.error("There was the status == null problem...");
@@ -158,7 +164,7 @@ public class Main {
 		}
 	}
 	
-	public static Thread doTestInBackground(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size) {
+	public static Thread doTestInBackground(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size, double highCpu, double lowCpu) {
 		final int fclients = clients;
 		final String fbaseJmx = baseJmx;
 		final String fdata = data;
@@ -167,10 +173,12 @@ public class Main {
 		final boolean fleaveInstancesOn = leaveInstancesOn;
 		final boolean fonlyStartMachines = onlyStartMachines;
 		final String fsize = size;
+		final double fhighCpu = highCpu;
+		final double flowCpu = lowCpu;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fclients, fbaseJmx, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fsize);
+				doTest(fclients, fbaseJmx, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fsize, fhighCpu, flowCpu);
 			}
 		};
 		

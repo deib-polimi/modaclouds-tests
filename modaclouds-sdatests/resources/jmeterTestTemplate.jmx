@@ -291,10 +291,19 @@ sampler.addArgument(name,number);
               <boolProp name="CounterConfig.reset_on_tg_iteration">true</boolProp>
             </CounterConfig>
             <hashTree/>
-            <GaussianRandomTimer guiclass="GaussianRandomTimerGui" testclass="GaussianRandomTimer" testname="Gaussian Random Timer" enabled="true">
-              <stringProp name="ConstantTimer.delay">20000</stringProp>
-              <stringProp name="RandomTimer.range">5000</stringProp>
-            </GaussianRandomTimer>
+            <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="JSR223 Timer" enabled="true">
+              <stringProp name="scriptLanguage">java</stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="cacheKey"></stringProp>
+              <stringProp name="script">import java.lang.Math;
+
+double u = Math.random();
+double invLambda = 10000;
+double x = -(Math.log(1-u))*invLambda;
+
+return Math.round(x);</stringProp>
+            </JSR223Timer>
             <hashTree/>
           </hashTree>
         </hashTree>
