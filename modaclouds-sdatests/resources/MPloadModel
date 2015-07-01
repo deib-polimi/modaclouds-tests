@@ -60,7 +60,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
-    <collectedMetric metricName=\"EstimationUBR_AvarageEffectiveResponseTime\">
+    <collectedMetric metricName=\"EstimationERPS_AvarageEffectiveResponseTime\">
       <parameter name=\"window\">60</parameter>
       <parameter name=\"nCPU\">$3</parameter>
       <parameter name=\"CPUUtilTarget\">MIC</parameter>
