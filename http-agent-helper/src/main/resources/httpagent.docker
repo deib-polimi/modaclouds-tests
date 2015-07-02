@@ -31,8 +31,8 @@ RUN unzip $TARGETDIR/model.zip -d $TARGETDIR
 RUN chmod 755 -R /var/www/ && mv $TARGETDIR/model /tmp/model && mv /tmp/model $TARGETDIR/model
 
 # Installing Tomcat7 and the application
-RUN apt-get -y install tomcat7 default-java
-RUN echo "JAVA_HOME=/usr/lib/jvm/default-java" >> /etc/default/tomcat7
+RUN apt-get -y install tomcat7 default-jre
+RUN echo "JAVA_HOME=/usr/lib/jvm/default-jre" >> /etc/default/tomcat7
 RUN echo "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/" >> /etc/environment
 RUN export "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/"
 EXPOSE 8080
