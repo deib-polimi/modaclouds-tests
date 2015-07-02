@@ -1,0 +1,43 @@
+FROM ubuntu:14.04
+MAINTAINER Marcos Almeida <marcos.almeida@softeam.fr>
+
+ENV SYNCDIR   /root/syncfolder
+ENV USERHOME  /root
+ENV TARGETDIR /var/www/html/sync
+ENV CATALINA  /var/lib/tomcat7
+
+# Installing Open SSH and public key
+RUN apt-get update && apt-get install -y openssh-server openssh-client
+RUN mkdir $USERHOME/.ssh
+ADD id_rsa $USERHOME/.ssh/id_rsa
+ADD id_rsa.pub $USERHOME/.ssh/id_rsa.pub
+RUN cat $USERHOME/.ssh/id_rsa.pub > $USERHOME/.ssh/authorized_keys
+RUN chmod go-rwx $USERHOME/.ssh/id_rsa $USERHOME/.ssh/id_rsa.pub
+RUN mkdir /var/run/sshd
+EXPOSE 22
+
+# Installing Apache2
+RUN sudo apt-get install -y apache2
+EXPOSE 80 443
+
+# Adding model fragment to server
+ENV APACHE_RUN_USER root
+ENV APACHE_RUN_GROUP root
+RUN apt-get install -y unzip
+ADD model.zip $TARGETDIR/model.zip
+RUN unzip $TARGETDIR/model.zip -d $TARGETDIR
+
+# Based on workadroung from michcapper from : https://github.com/docker/docker/issues/6047
+RUN chmod 755 -R /var/www/ && mv $TARGETDIR/model /tmp/model && mv /tmp/model $TARGETDIR/model
+
+# Installing Tomcat7 and the application
+RUN apt-get -y install tomcat7 default-java
+RUN echo "JAVA_HOME=/usr/lib/jvm/default-java" >> /etc/default/tomcat7
+RUN echo "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/" >> /etc/environment
+RUN export "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/"
+EXPOSE 8080
+ADD http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
+ADD actualStartTomcat.sh /usr/local/bin/actualStartTomcat.sh
+
+# Start servers
+CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND

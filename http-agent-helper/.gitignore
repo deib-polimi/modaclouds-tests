@@ -1,0 +1,8 @@
+.settings
+.classpath
+.project
+.DS_Store
+/target
+src/main/resources/META-INF/configuration.xml
+src/main/resources/META-INF/persistence.xml
+src/main/resources/META-INF/queue.xml
