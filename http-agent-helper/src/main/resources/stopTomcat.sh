@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cd /home/ubuntu/modaclouds
-sudo docker stop httpagent
+sudo docker stop httpagent16
 
 cd
