@@ -74,7 +74,7 @@ public class DemandValidator {
 				for (String s : methods) {
 					Datum d = forecastedDemands.get(s).get(i);
 					
-					Dems.put(s, d.value.floatValue());
+					Dems.put(s, d.value.floatValue() * 1000);
 					
 					if (maxTimestamp > d.timestamp)
 						maxTimestamp = d.timestamp;

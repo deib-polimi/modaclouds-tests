@@ -278,7 +278,7 @@ public class ResultsBuilder {
 				StringBuilder sb = new StringBuilder();
 				for (int j = 0; j < methodsNames.length; ++j) {
 					double d = demands.get(DEMAND_COLUMN_PREFIX + methodsNames[j]).get(i);
-					double x = methodsWorkloads.get(j).get(i) / (TIME_SLOT_SIZE * cores);
+					double x = methodsWorkloads.get(j).get(i) / (TIME_SLOT_SIZE * 1000 * cores);
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
 				}
