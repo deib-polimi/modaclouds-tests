@@ -7,11 +7,17 @@ PORT="8022"
 IP="$1"
 
 cd /home/ubuntu/modaclouds
-sudo ./httpAgentRun.sh $IP
+sudo ./httpAgentRun.sh
 
 sleep 10
 
-ssh root@localhost -o StrictHostKeyChecking=no -p $PORT -i /home/ubuntu/modaclouds/id_rsa "bash /usr/local/bin/actualStartTomcat.sh $IP"
+ID=`sudo docker ps | grep httpagent16 | awk '{print $1}'`
+
+sudo docker exec $ID /bin/bash -c "echo export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$IP >> /root/.bashrc_httpagent"
+sudo docker exec $ID rm /var/lib/tomcat7/logs/*
+sudo docker exec $ID service tomcat7 start
+
+#sudo docker exec -it $ID /bin/bash -c "echo $MODACLOUDS_TOWER4CLOUDS_MANAGER_IP"
 
 cd /home/ubuntu/http-agent-helper
 bash MPloadModel $1 $2 $3
