@@ -41,10 +41,12 @@ ENV MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT 8170
 EXPOSE 8080
 RUN rm -rf $CATALINA/webapps/http-agent-helper*
 COPY http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
-COPY actualStartTomcat.sh /usr/local/bin/actualStartTomcat.sh
 RUN chmod +x /usr/local/bin/actualStartTomcat.sh
 RUN touch /root/.bashrc_httpagent
 RUN echo "source /root/.bashrc_httpagent" >> /root/.bashrc
+
+# Other goodness
+RUN apt-get -y install nano language-pack-it language-pack-en
 
 # Start servers
 CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
