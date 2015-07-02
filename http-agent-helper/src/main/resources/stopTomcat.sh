@@ -2,9 +2,7 @@
 
 cd /home/ubuntu/modaclouds
 
-ID=`sudo docker ps | grep httpagent16 | awk '{print $1}'`
-
-sudo docker kill $ID
-sudo docker rm $ID
+sudo docker kill `sudo docker ps | grep httpagent16 | awk '{print $1}'`
+sudo docker rm `sudo docker ps -a | grep httpagent16 | awk '{print $1}'`
 
 cd
