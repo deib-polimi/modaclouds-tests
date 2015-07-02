@@ -43,6 +43,8 @@ RUN rm -rf $CATALINA/webapps/http-agent-helper*
 COPY http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
 RUN chmod +x /usr/local/bin/actualStartTomcat.sh
 RUN touch /root/.bashrc_httpagent
+RUN echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> /root/.bashrc_httpagent
+RUN echo "export HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/" >> /root/.bashrc_httpagent
 RUN echo "source /root/.bashrc_httpagent" >> /root/.bashrc
 
 # Other goodness
