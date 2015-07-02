@@ -38,8 +38,9 @@ RUN export "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/"
 RUN echo "MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> /etc/environment
 RUN export "MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170"
 EXPOSE 8080
-ADD /home/ubuntu/http-agent-helper/http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
-ADD /home/ubuntu/http-agent-helper/actualStartTomcat.sh /usr/local/bin/actualStartTomcat.sh
+ADD http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
+ADD actualStartTomcat.sh /usr/local/bin/actualStartTomcat.sh
+RUN chmod +x /usr/local/bin/actualStartTomcat.sh
 
 # Start servers
 CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
