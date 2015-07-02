@@ -33,10 +33,11 @@ RUN chmod 755 -R /var/www/ && mv $TARGETDIR/model /tmp/model && mv /tmp/model $T
 # Installing Tomcat7 and the application
 RUN apt-get -y install tomcat7 default-jre default-jdk
 RUN echo "JAVA_HOME=/usr/lib/jvm/default-java" >> /etc/default/tomcat7
-RUN echo "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/" >> /etc/environment
-RUN export "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/"
-RUN echo "MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> /etc/environment
-RUN export "MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170"
+RUN echo "TOMCAT7_USER=root" >> /etc/default/tomcat7
+RUN echo "TOMCAT7_GROUP=root" >> /etc/default/tomcat7
+ENV JRE_HOME /usr/lib/jvm/default-java
+ENV HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/
+ENV MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT 8170
 EXPOSE 8080
 RUN rm -rf $CATALINA/webapps/http-agent-helper*
 ADD http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
