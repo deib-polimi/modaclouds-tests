@@ -61,6 +61,11 @@
       <outputDirectory></outputDirectory>
       <destName>httpAgentRun.sh</destName>
     </file>
+    <file>
+      <source>src/main/resources/stopTomcat.sh</source>
+      <outputDirectory></outputDirectory>
+      <destName>stopTomcat.sh</destName>
+    </file>
   </files>
 
   <fileSets>
