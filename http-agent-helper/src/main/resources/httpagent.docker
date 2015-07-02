@@ -35,6 +35,8 @@ RUN apt-get -y install tomcat7 default-jre default-jdk
 RUN echo "JAVA_HOME=/usr/lib/jvm/default-java" >> /etc/default/tomcat7
 RUN echo "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/" >> /etc/environment
 RUN export "HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/"
+RUN echo "MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> /etc/environment
+RUN export "MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170"
 EXPOSE 8080
 ADD /home/ubuntu/http-agent-helper/http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
 ADD /home/ubuntu/http-agent-helper/actualStartTomcat.sh /usr/local/bin/actualStartTomcat.sh
