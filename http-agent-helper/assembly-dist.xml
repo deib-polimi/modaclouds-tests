@@ -40,16 +40,19 @@
       <source>src/main/resources/actualStartTomcat.sh</source>
       <outputDirectory></outputDirectory>
       <destName>actualStartTomcat.sh</destName>
+      <fileMode>0755</fileMode>
     </file>
     <file>
       <source>src/main/resources/startTomcat.sh</source>
       <outputDirectory></outputDirectory>
       <destName>startTomcat.sh</destName>
+      <fileMode>0755</fileMode>
     </file>
     <file>
       <source>src/main/resources/MPloadModel</source>
       <outputDirectory></outputDirectory>
       <destName>MPloadModel</destName>
+      <fileMode>0755</fileMode>
     </file>
     <file>
       <source>src/main/resources/httpagent.docker</source>
@@ -60,11 +63,13 @@
       <source>src/main/resources/httpAgentRun.sh</source>
       <outputDirectory></outputDirectory>
       <destName>httpAgentRun.sh</destName>
+      <fileMode>0755</fileMode>
     </file>
     <file>
       <source>src/main/resources/stopTomcat.sh</source>
       <outputDirectory></outputDirectory>
       <destName>stopTomcat.sh</destName>
+      <fileMode>0755</fileMode>
     </file>
   </files>
 
