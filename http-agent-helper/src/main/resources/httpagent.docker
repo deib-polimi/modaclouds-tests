@@ -9,8 +9,8 @@ ENV CATALINA  /var/lib/tomcat7
 # Installing Open SSH and public key
 RUN apt-get update && apt-get install -y openssh-server openssh-client
 RUN mkdir $USERHOME/.ssh
-ADD id_rsa $USERHOME/.ssh/id_rsa
-ADD id_rsa.pub $USERHOME/.ssh/id_rsa.pub
+COPY id_rsa $USERHOME/.ssh/id_rsa
+COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub
 RUN cat $USERHOME/.ssh/id_rsa.pub > $USERHOME/.ssh/authorized_keys
 RUN chmod go-rwx $USERHOME/.ssh/id_rsa $USERHOME/.ssh/id_rsa.pub
 RUN mkdir /var/run/sshd
@@ -24,7 +24,7 @@ EXPOSE 80 443
 ENV APACHE_RUN_USER root
 ENV APACHE_RUN_GROUP root
 RUN apt-get install -y unzip
-ADD model.zip $TARGETDIR/model.zip
+COPY model.zip $TARGETDIR/model.zip
 RUN unzip $TARGETDIR/model.zip -d $TARGETDIR
 
 # Based on workadroung from michcapper from : https://github.com/docker/docker/issues/6047
@@ -38,10 +38,11 @@ RUN echo "TOMCAT7_GROUP=root" >> /etc/default/tomcat7
 ENV JRE_HOME /usr/lib/jvm/default-java
 ENV HTTP_AGENT_BASE_PATH=$TARGETDIR/model/model/CaseStudyModel/
 ENV MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT 8170
+ENV MODACLOUDS_TOWER4CLOUDS_MANAGER_IP 127.0.0.1
 EXPOSE 8080
 RUN rm -rf $CATALINA/webapps/http-agent-helper*
-ADD http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
-ADD actualStartTomcat.sh /usr/local/bin/actualStartTomcat.sh
+COPY http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
+COPY actualStartTomcat.sh /usr/local/bin/actualStartTomcat.sh
 RUN chmod +x /usr/local/bin/actualStartTomcat.sh
 
 # Start servers

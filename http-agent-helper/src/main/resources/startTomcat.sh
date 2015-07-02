@@ -7,7 +7,7 @@ PORT="8022"
 IP="$1"
 
 cd /home/ubuntu/modaclouds
-sudo ./httpAgentRun.sh
+sudo ./httpAgentRun.sh $IP
 
 sleep 10
 
