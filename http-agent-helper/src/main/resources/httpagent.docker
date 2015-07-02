@@ -5,8 +5,11 @@ ENV SYNCDIR   /root/syncfolder
 ENV USERHOME  /root
 ENV TARGETDIR /var/www/html/sync
 
+# First upgrade everything
+RUN apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade && apt-get -y autoremove && apt-get -y autoclean && apt-get -y clean
+
 # Installing Open SSH and public key
-RUN apt-get update && apt-get install -y openssh-server openssh-client
+RUN apt-get install -y openssh-server openssh-client
 RUN mkdir $USERHOME/.ssh
 COPY id_rsa $USERHOME/.ssh/id_rsa
 COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub

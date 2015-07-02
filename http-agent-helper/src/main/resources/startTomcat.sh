@@ -14,8 +14,8 @@ sleep 10
 ID=`sudo docker ps | grep httpagent16 | awk '{print $1}'`
 
 sudo docker exec $ID /bin/bash -c "echo export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$IP >> /root/.bashrc_httpagent"
-sudo docker exec $ID rm /var/lib/tomcat7/logs/*
-sudo docker exec $ID service tomcat7 start
+sudo docker exec $ID rm /usr/local/tomcat/logs/*
+sudo docker exec $ID bash /usr/local/tomcat/bin/startup.sh
 
 #sudo docker exec -it $ID /bin/bash -c "echo $MODACLOUDS_TOWER4CLOUDS_MANAGER_IP"
 
