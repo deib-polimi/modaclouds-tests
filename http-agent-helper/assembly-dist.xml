@@ -56,6 +56,11 @@
       <outputDirectory></outputDirectory>
       <destName>httpagent.docker</destName>
     </file>
+    <file>
+      <source>src/main/resources/httpAgentRun.sh</source>
+      <outputDirectory></outputDirectory>
+      <destName>httpAgentRun.sh</destName>
+    </file>
   </files>
 
   <fileSets>
