@@ -35,13 +35,11 @@ public class Test {
 	private static final Logger logger = LoggerFactory.getLogger(Test.class);
 	
 	private VirtualMachine mpl;
-	private VirtualMachine mic;
+	private VirtualMachine app;
 	private VirtualMachine clients;
 	private VirtualMachine database;
 	
 	private boolean useDatabase;
-	private boolean noSDA;
-	private boolean healthCheck;
 	
 	private boolean running;
 	private boolean initialized;
@@ -50,7 +48,7 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static long performTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, boolean noSDA, boolean healthCheck, String loadModelFile, int firstInstancesToSkip) throws Exception {
+	public static long performTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String app, String demandEstimator) throws Exception {
 		if (baseJmx == null || !new File(baseJmx).exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
 		if (data == null || !new File(data).exists())
@@ -60,7 +58,7 @@ public class Test {
 		
 		long init = System.currentTimeMillis();
 		
-		Test t = new Test(size, clients, servers, useDatabase, noSDA, healthCheck);
+		Test t = new Test(size, clients, servers, app, useDatabase);
 		
 		if (reuseInstances)
 			t.considerRunningMachines();
@@ -68,7 +66,7 @@ public class Test {
 		
 		t.createLoadBalancer();
 		
-		t.initSystem(loadModelFile);
+		t.initSystem(loadModelFile, demandEstimator);
 		
 		if (onlyStartMachines)
 			return -1;
@@ -85,28 +83,20 @@ public class Test {
 		if (!leaveInstancesOn)
 			t.stopMachines();
 		
-		if (!noSDA)
-			Validator.perform(path, t.getCores(), firstInstancesToSkip);
-		else
-			Data2StdoutParser.perform(path);
+		Validator.perform(path, t.getCores(), firstInstancesToSkip);
 		
 		return System.currentTimeMillis() - init;
 	}
-
-	public Test(String size, int clients, int servers, boolean useDatabase, boolean noSDA, boolean healthCheck) throws CloudException {
+	
+	public Test(String size, int clients, int servers, String app, boolean useDatabase) throws CloudException {
 		if (clients <= 0)
 			throw new RuntimeException("You need at least 1 client!");
 		
 		if (servers <= 0)
 			throw new RuntimeException("You need at least 1 server!");
 		
-		if (healthCheck)
-			noSDA = true;
-		this.noSDA = noSDA;
-		this.healthCheck = healthCheck;
-		
 		mpl = VirtualMachine.getVM("mpl", size, 1);
-		mic = VirtualMachine.getVM("mic", size, servers);
+		this.app = VirtualMachine.getVM(app, size, servers);
 		this.clients = VirtualMachine.getVM("client", size, clients);
 		
 		this.useDatabase = useDatabase;
@@ -122,7 +112,7 @@ public class Test {
 	private String loadBalancer;
 
 	private void createLoadBalancer() {
-		if (mic.getInstancesNeeded() <= 1)
+		if (app.getInstancesNeeded() <= 1)
 			return;
 		
 		if (loadBalancer != null)
@@ -131,11 +121,11 @@ public class Test {
 
 		loadBalancer = "SDATests" + RandomStringUtils.randomNumeric(3);
 
-		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(mic.getParameter("PORT"))));
+		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(app.getParameter("PORT"))));
 	}
 
 	private void destroyLoadBalancer() {
-		if (mic.getInstancesNeeded() <= 1)
+		if (app.getInstancesNeeded() <= 1)
 			return;
 		
 		if (loadBalancer == null)
@@ -155,30 +145,30 @@ public class Test {
 		
 		if (!startAsOnDemand) {
 			mpl.spotRequest();
-			mic.spotRequest();
+			app.spotRequest();
 			clients.spotRequest();
 			if (useDatabase)
 				database.spotRequest();
 		} else {
 			mpl.onDemandRequest();
-			mic.onDemandRequest();
+			app.onDemandRequest();
 			clients.onDemandRequest();
 			if (useDatabase)
 				database.onDemandRequest();
 		}
 		
 		mpl.waitUntilRunning();
-		mic.waitUntilRunning();
+		app.waitUntilRunning();
 		clients.waitUntilRunning();
 		if (useDatabase)
 			database.waitUntilRunning();
 		
 		mpl.setNameToInstances("MPL");
-		mic.setNameToInstances("MiC");
+		app.setNameToInstances("MiC");
 		clients.setNameToInstances("JMeter");
 		
 		mpl.getInstances().get(0).waitUntilSshAvailable();
-		mic.getInstances().get(0).waitUntilSshAvailable();
+		app.getInstances().get(0).waitUntilSshAvailable();
 		if (useDatabase)
 			database.getInstances().get(0).waitUntilSshAvailable();
 		
@@ -196,13 +186,13 @@ public class Test {
 		AmazonEC2 ec2 = new AmazonEC2();
 		
 		ec2.addRunningInstances(mpl);
-		ec2.addRunningInstances(mic);
+		ec2.addRunningInstances(app);
 		ec2.addRunningInstances(clients);
 		if (useDatabase)
 			ec2.addRunningInstances(database);
 		
 		mpl.reboot();
-		mic.reboot();
+		app.reboot();
 		clients.reboot();
 		if (useDatabase)
 			database.reboot();
@@ -217,7 +207,7 @@ public class Test {
 		logger.info("Stopping all the machines...");
 		
 		mpl.terminate();
-		mic.terminate();
+		app.terminate();
 		clients.terminate();
 		if (useDatabase)
 			database.terminate();
@@ -227,12 +217,6 @@ public class Test {
 		running = false;
 		initialized = false;
 	}
-	
-	public static final String LOAD_MODEL_FILE = "MPloadModel";
-	
-	public static String LOAD_MODEL_COMMAND = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE) + " %s %s %d";
-	public static String LOAD_MODEL_COMMAND_NOSDA = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-noSDA") + " %s %d";
-	public static String LOAD_MODEL_COMMAND_HEALTHCHECK = "bash " + Configuration.getPathToFile(LOAD_MODEL_FILE + "-healthCheck") + " %s %d";
 	
 	public static final String START_GLASSFISH_MONITORING = "startGlassfishMonitoring.sh";
 	public static final String STOP_GLASSFISH_MONITORING = "stopGlassfishMonitoring.sh";
@@ -244,7 +228,7 @@ public class Test {
 	
 	private List<Thread> otherThreads;
 	
-	public void initSystem(String loadModelFile) throws Exception {
+	public void initSystem(String loadModelFile, String demandEstimator) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -253,7 +237,7 @@ public class Test {
 		
 		logger.info("Deleting the files set for removal before the test...");
 		
-		mic.deleteFiles();
+		app.deleteFiles();
 		mpl.deleteFiles();
 		clients.deleteFiles();
 		if (useDatabase)
@@ -267,63 +251,38 @@ public class Test {
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
-		if (noSDA) {
-			Ssh.execInBackground(impl, 
-					mpl.getParameter("DATA2STDOUT_STARTER"));
-			
-			try { Thread.sleep(5000); } catch (Exception e) { }
-		}
-		
 		int cores = getCores();
 		
-		if (loadModelFile != null)
-			exec(String.format("bash %s %s %s %d",
-					loadModelFile,
-					impl.getIp(),
-					impl.getIp(),
-					cores));
-		else if (!noSDA)
-			exec(String.format(
-					LOAD_MODEL_COMMAND,
-					impl.getIp(),
-					impl.getIp(),
-					cores));
-		else if (!healthCheck)
-			exec(String.format(
-					LOAD_MODEL_COMMAND_NOSDA,
-					impl.getIp(),
-					cores));
-		else
-			exec(String.format(
-					LOAD_MODEL_COMMAND_HEALTHCHECK,
-					impl.getIp(),
-					cores));
+		exec(String.format("bash %s %s %s %d %s",
+				loadModelFile,
+				impl.getIp(),
+				impl.getIp(),
+				cores,
+				demandEstimator));
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
-		if (!noSDA) {
-			otherThreads.add(Ssh.execInBackground(impl, String.format(
-					mpl.getParameter("SDA_STARTER"),
-					impl.getIp())));
+		otherThreads.add(Ssh.execInBackground(impl, String.format(
+				mpl.getParameter("SDA_STARTER"),
+				impl.getIp())));
 			
-			try { Thread.sleep(10000); } catch (Exception e) { }
-		}
+		try { Thread.sleep(10000); } catch (Exception e) { }
 		
-		for (Instance imic : mic.getInstances()) {
+		for (Instance imic : app.getInstances()) {
 			imic.exec(String.format(
-					mic.getParameter("STARTER0"),
+					app.getParameter("STARTER0"),
 					useDatabase ? database.getIps().get(0) : "127.0.0.1",
 					impl.getIp()
 					));
 			
 			try { Thread.sleep(10000); } catch (Exception e) { }
 			
-			imic.exec(mic.getParameter("STARTER1"));
+			imic.exec(app.getParameter("STARTER1"));
 			
 			try { Thread.sleep(10000); } catch (Exception e) { }
 			
-			if (mic.getInstancesNeeded() > 1 && loadBalancer != null) {
-				imic.exec(String.format(mic.getParameter("ADD_TO_LOAD_BALANCER"), loadBalancer));
+			if (app.getInstancesNeeded() > 1 && loadBalancer != null) {
+				imic.exec(String.format(app.getParameter("ADD_TO_LOAD_BALANCER"), loadBalancer));
 				
 				try { Thread.sleep(10000); } catch (Exception e) { }
 			}
@@ -388,15 +347,15 @@ public class Test {
 		
 		String remotePath = clients.getParameter("REMOTE_PATH") + "/" + now;
 		
-		String protocol = mic.getParameter("PROTOCOL");
+		String protocol = app.getParameter("PROTOCOL");
 		if (protocol == null)
 			protocol = "http";
 		
-		String port = mic.getParameter("PORT");
+		String port = app.getParameter("PORT");
 		if (port == null)
 			port = "8080";
 		
-		String server = mic.getInstancesNeeded() > 1 && loadBalancer != null ? ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer) : mic.getIps().get(0); 
+		String server = app.getInstancesNeeded() > 1 && loadBalancer != null ? ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer) : app.getIps().get(0); 
 		
 		JMeterTest test = new JMeterTest(clients.getParameter("AMI"), clients.getInstancesRunning(), localPath, remotePath, clients.getParameter("JMETER_PATH"), data,
 				server,
@@ -410,7 +369,7 @@ public class Test {
 			javaParameters = null;
 		JMeterTest.javaParameters = javaParameters;
 		
-		for (Instance imic : mic.getInstances())
+		for (Instance imic : app.getInstances())
 			exec(String.format(START_GLASSFISH_MONITORING_COMMAND, imic.getIp()));
 		
 		logger.info("Test starting...");
@@ -421,10 +380,10 @@ public class Test {
 		
 		logger.info("Retrieving the files from the instances...");
 		
-		mic.retrieveFiles(localPath, "/home/" + mic.getParameter("SSH_USER"));
+		app.retrieveFiles(localPath, "/home/" + app.getParameter("SSH_USER"));
 		{
 			int i = 1;
-			for (Instance imic : mic.getInstances())
+			for (Instance imic : app.getInstances())
 				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, imic.getIp(), Paths.get(localPath, "mic" + i++)));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
@@ -436,7 +395,7 @@ public class Test {
 		
 		int period = getSuggestedPeriod(date);
 		
-		mic.retrieveMetrics(localPath, date, period, Statistic.Average, null);
+		app.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		mpl.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		clients.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		if (useDatabase)
@@ -489,7 +448,7 @@ public class Test {
 	}
 	
 	public int getCores() {
-		return getCores(mic.getSize());
+		return getCores(app.getSize());
 	}
 
 }

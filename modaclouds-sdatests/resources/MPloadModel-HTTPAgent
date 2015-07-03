@@ -40,9 +40,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
   </monitoringRule>
   <monitoringRule id=\"respTimeRule\" timeStep=\"2\" timeWindow=\"10\">
     <monitoredTargets>
-      <monitoredTarget class=\"Method\" type=\"answerQuestions\"/>
-      <monitoredTarget class=\"Method\" type=\"saveAnswers\"/>
-      <monitoredTarget class=\"Method\" type=\"register\"/>
+      <monitoredTarget class=\"Method\" type=\"getPage\"/>
     </monitoredTargets>
     <collectedMetric metricName=\"EffectiveResponseTime\">
       <parameter name=\"samplingProbability\">1</parameter>
@@ -178,9 +176,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
   </monitoringRule>
   <monitoringRule id=\"workloadRule\" timeStep=\"10\" timeWindow=\"10\">
     <monitoredTargets>
-      <monitoredTarget class=\"Method\" type=\"answerQuestions\"/>
-      <monitoredTarget class=\"Method\" type=\"saveAnswers\"/>
-      <monitoredTarget class=\"Method\" type=\"register\"/>
+      <monitoredTarget class=\"Method\" type=\"getPage\"/>
     </monitoredTargets>
     <collectedMetric metricName=\"EffectiveResponseTime\">
       <parameter name=\"samplingProbability\">1</parameter>
