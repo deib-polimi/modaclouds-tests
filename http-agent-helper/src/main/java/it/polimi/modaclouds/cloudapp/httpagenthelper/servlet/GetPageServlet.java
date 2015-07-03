@@ -104,7 +104,7 @@ public class GetPageServlet extends HttpServlet {
 		return sb.toString();
 	}
 	
-	private static String getRelativePath(File f) {
+	public static String getRelativePath(File f) {
 		String path = f.getAbsolutePath();
 		return path.substring(path.indexOf(BASE_PATH) + BASE_PATH.length());
 	}
