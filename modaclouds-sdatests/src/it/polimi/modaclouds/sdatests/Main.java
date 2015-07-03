@@ -68,7 +68,7 @@ public class Main {
 	private String demandEstimator = DEFAULT_DEMAND_ESTIMATOR.name;
 	
 	public static enum App {
-		MIC("mic", "MPloadModel", "jmeterTestTemplate.jmx"), HTTPAGENT("httpagent", "MPloadModel-HTTPAgent", "jmeterTestTemplate-HTTPAgent.jmx");
+		MIC("mic", "MPloadModel-MiC", "jmeterTestTemplate-MiC.jmx"), HTTPAGENT("httpagent", "MPloadModel-HTTPAgent", "jmeterTestTemplate-HTTPAgent.jmx");
 		
 		public String name;
 		public String fileModel;
