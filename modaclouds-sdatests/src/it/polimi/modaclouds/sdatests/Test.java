@@ -10,7 +10,6 @@ import it.cloud.utils.CloudException;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
 import it.cloud.utils.Ssh;
-import it.polimi.modaclouds.sdatests.validator.Data2StdoutParser;
 import it.polimi.modaclouds.sdatests.validator.Validator;
 
 import java.io.BufferedReader;
@@ -163,9 +162,11 @@ public class Test {
 		if (useDatabase)
 			database.waitUntilRunning();
 		
-		mpl.setNameToInstances("MPL");
-		app.setNameToInstances("MiC");
-		clients.setNameToInstances("JMeter");
+		mpl.setNameToInstances(mpl.getParameter("NAME"));
+		app.setNameToInstances(app.getParameter("NAME"));
+		clients.setNameToInstances(clients.getParameter("NAME"));
+		if (useDatabase)
+			database.setNameToInstances(database.getParameter("NAME"));
 		
 		mpl.getInstances().get(0).waitUntilSshAvailable();
 		app.getInstances().get(0).waitUntilSshAvailable();
@@ -420,17 +421,6 @@ public class Test {
 			res = 1;
 		
 		return (int)res * 60;
-	}
-	
-	public int getTotalCountResponseTime(Path path) {
-		try {
-			Data2StdoutParser parser = new Data2StdoutParser(path);
-			return (int)parser.getTotalPerMetric("CountResponseTime");
-		} catch (Exception e) {
-			logger.error("Error while parsing the output.", e);
-		}
-		
-		return 0;
 	}
 	
 	public static int getCores(String resourceName) {
