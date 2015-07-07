@@ -59,7 +59,7 @@ public class InitDataCollectorServlet implements ServletContextListener {
 		
 		applicationProperties.put(Property.ID, "http-agent-helper");
 		applicationProperties.put(Property.TYPE, "HTTPAgentHelper");
-		applicationProperties.put(Property.CLOUD_PROVIDER_ID, "flexiant");
+		applicationProperties.put(Property.CLOUD_PROVIDER_ID, "amazon");
 		applicationProperties.put(Property.CLOUD_PROVIDER_TYPE, "IaaS");
 		applicationProperties.put(Property.VM_ID, "HTTPAgentHelper");
 		applicationProperties.put(Property.VM_TYPE, "Frontend");
