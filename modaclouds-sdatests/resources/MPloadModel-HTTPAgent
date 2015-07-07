@@ -2,6 +2,7 @@
 #$1=MP-IP
 #$2=SDA-IP
 #$3=CPU NUMBER
+#$4=DEMAND ESTIMATOR
 
 MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">
   <monitoringRule id=\"cpuRule\" timeStep=\"3\" timeWindow=\"3\">
@@ -61,7 +62,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     <collectedMetric metricName=\"Estimation$4_AvarageEffectiveResponseTime\">
       <parameter name=\"window\">60</parameter>
       <parameter name=\"nCPU\">$3</parameter>
-      <parameter name=\"CPUUtilTarget\">MIC</parameter>
+      <parameter name=\"CPUUtilTarget\">HTTPAgentHelper</parameter>
       <parameter name=\"CPUUtilMetric\">FrontendCPUUtilization</parameter>
       <parameter name=\"samplingTime\">300</parameter>
       <parameter name=\"filePath\">/home/ubuntu/modaclouds-sda/</parameter>

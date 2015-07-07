@@ -22,7 +22,7 @@ public class Main {
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
-//		args = new String[] { "-parent", "/Users/ft/Lavoro/tmp/sdatests-0.0.15/tests/0307151705-m3.large-800x2-UBR/mpl1/home/ubuntu", "-cores", "2", "-skip", "12" };
+//		args = "-parent /Users/ft/Lavoro/tmp/sdatests-0.0.15/tests/0307151705-m3.large-800x2-UBR/mpl1/home/ubuntu -cores 2 -skip 12".split(" ");
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);

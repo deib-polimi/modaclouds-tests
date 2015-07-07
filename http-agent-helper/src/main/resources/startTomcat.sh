@@ -17,7 +17,7 @@ sudo docker exec $ID /bin/bash -c "echo MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$IP >
 sudo docker exec $ID rm /var/lib/tomcat7/logs/*
 sudo docker exec $ID service tomcat7 start
 
-cd /home/ubuntu/http-agent-helper
-bash MPloadModel $1 $2 $3
+#cd /home/ubuntu/http-agent-helper
+#bash MPloadModel $1 $2 $3
 
 cd

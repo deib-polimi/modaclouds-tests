@@ -72,7 +72,7 @@ public class Main {
 	}
 	
 	public static void main(String[] args) {
-//		args = new String[] { "-data", "tests.txt", "-useOnDemand", "-size", "m3.large", "-clients", "1", "-leaveInstancesOn" }; //, "-reuseInstances" };
+//		args = "-data tests.txt -useOnDemand -size m3.large -clients 1 -leaveInstancesOn".split(" "); // -reuseInstances
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);

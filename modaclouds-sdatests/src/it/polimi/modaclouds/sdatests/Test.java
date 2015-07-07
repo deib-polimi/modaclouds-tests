@@ -337,7 +337,7 @@ public class Test {
 			throw new RuntimeException("The system isn't initialized yet!");
 		
 		Date date = new Date();
-		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%s-%s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), appName, method);
+		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s-%6$s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), appName, method);
 		
 		String localPath = "tests" + File.separator + now;
 		
