@@ -177,6 +177,7 @@ public class Main {
 			}
 		}
 		
+		logger.info("Goodbye!");
 		System.exit(0);
 		
 	}

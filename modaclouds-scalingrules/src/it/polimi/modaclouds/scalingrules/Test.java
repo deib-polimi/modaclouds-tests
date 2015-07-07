@@ -236,7 +236,7 @@ public class Test {
 	}
 
 	private String getTierStatus(String tier) {
-		cloudML.getDeploymentModel();
+		cloudML.updateStatus();
 		return cloudML.getTierStatus(tier);
 	}
 

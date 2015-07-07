@@ -5,7 +5,12 @@
         {
             "credentials": "credentialsAmazon.properties",
             "eClass": "net.cloudml.core:Provider",
-            "name": "aws-ec2"
+            "name": "aws-ec2",
+            "properties" : [{
+                "eClass" : "net.cloudml.core:Property",
+                "name" : "MaxVMs",
+                "value" : "3"
+            }]
         }
     ],
     "internalComponents": [

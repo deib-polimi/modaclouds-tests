@@ -16,6 +16,7 @@
         <parameter name="command">SCALE</parameter>
         <parameter name="tier">%s</parameter>
         <parameter name="n">-1</parameter>
+        <parameter name="cooldown">600</parameter>
       </action>
     </actions>
   </monitoringRule>

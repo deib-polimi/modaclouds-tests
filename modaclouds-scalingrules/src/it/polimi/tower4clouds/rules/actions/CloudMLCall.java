@@ -17,6 +17,7 @@ package it.polimi.tower4clouds.rules.actions;
 
 import it.polimi.modaclouds.qos_models.EnumErrorType;
 import it.polimi.modaclouds.qos_models.Problem;
+import it.polimi.tower4clouds.manager.api.ManagerAPI;
 import it.polimi.tower4clouds.rules.AbstractAction;
 import it.polimi.tower4clouds.rules.MonitoringRule;
 
@@ -53,6 +54,10 @@ public class CloudMLCall extends AbstractAction {
 	public static final String COMMAND = "command";
 	public static final String TIER = "tier";
 	public static final String N = "n";
+	public static final String COOLDOWN = "cooldown";
+	
+	public static final String DEFAULT_MANAGER_IP = "127.0.0.1";
+	public static final String DEFAULT_MANAGER_PORT = "8170";
 
 	public static enum Command {
 		SCALE("SCALE", null, false, true),
@@ -113,6 +118,7 @@ public class CloudMLCall extends AbstractAction {
 		requiredParameters.add(COMMAND);
 		requiredParameters.add(TIER);
 		requiredParameters.add(N);
+		requiredParameters.add(COOLDOWN);
 	}
 
 	@Override
@@ -124,9 +130,14 @@ public class CloudMLCall extends AbstractAction {
 		String port = parameters.get(PORT);
 		String id = parameters.get(TIER);
 		String n = parameters.get(N);
+		String cooldown = parameters.get(COOLDOWN);
+		int intCooldown = -1;
+		try {
+			intCooldown = Integer.parseInt(cooldown);
+		} catch (Exception e) { }
 
 		try {
-			perform(ip, port, c, id, n);
+			perform(ip, port, c, intCooldown, id, n);
 		} catch (Exception e) {
 			getLogger()
 					.error("Error while performing the command: some variable was null.");
@@ -205,7 +216,7 @@ public class CloudMLCall extends AbstractAction {
 		return client;
 	}
 
-	private boolean perform(String ip, String port, Command c,
+	private boolean perform(String ip, String port, Command c, int cooldown,
 			Object... parameters) {
 		if (ip == null || port == null || c == null)
 			throw new RuntimeException("Error with the parameters!");
@@ -231,6 +242,8 @@ public class CloudMLCall extends AbstractAction {
 		CloudML client = getConnection(ip, port);
 		if (client == null)
 			return false;
+		
+		disableRule(DEFAULT_MANAGER_IP, DEFAULT_MANAGER_PORT, getRuleId(), cooldown);
 
 		if (!c.blocking)
 			client.send(command);
@@ -238,6 +251,32 @@ public class CloudMLCall extends AbstractAction {
 			client.sendBlocking(command, c);
 
 		return true;
+	}
+	
+	private void disableRule(String ip, String port, String ruleId, int cooldown) {
+		if (cooldown < 0)
+			return;
+		
+		final String fip = ip;
+		final int fport = Integer.parseInt(port);
+		final int fcooldown = cooldown;
+		final String fruleId = ruleId;
+		
+		new Thread() {
+			public void run() {
+				ManagerAPI manager = new ManagerAPI(fip, fport);
+				
+				try {
+					manager.disableRule(fruleId);
+					
+					Thread.sleep(fcooldown * 1000);
+					
+					manager.enableRule(fruleId);
+				} catch (Exception e) {
+					getLogger().error("Error while disabling temporarely the rule.", e);
+				}
+			}
+		}.start();
 	}
 
 	private boolean scale(String ip, String port, String id, int n) {

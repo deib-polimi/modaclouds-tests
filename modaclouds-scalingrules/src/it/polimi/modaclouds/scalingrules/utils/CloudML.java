@@ -36,11 +36,11 @@ public class CloudML implements PropertyChangeListener {
 	private WSClient wsClient;
 	
 	public static void main(String[] args) throws Exception {
-		String mplIp = "52.17.80.195";
+		String mplIp = "52.18.81.98";
 		String cloudMLIp = mplIp;
-		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.large", 1);
-		VirtualMachine mic = VirtualMachine.getVM("mic", "m3.large", 1);
-		String loadBalancer = "ScalingRules545";
+		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
+		VirtualMachine mic = VirtualMachine.getVM("mic", "m3.medium", 1);
+		String loadBalancer = "ScalingRules155";
 		
 		CloudML cml = new CloudML(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);
 		
@@ -134,10 +134,6 @@ public class CloudML implements PropertyChangeListener {
 
 	}
 	
-	public void terminate() {
-//		wsClient.send("!extended { name : Terminate }");
-	}
-	
 	private void pushDeploymentModel(File orig) {
 		String[] commands = Command.LOAD_DEPLOYMENT.command.split("\n");
 		if (commands.length < 2)
@@ -162,14 +158,6 @@ public class CloudML implements PropertyChangeListener {
 		return body.toString();
 	}
 	
-	public void send(String command) {
-		wsClient.send(command);
-	}
-	
-	public void sendBlocking(String command, Command cmd) {
-		wsClient.sendBlocking(command, cmd);
-	}
-	
 	public void deploy(File orig) {
 		pushDeploymentModel(orig);
 		
@@ -182,7 +170,7 @@ public class CloudML implements PropertyChangeListener {
 		wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.valueOf(times).toString()), Command.SCALE_OUT);
 	}
 
-	public void getDeploymentModel() {
+	public void updateStatus() {
 		logger.info("Asking for the deployment model...");
 		
 		wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
@@ -485,9 +473,7 @@ public class CloudML implements PropertyChangeListener {
 			
 				pcs.firePropertyChange("Deploy", false, true);
 				
-				send("!getSnapshot { path : / }");
-				
-//				getDeploymentModel();
+				updateStatus();
 			} else if (s.contains("ack")) {
 				
 				logger.trace("Ack received: {}", s);
@@ -549,34 +535,37 @@ public class CloudML implements PropertyChangeListener {
 	}
 	
 	public static enum Command {
-		SCALE("SCALE", null, false, true),
+		SCALE("SCALE", null, false, true, true),
 		SCALE_OUT("SCALE_OUT",
-				"!extended { name: ScaleOut, params: [ %1$s , %2$s ] }", true, true),
+				"!extended { name: ScaleOut, params: [ %1$s , %2$s ] }", true, true, false),
 		START_INSTANCE("START_INSTANCE",
-				"!extended { name: StartComponent, params: [ %1$s ] }", true, true),
+				"!extended { name: StartComponent, params: [ %1$s ] }", true, true, false),
 		STOP_INSTANCE("STOP_INSTANCE",
-				"!extended { name: StopComponent, params: [ %1$s ] }", true, true),
+				"!extended { name: StopComponent, params: [ %1$s ] }", true, true, false),
 		GET_STATUS("GET_STATUS",
-				"!getSnapshot { path : / }", true, true),
+				"!getSnapshot { path : / }", true, true, false),
 		GET_INSTANCE_STATUS("GET_INSTANCE_STATUS",
 				"!getSnapshot\n" +
 						"path : /componentInstances[id='%1$s']\n" +
-						"multimaps : { vm : name, tier : type/name, id : id, status : status, ip : publicAddress }", true, false),
-		DEPLOY("DEPLOY", "!extended { name : Deploy }", false, true),
+						"multimaps : { vm : name, tier : type/name, id : id, status : status, ip : publicAddress }", true, false, false),
+		DEPLOY("DEPLOY", "!extended { name : Deploy }", false, true, false),
 		LOAD_DEPLOYMENT("LOAD_DEPLOYMENT",
 				"!extended { name : LoadDeployment }\n" +
-				"!additional json-string: %s", true, false);
+				"!additional json-string: %s", true, false, false),
+		BURST("BURST", "!extended { name: Burst, params: [ %1$s , %2$s ] }", true, true, false);
 
 		public String name;
 		public String command;
 		public boolean actualCommand;
 		public boolean blocking;
+		public boolean publicCommand;
 
-		private Command(String name, String command, boolean actualCommand, boolean blocking) {
+		private Command(String name, String command, boolean actualCommand, boolean blocking, boolean publicCommand) {
 			this.name = name;
 			this.command = command;
 			this.actualCommand = actualCommand;
 			this.blocking = blocking;
+			this.publicCommand = publicCommand;
 		}
 
 		public static Command getByName(String name) {
@@ -605,6 +594,7 @@ public class CloudML implements PropertyChangeListener {
 		Map<String, String> ipPerId = new HashMap<String, String>();
 		Map<String, String> idPerName = new HashMap<String, String>();
 		Map<String, String> statusPerId = new HashMap<String, String>();
+		Map<String, String> providerPerId = new HashMap<String, String>();
 		
 		public Instances clone() {
 			Instances ret = new Instances();
@@ -615,6 +605,7 @@ public class CloudML implements PropertyChangeListener {
 			ret.ipPerId.putAll(ipPerId);
 			ret.idPerName.putAll(idPerName);
 			ret.statusPerId.putAll(statusPerId);
+			ret.providerPerId.putAll(providerPerId);
 			
 			return ret;
 		}
@@ -624,20 +615,34 @@ public class CloudML implements PropertyChangeListener {
 			sb.append(String.format("Tier: %s, VM: %s", tier, vm));
 			if (running.size() > 0) {
 				sb.append(", Running: [ ");
-				for (String s : running)
-					sb.append(s + ", ");
+				for (String s : running) {
+					String provider = providerPerId.get(s);
+					sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
+				}
 				sb.deleteCharAt(sb.length() - 2);
 				sb.append("]");
 			}
 			if (stopped.size() > 0) {
 				sb.append(", Stopped: [ ");
-				for (String s : stopped)
-					sb.append(s + ", ");
+				for (String s : stopped) {
+					String provider = providerPerId.get(s);
+					sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
+				}
 				sb.deleteCharAt(sb.length() - 2);
 				sb.append("]");
 			}
 			
 			return sb.toString();
+		}
+		
+		public List<String> getUsedProviders() {
+			List<String> res = new ArrayList<String>();
+			for (String key : providerPerId.keySet()) {
+				String provider = providerPerId.get(key);
+				if (!res.contains(provider))
+					res.add(provider);
+			}
+			return res;
 		}
 		
 		public int count() {
@@ -657,12 +662,17 @@ public class CloudML implements PropertyChangeListener {
 		if (n == 0)
 			return true;
 		
-//		signalWaiting(Command.SCALE);
+		commandParam.put(Command.GET_STATUS, String.format("%s;%d", id, n));
 		
-		commandParam.put(Command.GET_STATUS, String.format("%s;%s;%s;%d", "ip", "port", id, n));
-//		getDeploymentModel();
+		wsClient.sendBlocking(Command.GET_STATUS.command, Command.SCALE);
+
+		return true;
+	}
+	
+	public boolean burst(String id) {
+		commandParam.put(Command.GET_STATUS, String.format("%s;1", id));
 		
-		wsClient.sendBlocking("!getSnapshot { path : / }", Command.SCALE);
+		wsClient.sendBlocking(Command.GET_STATUS.command, Command.BURST);
 
 		return true;
 	}
@@ -713,10 +723,8 @@ public class CloudML implements PropertyChangeListener {
 			
 			String[] paramsArray = params.split(";");
 			
-//			String ip = paramsArray[0];
-//			String port = paramsArray[1];
-			String tier = paramsArray[2];
-			int n = Integer.parseInt(paramsArray[3]);
+			String tier = paramsArray[0];
+			int n = Integer.parseInt(paramsArray[1]);
 			
 			if (!instancesPerTier.containsKey(tier)) {
 				signalCompleted(Command.SCALE, "Scaling an unknown tier");

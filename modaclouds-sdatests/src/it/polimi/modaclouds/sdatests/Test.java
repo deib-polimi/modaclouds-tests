@@ -73,7 +73,7 @@ public class Test {
 		
 		Path path = null;
 		try {
-			path = t.runTest(Paths.get(baseJmx), data);
+			path = t.runTest(Paths.get(baseJmx), data, app, demandEstimator);
 		} catch (Exception e) {
 			logger.error("Error while performing the test.", e);
 		}
@@ -329,7 +329,7 @@ public class Test {
 		return peak;
 	}
 	
-	public Path runTest(Path baseJmx, String data) throws Exception {
+	public Path runTest(Path baseJmx, String data, String appName, String method) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -337,13 +337,14 @@ public class Test {
 			throw new RuntimeException("The system isn't initialized yet!");
 		
 		Date date = new Date();
-		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning());
+		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%s-%s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), appName, method);
 		
 		String localPath = "tests" + File.separator + now;
-		if (!new File(localPath).exists()) {
-			File f = new File(localPath);
-			f.mkdirs();
-		}
+		
+		File f = new File(localPath);
+		for (int i = 2; f.exists(); ++i)
+			f = new File(localPath + "-" + i);
+		f.mkdirs();
 		
 		String remotePath = clients.getParameter("REMOTE_PATH") + "/" + now;
 		
