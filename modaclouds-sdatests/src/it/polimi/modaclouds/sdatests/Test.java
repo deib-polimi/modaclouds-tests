@@ -269,8 +269,8 @@ public class Test {
 			
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		
-		for (Instance imic : app.getInstances()) {
-			imic.exec(String.format(
+		for (Instance iapp : app.getInstances()) {
+			iapp.exec(String.format(
 					app.getParameter("STARTER0"),
 					useDatabase ? database.getIps().get(0) : "127.0.0.1",
 					impl.getIp()
@@ -278,12 +278,12 @@ public class Test {
 			
 			try { Thread.sleep(10000); } catch (Exception e) { }
 			
-			imic.exec(app.getParameter("STARTER1"));
+			iapp.exec(app.getParameter("STARTER1"));
 			
 			try { Thread.sleep(10000); } catch (Exception e) { }
 			
 			if (app.getInstancesNeeded() > 1 && loadBalancer != null) {
-				imic.exec(String.format(app.getParameter("ADD_TO_LOAD_BALANCER"), loadBalancer));
+				iapp.exec(String.format(app.getParameter("ADD_TO_LOAD_BALANCER"), loadBalancer));
 				
 				try { Thread.sleep(10000); } catch (Exception e) { }
 			}
@@ -371,8 +371,8 @@ public class Test {
 			javaParameters = null;
 		JMeterTest.javaParameters = javaParameters;
 		
-		for (Instance imic : app.getInstances())
-			exec(String.format(START_GLASSFISH_MONITORING_COMMAND, imic.getIp()));
+		for (Instance iapp : app.getInstances())
+			exec(String.format(START_GLASSFISH_MONITORING_COMMAND, iapp.getIp()));
 		
 		logger.info("Test starting...");
 		
@@ -385,8 +385,8 @@ public class Test {
 		app.retrieveFiles(localPath, "/home/" + app.getParameter("SSH_USER"));
 		{
 			int i = 1;
-			for (Instance imic : app.getInstances())
-				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, imic.getIp(), Paths.get(localPath, "mic" + i++)));
+			for (Instance iapp : app.getInstances())
+				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, iapp.getIp(), Paths.get(localPath, appName + i++)));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
