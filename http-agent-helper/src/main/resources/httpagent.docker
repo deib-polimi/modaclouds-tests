@@ -46,7 +46,8 @@ EXPOSE 8080
 RUN rm -rf $CATALINA/webapps/http-agent-helper*
 COPY http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
 
-RUN sed 's/%h %l %u %t &quot;%r&quot; %s %b/%h %l %u %t \&quot;%r\&quot; %s %b %D/' <$CATALINA/conf/server.xml >$CATALINA/conf/server.xml
+RUN sed 's/%h %l %u %t &quot;%r&quot; %s %b/%h %l %u %t \&quot;%r\&quot; %s %b %D/' <$CATALINA/conf/server.xml >$CATALINA/conf/server-new.xml
+RUN mv $CATALINA/conf/server-new.xml $CATALINA/conf/server.xml
 
 # Other goodness
 RUN apt-get -y install nano language-pack-it language-pack-en
