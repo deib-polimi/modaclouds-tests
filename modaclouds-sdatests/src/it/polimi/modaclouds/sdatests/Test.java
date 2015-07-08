@@ -48,21 +48,23 @@ public class Test {
 	}
 	
 	public static enum App {
-		MIC("mic", "MPloadModel-MiC", "jmeterTestTemplate-MiC.jmx", "stopGlassfishMonitoring.sh", "grep_methodResult-MiC", new String[] { "reg", "save", "answ" }),
-		HTTPAGENT("httpagent", "MPloadModel-HTTPAgent", "jmeterTestTemplate-HTTPAgent.jmx", "stopGlassfishMonitoring.sh", "grep_methodResult-HTTPAgent", new String[] { "getPage" });
+		MIC("mic", "MPloadModel-MiC", "jmeterTestTemplate-MiC.jmx", "startContainerMonitoring-MiC.sh", "stopContainerMonitoring-MiC.sh", "grep_methodResult-MiC", new String[] { "reg", "save", "answ" }),
+		HTTPAGENT("httpagent", "MPloadModel-HTTPAgent", "jmeterTestTemplate-HTTPAgent.jmx", null, "stopContainerMonitoring-HTTPAgent.sh", "grep_methodResult-HTTPAgent", new String[] { "getPage" });
 		
 		public String name;
 		public String fileModel;
 		public String baseJmx;
-		public String stopGlassfishFile;
+		public String startContainerMonitoringFile;
+		public String stopContainerMonitoringFile;
 		public String grepMethodResult;
 		public String[] methods;
 		
-		private App(String name, String fileModel, String baseJmx, String stopGlassfishFile, String grepMethodResult, String[] methods) {
+		private App(String name, String fileModel, String baseJmx, String startContainerMonitoringFile, String stopContainerMonitoringFile, String grepMethodResult, String[] methods) {
 			this.name = name;
 			this.fileModel = fileModel;
 			this.baseJmx = baseJmx;
-			this.stopGlassfishFile = stopGlassfishFile;
+			this.startContainerMonitoringFile = startContainerMonitoringFile;
+			this.stopContainerMonitoringFile = stopContainerMonitoringFile;
 			this.grepMethodResult = grepMethodResult;
 			this.methods = methods;
 		}
@@ -276,14 +278,6 @@ public class Test {
 		initialized = false;
 	}
 	
-	public static final String START_GLASSFISH_MONITORING = "startGlassfishMonitoring.sh";
-	public static final String STOP_GLASSFISH_MONITORING = "stopGlassfishMonitoring.sh";
-	
-	public static String START_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(START_GLASSFISH_MONITORING) + " %s";
-	public static String STOP_GLASSFISH_MONITORING_COMMAND = "bash " + Configuration.getPathToFile(STOP_GLASSFISH_MONITORING) + " %s %s";
-	
-	public static final String SDA_CONFIG = "sdaconfig.properties";
-	
 	private List<Thread> otherThreads;
 	
 	public void initSystem(String loadModelFile, String demandEstimator) throws Exception {
@@ -428,8 +422,9 @@ public class Test {
 			javaParameters = null;
 		JMeterTest.javaParameters = javaParameters;
 		
-		for (Instance iapp : this.app.getInstances())
-			exec(String.format(START_GLASSFISH_MONITORING_COMMAND, iapp.getIp()));
+		if (app.startContainerMonitoringFile != null)
+			for (Instance iapp : this.app.getInstances())
+				exec(String.format("bash " + Configuration.getPathToFile(app.startContainerMonitoringFile) + " %s", iapp.getIp()));
 		
 		logger.info("Test starting...");
 		
@@ -440,10 +435,10 @@ public class Test {
 		logger.info("Retrieving the files from the instances...");
 		
 		this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
-		{
+		if (app.stopContainerMonitoringFile != null) {
 			int i = 1;
 			for (Instance iapp : this.app.getInstances())
-				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, iapp.getIp(), Paths.get(localPath, app.name + i++)));
+				exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++)));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));

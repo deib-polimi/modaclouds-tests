@@ -82,14 +82,19 @@
       <destName>grep_methodResult-HTTPAgent</destName>
     </file>
     <file>
-      <source>resources/startGlassfishMonitoring.sh</source>
+      <source>resources/startContainerMonitoring-MiC.sh</source>
       <outputDirectory></outputDirectory>
-      <destName>startGlassfishMonitoring.sh</destName>
+      <destName>startContainerMonitoring-MiC.sh</destName>
     </file>
     <file>
-      <source>resources/stopGlassfishMonitoring.sh</source>
+      <source>resources/stopContainerMonitoring-MiC.sh</source>
       <outputDirectory></outputDirectory>
-      <destName>stopGlassfishMonitoring.sh</destName>
+      <destName>stopContainerMonitoring-MiC.sh</destName>
+    </file>
+    <file>
+      <source>resources/stopContainerMonitoring-HTTPAgent.sh</source>
+      <outputDirectory></outputDirectory>
+      <destName>stopContainerMonitoring-HTTPAgent.sh</destName>
     </file>
   </files>
 
