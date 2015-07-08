@@ -104,7 +104,7 @@ public class Test {
 	
 	public static final DemandEstimator DEFAULT_DEMAND_ESTIMATOR = DemandEstimator.ERPS;
 	
-	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator) throws Exception {
+	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int sdaWindow) throws Exception {
 		String baseJmx = app.getBaseJmxPath().toString();
 		
 		if (baseJmx == null || !new File(baseJmx).exists())
@@ -113,6 +113,9 @@ public class Test {
 			throw new RuntimeException("The provided data file (" + data + ") doesn't exist!");
 		if (loadModelFile != null && !new File(loadModelFile).exists())
 			loadModelFile = null;
+		
+		if (sdaWindow <= 0)
+			sdaWindow = 300;
 		
 		long init = System.currentTimeMillis();
 		
@@ -124,7 +127,7 @@ public class Test {
 		
 		t.createLoadBalancer();
 		
-		t.initSystem(loadModelFile, demandEstimator);
+		t.initSystem(loadModelFile, demandEstimator, sdaWindow);
 		
 		if (onlyStartMachines)
 			return -1;
@@ -141,7 +144,7 @@ public class Test {
 		if (!leaveInstancesOn)
 			t.stopMachines();
 		
-		Validator.perform(path, t.getCores(), firstInstancesToSkip, app);
+		Validator.perform(path, t.getCores(), firstInstancesToSkip, app, sdaWindow);
 		
 		return System.currentTimeMillis() - init;
 	}
@@ -280,7 +283,7 @@ public class Test {
 	
 	private List<Thread> otherThreads;
 	
-	public void initSystem(String loadModelFile, String demandEstimator) throws Exception {
+	public void initSystem(String loadModelFile, String demandEstimator, int sdaWindow) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -305,12 +308,13 @@ public class Test {
 		
 		int cores = getCores();
 		
-		exec(String.format("bash %s %s %s %d %s",
+		exec(String.format("bash %s %s %s %d %s %d",
 				loadModelFile,
 				impl.getIp(),
 				impl.getIp(),
 				cores,
-				demandEstimator));
+				demandEstimator,
+				sdaWindow));
 		
 		try { Thread.sleep(10000); } catch (Exception e) { }
 		

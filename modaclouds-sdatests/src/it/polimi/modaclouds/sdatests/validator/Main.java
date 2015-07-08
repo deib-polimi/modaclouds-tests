@@ -24,6 +24,9 @@ public class Main {
 	@Parameter(names = "-app", description = "The name of the app that is going to be used for the test")
 	private String app = it.polimi.modaclouds.sdatests.Test.DEFAULT_APP.name;
 	
+	@Parameter(names = "-sdaWindow", description = "The size in seconds of the window of the SDA")
+	private int sdaWindow = 300;
+	
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
@@ -41,7 +44,7 @@ public class Main {
 		
 		Test.App app = Test.App.getFromName(m.app);
 		
-		Validator.perform(Paths.get(m.parent), m.cores, m.firstInstancesToSkip, app);
+		Validator.perform(Paths.get(m.parent), m.cores, m.firstInstancesToSkip, app, m.sdaWindow);
 	}
 
 }

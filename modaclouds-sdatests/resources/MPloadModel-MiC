@@ -3,6 +3,7 @@
 #$2=SDA-IP
 #$3=CPU NUMBER
 #$4=DEMAND ESTIMATOR
+#$5=SDA WINDOW
 
 MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">
   <monitoringRule id=\"cpuRule\" timeStep=\"3\" timeWindow=\"3\">
@@ -57,7 +58,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"sdaHaproxy\" timeStep=\"300\" timeWindow=\"300\">
+  <monitoringRule id=\"sdaHaproxy\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
@@ -66,7 +67,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       <parameter name=\"nCPU\">$3</parameter>
       <parameter name=\"CPUUtilTarget\">MIC</parameter>
       <parameter name=\"CPUUtilMetric\">FrontendCPUUtilization</parameter>
-      <parameter name=\"samplingTime\">300</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
       <parameter name=\"filePath\">/home/ubuntu/modaclouds-sda/</parameter>
     </collectedMetric>
     <actions>
@@ -77,7 +78,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"sdaForecastFirst\" timeStep=\"300\" timeWindow=\"300\">
+  <monitoringRule id=\"sdaForecastFirst\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
@@ -87,7 +88,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
-      <parameter name=\"samplingTime\">300</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
     </collectedMetric>
     <actions>
       <action name=\"OutputMetric\">
@@ -97,7 +98,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"sdaForecastSecond\" timeStep=\"300\" timeWindow=\"300\">
+  <monitoringRule id=\"sdaForecastSecond\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
@@ -107,7 +108,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
-      <parameter name=\"samplingTime\">300</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
     </collectedMetric>
     <actions>
       <action name=\"OutputMetric\">
@@ -117,7 +118,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"sdaForecastThird\" timeStep=\"300\" timeWindow=\"300\">
+  <monitoringRule id=\"sdaForecastThird\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
@@ -127,7 +128,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
-      <parameter name=\"samplingTime\">300</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
     </collectedMetric>
     <actions>
       <action name=\"OutputMetric\">
@@ -137,7 +138,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"sdaForecastFourth\" timeStep=\"300\" timeWindow=\"300\">
+  <monitoringRule id=\"sdaForecastFourth\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
@@ -147,7 +148,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
-      <parameter name=\"samplingTime\">300</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
     </collectedMetric>
     <actions>
       <action name=\"OutputMetric\">
@@ -157,7 +158,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"sdaForecastFifth\" timeStep=\"300\" timeWindow=\"300\">
+  <monitoringRule id=\"sdaForecastFifth\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
     </monitoredTargets>
@@ -167,7 +168,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
-      <parameter name=\"samplingTime\">300</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
     </collectedMetric>
     <actions>
       <action name=\"OutputMetric\">

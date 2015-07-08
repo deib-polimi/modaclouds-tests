@@ -29,7 +29,7 @@ public class Validator {
 	
 	public static final int FIRST_INSTANCES_TO_SKIP = 4;
 
-	public static void perform(Path parent, int cores, int firstInstancesToSkip, Test.App app) {
+	public static void perform(Path parent, int cores, int firstInstancesToSkip, Test.App app, int sdaWindow) {
 		if (parent == null || !parent.toFile().exists())
 			throw new RuntimeException("Parent folder not found! (" + parent == null ? "null" : parent.toString() + ")");
 		
@@ -42,6 +42,8 @@ public class Validator {
 					logger.error("Error while converting the file.", e);
 				}
 			}
+			
+			// TODO: use the sda window value
 			
 			logger.info("Launching the initializing script...");
 			exec(String.format(INIT_COMMAND, createModifiedBash(parent, app).toString()));

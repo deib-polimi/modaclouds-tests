@@ -67,6 +67,9 @@ public class Main {
 	@Parameter(names = "-demandEstimator", description = "The name of the method that will estimate the demands")
 	private String demandEstimator = Test.DEFAULT_DEMAND_ESTIMATOR.name;
 	
+	@Parameter(names = "-sdaWindow", description = "The size in seconds of the window of the SDA")
+	private int sdaWindow = 300;
+	
 	public static final String APP_TITLE = "\nSDA Test\n";
 
 	public static void main(String[] args) {
@@ -90,7 +93,7 @@ public class Main {
 			Test.App a = Test.App.getFromName(m.app);
 			Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
 			
-			doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name);
+			doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.sdaWindow);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -119,9 +122,9 @@ public class Main {
 					Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
 					
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name));
+						threads.add(doTestInBackground(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.sdaWindow));
 					else
-						doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name);
+						doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.sdaWindow);
 				}
 				
 				for (Thread t : threads)
@@ -139,11 +142,11 @@ public class Main {
 		
 	}
 	
-	public static void doTest(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator) {
+	public static void doTest(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int sdaWindow) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator);
+			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator, sdaWindow);
 			
 			if (duration > -1)
 				logger.info("The test run correctly in {}!", durationToString(duration));
@@ -155,7 +158,7 @@ public class Main {
 		
 	}
 	
-	public static Thread doTestInBackground(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator) {
+	public static Thread doTestInBackground(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int sdaWindow) {
 		final String fsize = size;
 		final int fclients = clients;
 		final String fdata = data;
@@ -169,10 +172,11 @@ public class Main {
 		final int ffirstInstancesToSkip = firstInstancesToSkip;
 		final Test.App fapp = app;
 		final String fdemandEstimator = demandEstimator;
+		final int fsdaWindow = sdaWindow;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fservers, fapp, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadModelFile, ffirstInstancesToSkip, fdemandEstimator);
+				doTest(fsize, fclients, fservers, fapp, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadModelFile, ffirstInstancesToSkip, fdemandEstimator, fsdaWindow);
 			}
 		};
 		
