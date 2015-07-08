@@ -11,11 +11,11 @@ cd /home/ubuntu/logs
 
 sudo mv tomcat7/* .
 sudo rm -rf tomcat7
-sudo cp catalina.*.log catalina.log
-sudo cp host-manager.*.log host-manager.log
-sudo cp localhost.*.log localhost.log
-sudo cp localhost_access_log.*.txt localhost_access_log.txt
-sudo cp manager.*.log manager.log
+cat catalina.*.log > catalina.log
+cat host-manager.*.log > host-manager.log
+cat localhost.*.log > localhost.log
+cat localhost_access_log.*.txt > localhost_access_log.txt
+cat manager.*.log > manager.log
 
 cd /home/ubuntu/modaclouds
 
