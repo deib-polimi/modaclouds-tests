@@ -1,5 +1,6 @@
 package it.polimi.modaclouds.sdatests.validator;
 
+import it.polimi.modaclouds.sdatests.Test;
 import it.polimi.modaclouds.sdatests.validator.util.Datum;
 
 import java.io.PrintWriter;
@@ -24,7 +25,7 @@ public class DemandValidator {
 	private static Map<String, Float> Dems = new HashMap<String, Float>();
 	
 	public static void main(String[] args) {
-		perform(Paths.get("."), Validator.METHODS, Validator.FIRST_INSTANCES_TO_SKIP);
+		perform(Paths.get("."), Test.App.MIC.methods, Validator.FIRST_INSTANCES_TO_SKIP);
 	}
 
 	public static final String RESULT = "demandAnalysis.csv";

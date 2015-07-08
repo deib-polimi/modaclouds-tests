@@ -72,9 +72,14 @@
       <destName>tests.txt</destName>
     </file>
     <file>
-      <source>resources/grep_methodResult</source>
+      <source>resources/grep_methodResult-MiC</source>
       <outputDirectory></outputDirectory>
-      <destName>grep_methodResult</destName>
+      <destName>grep_methodResult-MiC</destName>
+    </file>
+    <file>
+      <source>resources/grep_methodResult-HTTPAgent</source>
+      <outputDirectory></outputDirectory>
+      <destName>grep_methodResult-HTTPAgent</destName>
     </file>
     <file>
       <source>resources/startGlassfishMonitoring.sh</source>

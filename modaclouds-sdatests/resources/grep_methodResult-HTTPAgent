@@ -1,0 +1,14 @@
+#!/bin/bash
+
+rm -rf %1$s/method1
+
+mkdir -p %1$s/method1
+
+grep 'getPage' %1$s/d.out > %1$s/method1/demand.out
+grep 'getPage' %1$s/wl.out > %1$s/method1/monitored_workload.out
+grep 'getPage' %1$s/wlforFirst.out > %1$s/method1/forecasted_WL_1.out
+grep 'getPage' %1$s/wlforSecond.out > %1$s/method1/forecasted_WL_2.out
+grep 'getPage' %1$s/wlforThird.out > %1$s/method1/forecasted_WL_3.out
+grep 'getPage' %1$s/wlforFourth.out > %1$s/method1/forecasted_WL_4.out
+grep 'getPage' %1$s/wlforFifth.out > %1$s/method1/forecasted_WL_5.out
+grep 'getPage' %1$s/rt.out > %1$s/method1/monitored_responseTime.out

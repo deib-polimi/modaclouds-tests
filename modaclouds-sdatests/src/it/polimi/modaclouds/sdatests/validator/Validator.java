@@ -1,5 +1,6 @@
 package it.polimi.modaclouds.sdatests.validator;
 
+import it.polimi.modaclouds.sdatests.Test;
 import it.polimi.modaclouds.sdatests.validator.util.FileHelper;
 
 import java.io.BufferedReader;
@@ -26,11 +27,9 @@ public class Validator {
 			"wlforFifth.out", "wlforFirst.out", "wlforFourth.out", "wlforSecond.out", "wlforThird.out"
 			};
 	
-	public static final String[] METHODS = new String[] { "reg", "save", "answ" };
-	
 	public static final int FIRST_INSTANCES_TO_SKIP = 4;
 
-	public static void perform(Path parent, int cores, int firstInstancesToSkip) {
+	public static void perform(Path parent, int cores, int firstInstancesToSkip, Test.App app) {
 		if (parent == null || !parent.toFile().exists())
 			throw new RuntimeException("Parent folder not found! (" + parent == null ? "null" : parent.toString() + ")");
 		
@@ -45,18 +44,18 @@ public class Validator {
 			}
 			
 			logger.info("Launching the initializing script...");
-			exec(String.format(INIT_COMMAND, createModifiedBash(parent).toString()));
+			exec(String.format(INIT_COMMAND, createModifiedBash(parent, app).toString()));
 			
 			logger.info("Launching the DemandValidator class...");
-			DemandValidator.perform(parent, METHODS, firstInstancesToSkip);
+			DemandValidator.perform(parent, app.methods, firstInstancesToSkip);
 			
-			for (int i = 1; i <= METHODS.length; ++i) {
-				logger.info("Launching the WorkloadCSVBuilder for {} method...", METHODS[i-1]);
+			for (int i = 1; i <= app.methods.length; ++i) {
+				logger.info("Launching the WorkloadCSVBuilder for {} method...", app.methods[i-1]);
 				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i), firstInstancesToSkip);
 			}
 			
 			logger.info("Generating the full results file...");
-			ResultsBuilder.perform(parent, METHODS, cores);
+			ResultsBuilder.perform(parent, app.methods, cores);
 			
 			logger.info("Done!");
 		} catch (Exception e) {
@@ -82,7 +81,6 @@ public class Validator {
 		return res;
 	}
 	
-	public static final String BASH = "grep_methodResult";
 	public static final String INIT_COMMAND = "bash %s";
 	
 	public static Path getPathToFile(String filePath) {
@@ -101,8 +99,8 @@ public class Validator {
 			return Paths.get(url.getPath());
 	}
 	
-	private static Path createModifiedBash(Path parent) throws Exception {
-		String file = FileUtils.readFileToString(getPathToFile(BASH).toFile());
+	private static Path createModifiedBash(Path parent, Test.App app) throws Exception {
+		String file = FileUtils.readFileToString(getPathToFile(app.grepMethodResult).toFile());
 		Path p = Files.createTempFile("bash", ".sh");
 		FileUtils.writeStringToFile(p.toFile(), String.format(file, parent.toString()));
 		return p;

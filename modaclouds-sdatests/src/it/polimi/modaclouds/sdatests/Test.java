@@ -47,7 +47,64 @@ public class Test {
 		VirtualMachine.PRICE_MARGIN = 0.35;
 	}
 	
-	public static long performTest(String size, int clients, int servers, String baseJmx, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String app, String demandEstimator) throws Exception {
+	public static enum App {
+		MIC("mic", "MPloadModel-MiC", "jmeterTestTemplate-MiC.jmx", "stopGlassfishMonitoring.sh", "grep_methodResult-MiC", new String[] { "reg", "save", "answ" }),
+		HTTPAGENT("httpagent", "MPloadModel-HTTPAgent", "jmeterTestTemplate-HTTPAgent.jmx", "stopGlassfishMonitoring.sh", "grep_methodResult-HTTPAgent", new String[] { "getPage" });
+		
+		public String name;
+		public String fileModel;
+		public String baseJmx;
+		public String stopGlassfishFile;
+		public String grepMethodResult;
+		public String[] methods;
+		
+		private App(String name, String fileModel, String baseJmx, String stopGlassfishFile, String grepMethodResult, String[] methods) {
+			this.name = name;
+			this.fileModel = fileModel;
+			this.baseJmx = baseJmx;
+			this.stopGlassfishFile = stopGlassfishFile;
+			this.grepMethodResult = grepMethodResult;
+			this.methods = methods;
+		}
+		
+		public Path getBaseJmxPath() {
+			return Configuration.getPathToFile(baseJmx);
+		}
+		
+		public static App getFromName(String name) {
+			for (App a : values())
+				if (a.name.equalsIgnoreCase(name))
+					return a;
+			
+			return DEFAULT_APP;
+		}
+	}
+	
+	public static enum DemandEstimator {
+		UBR("UBR"), ERPS("ERPS"), CI("CI");
+		
+		public String name;
+		
+		private DemandEstimator(String name) {
+			this.name = name;
+		}
+		
+		public static DemandEstimator getFromName(String name) {
+			for (DemandEstimator d : values())
+				if (d.name.equalsIgnoreCase(name))
+					return d;
+			
+			return DEFAULT_DEMAND_ESTIMATOR;
+		}
+	}
+	
+	public static final App DEFAULT_APP = App.MIC;
+	
+	public static final DemandEstimator DEFAULT_DEMAND_ESTIMATOR = DemandEstimator.ERPS;
+	
+	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator) throws Exception {
+		String baseJmx = app.getBaseJmxPath().toString();
+		
 		if (baseJmx == null || !new File(baseJmx).exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
 		if (data == null || !new File(data).exists())
@@ -57,7 +114,7 @@ public class Test {
 		
 		long init = System.currentTimeMillis();
 		
-		Test t = new Test(size, clients, servers, app, useDatabase);
+		Test t = new Test(size, clients, servers, app.name, useDatabase);
 		
 		if (reuseInstances)
 			t.considerRunningMachines();
@@ -72,7 +129,7 @@ public class Test {
 		
 		Path path = null;
 		try {
-			path = t.runTest(Paths.get(baseJmx), data, app, demandEstimator);
+			path = t.runTest(app, data, demandEstimator);
 		} catch (Exception e) {
 			logger.error("Error while performing the test.", e);
 		}
@@ -82,7 +139,7 @@ public class Test {
 		if (!leaveInstancesOn)
 			t.stopMachines();
 		
-		Validator.perform(path, t.getCores(), firstInstancesToSkip);
+		Validator.perform(path, t.getCores(), firstInstancesToSkip, app);
 		
 		return System.currentTimeMillis() - init;
 	}
@@ -330,7 +387,7 @@ public class Test {
 		return peak;
 	}
 	
-	public Path runTest(Path baseJmx, String data, String appName, String method) throws Exception {
+	public Path runTest(App app, String data, String method) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 		
@@ -338,7 +395,7 @@ public class Test {
 			throw new RuntimeException("The system isn't initialized yet!");
 		
 		Date date = new Date();
-		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s-%6$s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), appName, method);
+		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s-%6$s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), app.name, method);
 		
 		String localPath = "tests" + File.separator + now;
 		
@@ -349,29 +406,29 @@ public class Test {
 		
 		String remotePath = clients.getParameter("REMOTE_PATH") + "/" + now;
 		
-		String protocol = app.getParameter("PROTOCOL");
+		String protocol = this.app.getParameter("PROTOCOL");
 		if (protocol == null)
 			protocol = "http";
 		
-		String port = app.getParameter("PORT");
+		String port = this.app.getParameter("PORT");
 		if (port == null)
 			port = "8080";
 		
-		String server = app.getInstancesNeeded() > 1 && loadBalancer != null ? ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer) : app.getIps().get(0); 
+		String server = this.app.getInstancesNeeded() > 1 && loadBalancer != null ? ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer) : this.app.getIps().get(0); 
 		
 		JMeterTest test = new JMeterTest(clients.getParameter("AMI"), clients.getInstancesRunning(), localPath, remotePath, clients.getParameter("JMETER_PATH"), data,
 				server,
 				protocol,
 				port);
 		
-		RunInstance run = test.createModifiedFile(baseJmx);
+		RunInstance run = test.createModifiedFile(app.getBaseJmxPath());
 		
 		String javaParameters = clients.getParameter("JAVA_PARAMETERS");
 		if (javaParameters != null && (javaParameters.trim().length() == 0 || !javaParameters.startsWith("-")))
 			javaParameters = null;
 		JMeterTest.javaParameters = javaParameters;
 		
-		for (Instance iapp : app.getInstances())
+		for (Instance iapp : this.app.getInstances())
 			exec(String.format(START_GLASSFISH_MONITORING_COMMAND, iapp.getIp()));
 		
 		logger.info("Test starting...");
@@ -382,11 +439,11 @@ public class Test {
 		
 		logger.info("Retrieving the files from the instances...");
 		
-		app.retrieveFiles(localPath, "/home/" + app.getParameter("SSH_USER"));
+		this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
 		{
 			int i = 1;
-			for (Instance iapp : app.getInstances())
-				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, iapp.getIp(), Paths.get(localPath, appName + i++)));
+			for (Instance iapp : this.app.getInstances())
+				exec(String.format(STOP_GLASSFISH_MONITORING_COMMAND, iapp.getIp(), Paths.get(localPath, app.name + i++)));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
@@ -397,7 +454,7 @@ public class Test {
 		
 		int period = getSuggestedPeriod(date);
 		
-		app.retrieveMetrics(localPath, date, period, Statistic.Average, null);
+		this.app.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		mpl.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		clients.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		if (useDatabase)
