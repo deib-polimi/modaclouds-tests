@@ -438,7 +438,7 @@ public class Test {
 		if (app.stopContainerMonitoringFile != null) {
 			int i = 1;
 			for (Instance iapp : this.app.getInstances())
-				exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++)));
+				exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
