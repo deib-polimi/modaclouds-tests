@@ -6,11 +6,12 @@ ID=`sudo docker ps | grep httpagent16 | awk '{print $1}'`
 
 sudo rm -rf /home/ubuntu/logs
 sudo docker cp $ID:/var/lib/tomcat7/logs /home/ubuntu/logs
+sudo chown -R ubuntu:ubuntu /home/ubuntu/logs
 
 cd /home/ubuntu/logs
 
-sudo mv tomcat7/* .
-sudo rm -rf tomcat7
+mv tomcat7/* .
+rm -rf tomcat7
 cat catalina.*.log > catalina.log
 cat host-manager.*.log > host-manager.log
 cat localhost.*.log > localhost.log
