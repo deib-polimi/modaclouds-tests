@@ -17,6 +17,16 @@
 	<artifactId>scalingrules</artifactId>
 	<version>0.0.11</version>
 	<name>MODAClouds - Scaling Rules</name>
+	
+	<properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <github.global.server>github</github.global.server>
+        <github.repository.name>modaclouds-tests</github.repository.name>
+        <github.user.name>deib-polimi</github.user.name>
+    </properties>
 
 	<licenses>
 		<license>
@@ -52,13 +62,6 @@
 			<url>https://github.com/rickdesantis/mvn-repo/raw/master/snapshots</url>
 		</repository>
 	</repositories>
-	<properties>
-		<github.global.server>github</github.global.server>
-		<github.repository.name>modaclouds-tests</github.repository.name>
-		<github.user.name>deib-polimi</github.user.name>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	</properties>
 
 	<distributionManagement>
 		<repository>
@@ -91,7 +94,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.3</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>

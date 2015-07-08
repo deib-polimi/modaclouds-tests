@@ -4,14 +4,17 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Datum {
-	public static enum Type { RDF_JSON, TOWER_JSON, GRAPHITE, INFLUXDB, CSV, JMETER_CSV, JMETER_CSV_OK };
+	public static enum Type { RDF_JSON, TOWER_JSON, GRAPHITE, INFLUXDB, CSV, JMETER_CSV, TOMCAT_LOCALHOST_ACCESS_LOG };
 	
 	public String resourceId;
 	public String metric;
@@ -51,11 +54,10 @@ public class Datum {
 			timestamp = Long.parseLong(splitted[0]);
 			break;
 		}
-		case JMETER_CSV:
-		case JMETER_CSV_OK: {
+		case JMETER_CSV: {
 			String[] splitted = line.split(",");
 			if (splitted.length != 12)
-				throw new Exception("The given string is not a correct Jmeter-CSV with 12 comma-separated values.");
+				throw new Exception("The given string is not a correct JMeter-CSV with 12 comma-separated values.");
 			resourceId = splitted[2];
 			metric = "Latency";
 			value = Double.parseDouble(splitted[11]);
@@ -66,6 +68,22 @@ public class Datum {
 			JSONArray array = new JSONArray(line);
 			JSONObject obj = array.getJSONObject(0);
 			setFromJSONObject(obj, Type.TOWER_JSON);
+			break;
+		}
+		case TOMCAT_LOCALHOST_ACCESS_LOG: {
+			String[] splitted = line.split(" ");
+			if (splitted.length != 11)
+				throw new Exception("The given string is not a correct Tomcat-localhost_access_log with 11 space-separated values.");
+			
+			DateTimeFormatter formatter = DateTimeFormat.forPattern("[dd/MMM/yyyy:HH:mm:ss Z]").withLocale(Locale.ENGLISH);
+		    timestamp = formatter.parseMillis(splitted[3] + " " + splitted[4]);
+			
+			resourceId = splitted[6];
+			resourceId = resourceId.substring(0, resourceId.indexOf('?'));
+			resourceId = resourceId.substring(resourceId.lastIndexOf('/') + 1);
+			
+			metric = "Latency";
+			value = Double.parseDouble(splitted[10]);
 			break;
 		}
 		default:
@@ -140,6 +158,11 @@ public class Datum {
 			return Type.JMETER_CSV;
 		} catch (Exception e) { }
 		
+		try {
+			new Datum(line, Type.TOMCAT_LOCALHOST_ACCESS_LOG);
+			return Type.TOMCAT_LOCALHOST_ACCESS_LOG;
+		} catch (Exception e) { }
+		
 		return null;
 	}
 	
@@ -186,6 +209,8 @@ public class Datum {
 					}
 					case CSV:
 					case JMETER_CSV: {
+						if (!line.contains(",OK,"))
+							continue;
 						Datum el = new Datum(line, origDataType);
 						List<Datum> data = res.get(mixed ? MIXED : el.resourceId);
 						if (data == null) {
@@ -195,8 +220,8 @@ public class Datum {
 						data.add(el);
 						break;
 					}
-					case JMETER_CSV_OK: {
-						if (!line.contains(",OK,"))
+					case TOMCAT_LOCALHOST_ACCESS_LOG: {
+						if (!line.contains(" 200 "))
 							continue;
 						Datum el = new Datum(line, origDataType);
 						List<Datum> data = res.get(mixed ? MIXED : el.resourceId);

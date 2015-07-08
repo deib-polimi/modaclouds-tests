@@ -57,7 +57,7 @@ public class Validator {
 			}
 			
 			logger.info("Generating the full results file...");
-			ResultsBuilder.perform(parent, app.methods, cores);
+			ResultsBuilder.perform(parent, app, cores);
 			
 			logger.info("Done!");
 		} catch (Exception e) {

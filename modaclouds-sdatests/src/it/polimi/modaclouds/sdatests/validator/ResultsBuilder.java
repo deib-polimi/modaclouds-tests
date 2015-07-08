@@ -1,6 +1,8 @@
 package it.polimi.modaclouds.sdatests.validator;
 
+import it.polimi.modaclouds.sdatests.Test;
 import it.polimi.modaclouds.sdatests.validator.util.Datum;
+import it.polimi.modaclouds.sdatests.validator.util.FileHelper;
 
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -31,7 +33,7 @@ public class ResultsBuilder {
 	public static final String RESULT_RES_TIMES = "responseTimes.csv";
 	
 	public static void main(String[] args) {
-		perform(Paths.get("."), new String[] { "reg", "save", "answ" }, 2);
+		perform(Paths.get("."), Test.App.MIC, 2);
 	}
 	
 	private static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
@@ -86,7 +88,7 @@ public class ResultsBuilder {
 	
 	public static final String JMETER_LOG = "test_aggregate.jtl";
 	
-	private static Map<String, Integer> getRequestsPerPage(Path parent, boolean onlyOk) throws Exception {
+	private static Map<String, Integer> getRequestsPerPage(Path parent) throws Exception {
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
 		boolean goOn = true;
@@ -97,7 +99,7 @@ public class ResultsBuilder {
 				continue;
 			}
 			
-			Map<String, Integer> tmp = getRequestsPerPageFromSingleFile(jmeterAggregate, onlyOk);
+			Map<String, Integer> tmp = getRequestsPerPageFromSingleFile(jmeterAggregate);
 			for (String key : tmp.keySet()) {
 				Integer val = res.get(key);
 				if (val == null)
@@ -109,14 +111,14 @@ public class ResultsBuilder {
 		return res;
 	}
 	
-	private static Map<String, Integer> getRequestsPerPageFromSingleFile(Path f, boolean onlyOk) throws Exception {
+	private static Map<String, Integer> getRequestsPerPageFromSingleFile(Path f) throws Exception {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
 					+ f == null ? "null" : f.toString() + ")");
 		
 		HashMap<String, Integer> res = new HashMap<String, Integer>();
 		
-		Map<String, List<Datum>> data = Datum.getAllData(f, onlyOk ? Datum.Type.JMETER_CSV_OK : Datum.Type.JMETER_CSV);
+		Map<String, List<Datum>> data = Datum.getAllData(f, Datum.Type.JMETER_CSV);
 		
 		for (String resourceId : data.keySet()) {
 			res.put(resourceId, data.get(resourceId).size());
@@ -125,7 +127,7 @@ public class ResultsBuilder {
 		return res;
 	}
 	
-	private static Map<String, String> getLatenciesPerPage(Path parent, boolean onlyOk) throws Exception {
+	private static Map<String, String> getLatenciesPerPage(Path parent) throws Exception {
 		LinkedHashMap<String, String> res = new LinkedHashMap<String, String>();
 		
 		boolean goOn = true;
@@ -136,7 +138,7 @@ public class ResultsBuilder {
 				continue;
 			}
 			
-			Map<String, String> tmp = getLatenciesPerPageFromSingleFile(jmeterAggregate, onlyOk);
+			Map<String, String> tmp = getLatenciesPerPageFromSingleFile(jmeterAggregate);
 			for (String key : tmp.keySet()) {
 				String val = tmp.get(key);
 				res.put(key + "_client" + i, val);
@@ -146,14 +148,14 @@ public class ResultsBuilder {
 		return res;
 	}
 	
-	private static Map<String, String> getLatenciesPerPageFromSingleFile(Path f, boolean onlyOk) throws Exception {
+	private static Map<String, String> getLatenciesPerPageFromSingleFile(Path f) throws Exception {
 		if (f == null || !f.toFile().exists())
 			throw new RuntimeException("File not found or wrong path ("
 					+ f == null ? "null" : f.toString() + ")");
 		
 		HashMap<String, String> res = new HashMap<String, String>();
 		
-		Map<String, List<Datum>> data = Datum.getAllData(f, onlyOk ? Datum.Type.JMETER_CSV_OK : Datum.Type.JMETER_CSV);
+		Map<String, List<Datum>> data = Datum.getAllData(f, Datum.Type.JMETER_CSV);
 		
 		for (String resourceId : data.keySet()) {
 			List<Datum> dataRes = data.get(resourceId);
@@ -199,8 +201,8 @@ public class ResultsBuilder {
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
-	public static void perform(Path parent, String[] methodsNames, int cores) {
-		perform(parent, methodsNames, WorkloadCSVBuilder.WINDOW, true, cores);
+	public static void perform(Path parent, Test.App app, int cores) {
+		perform(parent, app, WorkloadCSVBuilder.WINDOW, true, cores);
 	}
 	
 	private static List<List<Double>> methodsWorkloads = null;
@@ -311,13 +313,7 @@ public class ResultsBuilder {
 					out.printf("Requests_%s,", methodsNames[i]);
 			out.print("TotalRequestsConsidered,");
 			
-			Map<String, Integer> requestsPerPage = getRequestsPerPage(parent, false);
-			if (!printOnlyTotalRequests)
-				for (String key : requestsPerPage.keySet())
-					out.printf("ActualRequests_%s,", key);
-			out.print("TotalActualRequests,");
-			
-			Map<String, Integer> requestsPerPageOnlyOk = getRequestsPerPage(parent, true);
+			Map<String, Integer> requestsPerPageOnlyOk = getRequestsPerPage(parent);
 			if (!printOnlyTotalRequests)
 				for (String key : requestsPerPageOnlyOk.keySet())
 					out.printf("ActualRequestsOk_%s,", key);
@@ -341,16 +337,6 @@ public class ResultsBuilder {
 			}
 			out.print(consideredRequests + ",");
 			
-			int actualRequests = 0;
-			
-			for (String key : requestsPerPage.keySet()) {
-				int methodTot = requestsPerPage.get(key);
-				if (!printOnlyTotalRequests)
-					out.print(methodTot + ",");
-				actualRequests += methodTot;
-			}
-			out.print(actualRequests + ",");
-			
 			int actualRequestsOk = 0;
 			
 			for (String key : requestsPerPageOnlyOk.keySet()) {
@@ -359,7 +345,7 @@ public class ResultsBuilder {
 					out.print(methodTot + ",");
 				actualRequestsOk += methodTot;
 			}
-			out.println(actualRequestsOk + "," + doubleFormatter.format(((actualRequests - consideredRequests)/(double)actualRequests) * 100) + "%," + doubleFormatter.format((actualRequestsOk - consideredRequests)/(double)actualRequestsOk * 100) + "%");
+			out.println(actualRequestsOk + "," + doubleFormatter.format((actualRequestsOk - consideredRequests)/(double)actualRequestsOk * 100) + "%");
 			
 			out.flush();
 			
@@ -411,7 +397,7 @@ public class ResultsBuilder {
 		}
 	}
 	
-	public static void createResponseTimesAnalysis(Path parent, String[] methodsNames) {
+	public static void createResponseTimesAnalysis(Path parent, String appName, String[] methodsNames) {
 		logger.info("Creating the response times analysis report...");
 		
 		if (methodsNames == null || methodsNames.length == 0)
@@ -423,14 +409,14 @@ public class ResultsBuilder {
 		try (PrintWriter out = new PrintWriter(Paths.get(parent.toString(), RESULT_RES_TIMES).toFile())) {
 			out.println("Method,AvgResponseTime,StdDevResponseTime,MinResponseTime,MaxResponseTime");
 			
-			Map<String, String> latenciesPerPage = getLatenciesPerPage(parent, true);
+			Map<String, String> latenciesPerPage = getLatenciesPerPage(parent);
 			
 			for (String key : latenciesPerPage.keySet()) {
 				String res = latenciesPerPage.get(key);
 				out.printf("%s_JMeter,%s\n", key, res);
 			}
 			
-			Map<String, String> glassfishLatenciesPerPage = getLatenciesPerPageFromGlassfish(parent, methodsNames);
+			Map<String, String> glassfishLatenciesPerPage = getLatenciesPerPageFromGlassfish(parent, appName, methodsNames);
 			
 			for (String key : glassfishLatenciesPerPage.keySet()) {
 				String res = glassfishLatenciesPerPage.get(key);
@@ -451,19 +437,27 @@ public class ResultsBuilder {
 		}
 	}
 	
-	private static Map<String, String> getLatenciesPerPageFromGlassfish(Path parent, String[] methodsNames) throws Exception {
+	public static final String TOMCAT_ACCESS_LOG = "localhost_access_log.txt";
+	
+	private static Map<String, String> getLatenciesPerPageFromGlassfish(Path parent, String appName, String[] methodsNames) throws Exception {
 		LinkedHashMap<String, String> res = new LinkedHashMap<String, String>();
 		
 		boolean goOn = true;
 		for (int i = 1; goOn; ++i) {
+			Path tomcatLog = Paths.get(parent.getParent().getParent().getParent().toString(), appName + i, "home", "ubuntu", "logs", TOMCAT_ACCESS_LOG);
+			if (tomcatLog.toFile().exists()) {
+				logger.info("Generating the fake Glassfish reports...");
+				FileHelper.createGlassfishReportFromTomcatLog(tomcatLog, Paths.get(parent.getParent().getParent().getParent().toString(), appName + i), methodsNames);
+			}
+			
 			for (String method : methodsNames) {
-				Path jsonFile = Paths.get(parent.getParent().getParent().getParent().toString(), "mic" + i, method + ".json");
+				Path jsonFile = Paths.get(parent.getParent().getParent().getParent().toString(), appName + i, method + ".json");
 				if (!jsonFile.toFile().exists()) {
 					goOn = false;
 					continue;
 				}
 				
-				res.put(method + "_mic" + i, parseGlassfishJson(jsonFile));
+				res.put(method + "_" + appName + i, parseGlassfishJson(jsonFile));
 			}
 		}
 		
@@ -526,11 +520,11 @@ public class ResultsBuilder {
 	
 	public static final int DEFAULT_TIMESTEPS = 5;
 	
-	public static void perform(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests, int cores) {
-		createDemandAnalysis(parent, methodsNames, cores);
-		createRequestsAnalysis(parent, methodsNames, window, printOnlyTotalRequests);
-		createWorkloadAnalysis(parent, methodsNames, DEFAULT_TIMESTEPS);
-		createResponseTimesAnalysis(parent, methodsNames);
+	public static void perform(Path parent, Test.App app, int window, boolean printOnlyTotalRequests, int cores) {
+		createDemandAnalysis(parent, app.methods, cores);
+		createRequestsAnalysis(parent, app.methods, window, printOnlyTotalRequests);
+		createWorkloadAnalysis(parent, app.methods, DEFAULT_TIMESTEPS);
+		createResponseTimesAnalysis(parent, app.name, app.methods);
 	}
 
 }
