@@ -16,6 +16,8 @@ cat catalina.*.log > catalina.log
 cat host-manager.*.log > host-manager.log
 cat localhost.*.log > localhost.log
 cat localhost_access_log.*.txt > localhost_access_log.txt
+sed s/getRandomPage/getPage/ <localhost_access_log.txt >localhost_access_log-mod.txt
+mv localhost_access_log-mod.txt localhost_access_log.txt
 cat manager.*.log > manager.log
 
 cd /home/ubuntu/modaclouds

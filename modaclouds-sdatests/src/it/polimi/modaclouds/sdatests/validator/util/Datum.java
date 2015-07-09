@@ -79,7 +79,8 @@ public class Datum {
 		    timestamp = formatter.parseMillis(splitted[3] + " " + splitted[4]);
 			
 			resourceId = splitted[6];
-			resourceId = resourceId.substring(0, resourceId.indexOf('?'));
+			if (resourceId.indexOf('?') > -1)
+				resourceId = resourceId.substring(0, resourceId.indexOf('?'));
 			resourceId = resourceId.substring(resourceId.lastIndexOf('/') + 1);
 			
 			metric = "Latency";
