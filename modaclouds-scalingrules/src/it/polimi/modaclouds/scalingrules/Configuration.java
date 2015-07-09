@@ -22,7 +22,6 @@ public class Configuration {
 	
 	public static final String MONITORING_RULE_CPU_ABOVE_FILE = "cpuRuleAbove.txt";
 	public static final String MONITORING_RULE_CPU_UNDER_FILE = "cpuRuleUnder.txt";
-	public static final String CLOUDML_DEPLOYMENT_MODEL = "cloudml.json";
 	
 	public static final int DEFAULT_CLOUDML_PORT = 9000;
 	public static int CLOUDML_PORT = DEFAULT_CLOUDML_PORT;

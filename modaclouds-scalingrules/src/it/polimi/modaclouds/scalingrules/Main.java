@@ -60,6 +60,15 @@ public class Main {
 	@Parameter(names = "-lowCpu", description = "The lower bound for the CPU utilization")
 	private double lowCpu = 0.1;
 	
+	@Parameter(names = "-app", description = "The name of the app that is going to be used for the test")
+	private String app = Test.DEFAULT_APP.name;
+	
+	@Parameter(names = "-window", description = "The size in seconds of the window for the monitoring rules")
+	private int window = 10;
+	
+	@Parameter(names = "-cooldown", description = "The cooldown period that the monitoring rule will stay off once it's triggered")
+	private int cooldown = 600;
+	
 	public static final String APP_TITLE = "\nScaling Rules Test\n";
 	
 	static {
@@ -103,7 +112,9 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu);
+			Test.App a = Test.App.getFromName(m.app);
+			
+			doTest(m.clients, a, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu, m.window, m.cooldown);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>(); 
 			
@@ -128,10 +139,12 @@ public class Main {
 						continue;
 					}
 					
+					Test.App a = Test.App.getFromName(m.app);
+					
 					if (m.background)
-						threads.add(doTestInBackground(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu));
+						threads.add(doTestInBackground(m.clients, a, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu, m.window, m.cooldown));
 					else
-						doTest(m.clients, m.baseJmx, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu);
+						doTest(m.clients, a, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.size, m.highCpu, m.lowCpu, m.window, m.cooldown);
 				}
 				
 				for (Thread t : threads)
@@ -147,11 +160,11 @@ public class Main {
 		System.exit(0);
 	}
 	
-	public static void doTest(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size, double highCpu, double lowCpu) {
+	public static void doTest(int clients, Test.App app, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size, double highCpu, double lowCpu, int window, int cooldown) {
 		logger.info("Preparing the system and running the test...");
 		
 		try {
-			long duration = Test.performTest(clients, Configuration.getPathToFile(baseJmx).toString(), Configuration.getPathToFile(data).toString(), useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size, highCpu, lowCpu);
+			long duration = Test.performTest(clients, app, Configuration.getPathToFile(data).toString(), useOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, size, highCpu, lowCpu, window, cooldown);
 		
 			if (duration == Test.ERROR_STATUS_NULL)
 				logger.error("There was the status == null problem...");
@@ -164,9 +177,9 @@ public class Main {
 		}
 	}
 	
-	public static Thread doTestInBackground(int clients, String baseJmx, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size, double highCpu, double lowCpu) {
+	public static Thread doTestInBackground(int clients, Test.App app, String data, boolean useOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String size, double highCpu, double lowCpu, int window, int cooldown) {
 		final int fclients = clients;
-		final String fbaseJmx = baseJmx;
+		final Test.App fapp = app;
 		final String fdata = data;
 		final boolean fuseOnDemand = useOnDemand;
 		final boolean freuseInstances = reuseInstances;
@@ -175,10 +188,12 @@ public class Main {
 		final String fsize = size;
 		final double fhighCpu = highCpu;
 		final double flowCpu = lowCpu;
+		final int fwindow = window;
+		final int fcooldown = cooldown;
 		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fclients, fbaseJmx, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fsize, fhighCpu, flowCpu);
+				doTest(fclients, fapp, fdata, fuseOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, fsize, fhighCpu, flowCpu, fwindow, fcooldown);
 			}
 		};
 		

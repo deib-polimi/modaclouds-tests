@@ -38,23 +38,26 @@ public class CloudML implements PropertyChangeListener {
 	public static void main(String[] args) throws Exception {
 		String mplIp = "52.18.81.98";
 		String cloudMLIp = mplIp;
+		
+		Test.App usedApp = Test.App.HTTPAGENT;
+		
 		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
-		VirtualMachine mic = VirtualMachine.getVM("mic", "m3.medium", 1);
+		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.medium", 1);
 		String loadBalancer = "ScalingRules155";
 		
 		CloudML cml = new CloudML(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);
 		
 		logger.info("Deploy the system...");
 		
-		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, mic, loadBalancer, true).toFile());
+		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, loadBalancer, true).toFile());
 		
 		logger.info("Starting the test...");
 		
-		cml.scale("MIC", 1);
+		cml.scale(usedApp.tierName, 1);
 		
-		cml.scale("MIC", oneAmong(-1, 1));
+		cml.scale(usedApp.tierName, oneAmong(-1, 1));
 		
-		cml.scale("MIC", oneAmong(-1, 1));
+		cml.scale(usedApp.tierName, oneAmong(-1, 1));
 		
 		cml.terminateAllInstances();
 		

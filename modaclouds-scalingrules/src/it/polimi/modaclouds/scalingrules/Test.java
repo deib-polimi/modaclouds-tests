@@ -44,10 +44,43 @@ public class Test {
 
 	private MonitoringPlatform monitoringPlatform;
 	private CloudML cloudML;
+	
+	public static enum App {
+		MIC("mic", "MPloadModel-MiC", "jmeterTestTemplate-MiC.jmx", "MIC", "cloudml-MiC.json"),
+		HTTPAGENT("httpagent", "MPloadModel-HTTPAgent", "jmeterTestTemplate-HTTPAgent.jmx", "HTTPAgent", "cloudml-HTTPAgent.json");
+		
+		public String name;
+		public String fileModel;
+		public String baseJmx;
+		public String tierName;
+		public String cloudMl;
+		
+		private App(String name, String fileModel, String baseJmx, String tierName, String cloudMl) {
+			this.name = name;
+			this.fileModel = fileModel;
+			this.baseJmx = baseJmx;
+			this.tierName = tierName;
+			this.cloudMl = cloudMl;
+		}
+		
+		public Path getBaseJmxPath() {
+			return Configuration.getPathToFile(baseJmx);
+		}
+		
+		public static App getFromName(String name) {
+			for (App a : values())
+				if (a.name.equalsIgnoreCase(name))
+					return a;
+			
+			return DEFAULT_APP;
+		}
+	}
+	
+	public static final App DEFAULT_APP = App.MIC;
 
-	public Test(int clients, String size) throws Exception {
+	public Test(int clients, String size, String appName) throws Exception {
 		mpl = VirtualMachine.getVM("mpl", size, 1);
-		mic = VirtualMachine.getVM("mic", size, 1);
+		app = VirtualMachine.getVM(appName, size, 1);
 		this.clients = VirtualMachine.getVM("client", size, clients);
 
 		running = false;
@@ -79,13 +112,13 @@ public class Test {
 		return newFile;
 	}
 	
-	public Path getActualDeploymentModel(boolean remotePathIfNecessary) throws Exception {
+	public Path getActualDeploymentModel(App app, boolean remotePathIfNecessary) throws Exception {
 		String ipMpl = mpl.getInstances().get(0).getIp();
-		return getActualDeploymentModel(ipMpl, mpl, mic, loadBalancer, remotePathIfNecessary);
+		return getActualDeploymentModel(ipMpl, mpl, this.app, app.cloudMl, loadBalancer, remotePathIfNecessary);
 	}
 	
-	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine mic, String loadBalancer, boolean remotePathIfNecessary) throws Exception {
-		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(it.polimi.modaclouds.scalingrules.Configuration.CLOUDML_DEPLOYMENT_MODEL));
+	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine app, String cloudMl, String loadBalancer, boolean remotePathIfNecessary) throws Exception {
+		String body = FileUtils.readFileToString(it.polimi.modaclouds.scalingrules.Configuration.getAsFile(cloudMl));
 		
 		JSONObject jsonObject = new JSONObject(body);
 		
@@ -130,24 +163,24 @@ public class Test {
 		
 		body = String.format(body,
 				RandomStringUtils.randomNumeric(3),
-				mic.getImageId(),
+				app.getImageId(),
 				it.cloud.amazon.Configuration.REGION,
 				String.format(
-						mic.getParameter("STARTER").replaceAll("&&", " ; "),
+						app.getParameter("STARTER").replaceAll("&&", " ; "),
 						ipMpl),
 				String.format(
-						mic.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),
+						app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),
 						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						it.cloud.amazon.Configuration.REGION,
 						loadBalancer),
 				String.format(
-						mic.getParameter("DEL_FROM_LOAD_BALANCER").replaceAll("&&", " ; "),
+						app.getParameter("DEL_FROM_LOAD_BALANCER").replaceAll("&&", " ; "),
 						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						it.cloud.amazon.Configuration.REGION,
 						loadBalancer),
-				mic.getSize()
+				app.getSize()
 				);
 		
 		Path p = Files.createTempFile("model", ".json");
@@ -158,9 +191,11 @@ public class Test {
 	
 	public static final int MAX_ATTEMPTS = 5;
 
-	public static long performTest(int clients, String baseJmx, String data, boolean useOnDemand,
+	public static long performTest(int clients, App app, String data, boolean useOnDemand,
 			boolean reuseInstances, boolean leaveInstancesOn,
-			boolean onlyStartMachines, String size, double highCpu, double lowCpu) throws Exception {
+			boolean onlyStartMachines, String size, double highCpu, double lowCpu, int window, int cooldown) throws Exception {
+		String baseJmx = app.getBaseJmxPath().toString();
+		
 		if (baseJmx == null || !new File(baseJmx).exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
 		if (data == null || !new File(data).exists())
@@ -168,7 +203,7 @@ public class Test {
 		
 		long init = System.currentTimeMillis();
 		
-		Test t = new Test(clients, size);
+		Test t = new Test(clients, size, app.name);
 
 		if (reuseInstances)
 			t.considerRunningMachines();
@@ -184,13 +219,13 @@ public class Test {
 		String status;
 		int attempt = 0;
 		do {
-			t.initCloudML();
-			status = t.getTierStatus(APP_NAME);
+			t.initCloudML(app);
+			status = t.getTierStatus(app.tierName);
 			attempt++;
 		} while ((status == null || status.equals("null")) && attempt < MAX_ATTEMPTS);
 		
 		if (status != null && !status.equals("null")) {
-			t.addCPUUtilizationMonitoringRules(highCpu, lowCpu);
+			t.addCPUUtilizationMonitoringRules(app.tierName, highCpu, lowCpu, window, cooldown);
 			try {
 				t.runTest(Paths.get(baseJmx), data);
 			} catch (Exception e) {
@@ -222,7 +257,7 @@ public class Test {
 
 		loadBalancer = "ScalingRules" + RandomStringUtils.randomNumeric(3);
 
-		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(mic.getParameter("PORT"))));
+		ElasticLoadBalancing.createNewLoadBalancer(loadBalancer, new Listener("HTTP", Integer.parseInt(app.getParameter("PORT"))));
 	}
 
 	private void destroyLoadBalancer() {
@@ -241,7 +276,7 @@ public class Test {
 	}
 
 	private VirtualMachine mpl;
-	private VirtualMachine mic;
+	private VirtualMachine app;
 	private VirtualMachine clients;
 
 	static {
@@ -268,8 +303,8 @@ public class Test {
 		mpl.waitUntilRunning();
 		clients.waitUntilRunning();
 
-		mpl.setNameToInstances("MPL");
-		clients.setNameToInstances("JMeter");
+		mpl.setNameToInstances(mpl.getParameter("NAME"));
+		clients.setNameToInstances(clients.getParameter("NAME"));
 
 		mpl.getInstances().get(0).waitUntilSshAvailable();
 		clients.getInstances().get(0).waitUntilSshAvailable();
@@ -366,7 +401,7 @@ public class Test {
 	
 	private boolean cloudMlInitialized = false;
 	
-	public void initCloudML() throws Exception {
+	public void initCloudML(App app) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 
@@ -404,7 +439,7 @@ public class Test {
 			
 		}
 		
-		cloudML.deploy(getActualDeploymentModel(true).toFile());
+		cloudML.deploy(getActualDeploymentModel(app, true).toFile());
 		
 		logger.info("CloudML initialized!");
 
@@ -427,8 +462,6 @@ public class Test {
 		return rules.getMonitoringRules();
 	}
 	
-	public static final String APP_NAME = "MIC";
-	
 	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
 	private static DecimalFormat doubleFormatter() {
@@ -438,8 +471,8 @@ public class Test {
 		return myFormatter;
 	}
 
-	public void addCPUUtilizationMonitoringRules(double aboveValue,
-			double belowValue) throws Exception {
+	public void addCPUUtilizationMonitoringRules(String tierName, double aboveValue,
+			double belowValue, int window, int cooldown) throws Exception {
 		if (aboveValue > 1.0)
 			aboveValue = 1.0;
 		if (aboveValue <= 0.0)
@@ -456,11 +489,11 @@ public class Test {
 		rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
-						doubleFormatter.format(aboveValue), cloudMLIp, cloudMLPort, APP_NAME));
+						doubleFormatter.format(aboveValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
 		rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
-						doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, APP_NAME));
+						doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
 
 		monitoringPlatform.installRules(rules);
 	}
@@ -510,9 +543,9 @@ public class Test {
 
 		String remotePath = clients.getParameter("REMOTE_PATH") + "/" + now;
 
-		String protocol = mic.getParameter("PROTOCOL");
+		String protocol = app.getParameter("PROTOCOL");
 
-		String port = mic.getParameter("PORT");
+		String port = app.getParameter("PORT");
 
 		JMeterTest test = new JMeterTest(clients.getParameter("AMI"),
 				clients.getInstancesRunning(), localPath, remotePath,

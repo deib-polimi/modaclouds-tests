@@ -18,7 +18,7 @@ public class WorkloadCSVBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(WorkloadCSVBuilder.class);
 
 	public static void main(String[] args) {
-		perform(Paths.get("."), Validator.DEFAULT_SDA_WINDOW, Validator.FIRST_INSTANCES_TO_SKIP);
+		perform(Paths.get("."), Validator.FIRST_INSTANCES_TO_SKIP);
 	}
 
 	public static final String MONITORED_WORKLOAD = "monitored_workload.out";
@@ -26,17 +26,10 @@ public class WorkloadCSVBuilder {
 	public static final String FORECASTED_WORKLOAD = "forecasted_WL_%d.out";
 	public static final String FORECASTED_WORKLOAD_AGGREGATE = "workload_timestep_%d.csv";
 
-	public static final int TIMESTEP = 10;
-	
-	public static int getActualWindow(int sdaWindow) {
-		return (int)Math.round(Math.ceil((double)sdaWindow / TIMESTEP));
-	}
-
-	public static void perform(Path parent, int sdaWindow, int firstInstancesToSkip) {
-		if (sdaWindow < 1)
-			sdaWindow = 1;
+	public static void perform(Path parent, int firstInstancesToSkip) {
 		
-		int window = getActualWindow(sdaWindow);
+		// It's always 1: the SDAs and the "normal" monitoring rules use the same time window now.
+		int window = 1;
 
 		List<Workload> monitored = new ArrayList<Workload>();
 		List<Workload> first = new ArrayList<Workload>();

@@ -47,9 +47,14 @@
       <destName>credentials.properties</destName>
     </file>
     <file>
-      <source>resources/jmeterTestTemplate.jmx</source>
+      <source>resources/jmeterTestTemplate-MiC.jmx</source>
       <outputDirectory></outputDirectory>
-      <destName>jmeterTestTemplate.jmx</destName>
+      <destName>jmeterTestTemplate-MiC.jmx</destName>
+    </file>
+    <file>
+      <source>resources/jmeterTestTemplate-HTTPAgent.jmx</source>
+      <outputDirectory></outputDirectory>
+      <destName>jmeterTestTemplate-HTTPAgent.jmx</destName>
     </file>
     <file>
       <source>resources/tests.txt</source>
@@ -57,9 +62,14 @@
       <destName>tests.txt</destName>
     </file>
     <file>
-      <source>resources/cloudml.json</source>
+      <source>resources/cloudml-MiC.json</source>
       <outputDirectory></outputDirectory>
-      <destName>cloudml.json</destName>
+      <destName>cloudml-MiC.json</destName>
+    </file>
+    <file>
+      <source>resources/cloudml-HTTPAgent.json</source>
+      <outputDirectory></outputDirectory>
+      <destName>cloudml-HTTPAgent.json</destName>
     </file>
   </files>
 
