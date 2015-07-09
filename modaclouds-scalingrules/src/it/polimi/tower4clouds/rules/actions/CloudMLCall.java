@@ -17,7 +17,8 @@ package it.polimi.tower4clouds.rules.actions;
 
 import it.polimi.modaclouds.qos_models.EnumErrorType;
 import it.polimi.modaclouds.qos_models.Problem;
-import it.polimi.tower4clouds.manager.api.ManagerAPI;
+import it.polimi.tower4clouds.common.net.DefaultRestClient;
+import it.polimi.tower4clouds.common.net.RestMethod;
 import it.polimi.tower4clouds.rules.AbstractAction;
 import it.polimi.tower4clouds.rules.MonitoringRule;
 
@@ -266,17 +267,32 @@ public class CloudMLCall extends AbstractAction {
         
         new Thread() {
             public void run() {
-                ManagerAPI manager = new ManagerAPI(fip, fport);
-                
-                try {
-                    manager.disableRule(fruleId);
-                    
-                    Thread.sleep(fcooldown * 1000);
-                    
-                    manager.enableRule(fruleId);
-                } catch (Exception e) {
-                    getLogger().error("Error while disabling temporarely the rule.", e);
-                }
+            	DefaultRestClient client = new DefaultRestClient();
+        		String managerUrl = "http://" + fip + ":" + fport + "/v1";
+        		
+        		try {
+        			client.execute(RestMethod.GET, managerUrl + "/monitoring-rules"
+        					+ "/" + fruleId + "?enabled=false", null, 204, 5000);
+        			
+        			Thread.sleep(fcooldown * 1000);
+        			
+        			client.execute(RestMethod.GET, managerUrl + "/monitoring-rules"
+        					+ "/" + fruleId + "?enabled=true", null, 204, 5000);
+        		} catch (Exception e) {
+        			getLogger().error("Error while disabling temporarely the rule.", e);
+        		}
+            	
+//                ManagerAPI manager = new ManagerAPI(fip, fport);
+//                
+//                try {
+//                    manager.disableRule(fruleId);
+//                    
+//                    Thread.sleep(fcooldown * 1000);
+//                    
+//                    manager.enableRule(fruleId);
+//                } catch (Exception e) {
+//                    getLogger().error("Error while disabling temporarely the rule.", e);
+//                }
             }
         }.start();
     }

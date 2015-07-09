@@ -381,7 +381,7 @@
 		</dependency>
 		<dependency>
             <groupId>it.polimi.tower4clouds</groupId>
-            <artifactId>manager-api</artifactId>
+            <artifactId>common</artifactId>
             <version>0.3-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
