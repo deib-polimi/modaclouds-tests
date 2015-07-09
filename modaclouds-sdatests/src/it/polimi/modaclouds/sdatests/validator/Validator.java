@@ -28,6 +28,8 @@ public class Validator {
 			};
 	
 	public static final int FIRST_INSTANCES_TO_SKIP = 4;
+	
+	public static final int DEFAULT_SDA_WINDOW = 300;
 
 	public static void perform(Path parent, int cores, int firstInstancesToSkip, Test.App app, int sdaWindow) {
 		if (parent == null || !parent.toFile().exists())
@@ -53,11 +55,11 @@ public class Validator {
 			
 			for (int i = 1; i <= app.methods.length; ++i) {
 				logger.info("Launching the WorkloadCSVBuilder for {} method...", app.methods[i-1]);
-				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i), firstInstancesToSkip);
+				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i), sdaWindow, firstInstancesToSkip);
 			}
 			
 			logger.info("Generating the full results file...");
-			ResultsBuilder.perform(parent, app, cores);
+			ResultsBuilder.perform(parent, app, sdaWindow, cores);
 			
 			logger.info("Done!");
 		} catch (Exception e) {

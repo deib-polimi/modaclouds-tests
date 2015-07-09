@@ -33,7 +33,7 @@ public class ResultsBuilder {
 	public static final String RESULT_RES_TIMES = "responseTimes.csv";
 	
 	public static void main(String[] args) {
-		perform(Paths.get("."), Test.App.MIC, 2);
+		perform(Paths.get("."), Test.App.MIC, Validator.DEFAULT_SDA_WINDOW, 2);
 	}
 	
 	private static Map<String, List<Double>> getAsMap(Path f, String[] ss) {
@@ -191,7 +191,6 @@ public class ResultsBuilder {
 	public static final String DEMAND_COLUMN_PREFIX = "AvarageEstimatedDemand_";
 	public static final String CPU_UTIL_COLUMN = "AvarageCPUUtil";
 	public static final String WORKLOAD_COLUMN = "workload";
-	public static final int TIME_SLOT_SIZE = 5*60;
 	
 	private static DecimalFormat doubleFormatter() {
 		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.getDefault());
@@ -200,10 +199,6 @@ public class ResultsBuilder {
 		return myFormatter;
 	}
 	private static DecimalFormat doubleFormatter = doubleFormatter();
-	
-	public static void perform(Path parent, Test.App app, int cores) {
-		perform(parent, app, WorkloadCSVBuilder.WINDOW, true, cores);
-	}
 	
 	private static List<List<Double>> methodsWorkloads = null;
 	private static Map<Integer, Integer> methodsWorkloadTot = null;
@@ -261,7 +256,7 @@ public class ResultsBuilder {
 		}
 	}
 	
-	public static void createDemandAnalysis(Path parent, String[] methodsNames, int cores) {
+	public static void createDemandAnalysis(Path parent, String[] methodsNames, int cores, int sdaWindow) {
 		logger.info("Creating the demand analysis report...");
 		
 		if (methodsNames == null || methodsNames.length == 0)
@@ -280,10 +275,12 @@ public class ResultsBuilder {
 				StringBuilder sb = new StringBuilder();
 				for (int j = 0; j < methodsNames.length; ++j) {
 					double d = demands.get(DEMAND_COLUMN_PREFIX + methodsNames[j]).get(i);
-					double x = methodsWorkloads.get(j).get(i) / (TIME_SLOT_SIZE * 1000 * cores);
+					double x = methodsWorkloads.get(j).get(i) / (sdaWindow * cores);
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
 				}
+				u *= 1000;
+				
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
 				
 				sb.append(doubleFormatter.format(u) + "," + doubleFormatter.format(uMeasured) + "," + doubleFormatter.format(u / uMeasured));
@@ -298,7 +295,7 @@ public class ResultsBuilder {
 		}
 	}
 	
-	public static void createRequestsAnalysis(Path parent, String[] methodsNames, int window, boolean printOnlyTotalRequests) {
+	public static void createRequestsAnalysis(Path parent, String[] methodsNames, int sdaWindow, boolean printOnlyTotalRequests) {
 		logger.info("Creating the requests analysis report...");
 		
 		if (methodsNames == null || methodsNames.length == 0)
@@ -317,13 +314,15 @@ public class ResultsBuilder {
 			if (!printOnlyTotalRequests)
 				for (String key : requestsPerPageOnlyOk.keySet())
 					out.printf("ActualRequestsOk_%s,", key);
-			out.println("TotalActualRequestsOk,PercentageLost,PercentageOkLost");
+			out.println("TotalActualRequestsOk,PercentageOkLost");
 			
 			int consideredRequests = 0;
 			
 			// NOTE:
 			// all the datum must be considered times window, because they're an average computed on that window!
 			// plus the first 5 data are skipped, and they should be considered too in the count.
+			
+			int window = WorkloadCSVBuilder.getActualWindow(sdaWindow);
 			
 			for (int j = 0; j < methodsNames.length; ++j) {
 				List<Double> workload = methodsWorkloads.get(j);
@@ -520,9 +519,13 @@ public class ResultsBuilder {
 	
 	public static final int DEFAULT_TIMESTEPS = 5;
 	
-	public static void perform(Path parent, Test.App app, int window, boolean printOnlyTotalRequests, int cores) {
-		createDemandAnalysis(parent, app.methods, cores);
-		createRequestsAnalysis(parent, app.methods, window, printOnlyTotalRequests);
+	public static void perform(Path parent, Test.App app, int sdaWindow, int cores) {
+		perform(parent, app, sdaWindow, true, cores);
+	}
+	
+	public static void perform(Path parent, Test.App app, int sdaWindow, boolean printOnlyTotalRequests, int cores) {
+		createDemandAnalysis(parent, app.methods, cores, sdaWindow);
+		createRequestsAnalysis(parent, app.methods, sdaWindow, printOnlyTotalRequests);
 		createWorkloadAnalysis(parent, app.methods, DEFAULT_TIMESTEPS);
 		createResponseTimesAnalysis(parent, app.name, app.methods);
 	}

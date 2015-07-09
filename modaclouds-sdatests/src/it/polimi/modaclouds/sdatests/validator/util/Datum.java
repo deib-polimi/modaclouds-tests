@@ -207,7 +207,16 @@ public class Datum {
 						}
 						break;
 					}
-					case CSV:
+					case CSV: {
+						Datum el = new Datum(line, origDataType);
+						List<Datum> data = res.get(mixed ? MIXED : el.resourceId);
+						if (data == null) {
+							data = new ArrayList<Datum>();
+							res.put(mixed ? MIXED : el.resourceId, data);
+						}
+						data.add(el);
+						break;
+					}
 					case JMETER_CSV: {
 						if (!line.contains(",OK,"))
 							continue;

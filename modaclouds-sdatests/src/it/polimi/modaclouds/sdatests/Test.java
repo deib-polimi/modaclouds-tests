@@ -438,12 +438,12 @@ public class Test {
 		
 		logger.info("Retrieving the files from the instances...");
 		
-		this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
 		if (app.stopContainerMonitoringFile != null) {
 			int i = 1;
 			for (Instance iapp : this.app.getInstances())
 				exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
 		}
+		this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
 		if (useDatabase)

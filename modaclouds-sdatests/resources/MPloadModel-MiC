@@ -5,14 +5,20 @@
 #$4=DEMAND ESTIMATOR
 #$5=SDA WINDOW
 
+PREV1=`expr 300 / $5`
+PREV2=`expr 600 / $5`
+PREV3=`expr 900 / $5`
+PREV4=`expr 1200 / $5`
+PREV5=`expr 1500 / $5`
+
 MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">
-  <monitoringRule id=\"cpuRule\" timeStep=\"3\" timeWindow=\"3\">
+  <monitoringRule id=\"cpuRule\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"VM\" type=\"Frontend\"/>
     </monitoredTargets>
     <collectedMetric metricName=\"CPUUtilization\">
       <parameter name=\"samplingProbability\">1</parameter>
-      <parameter name=\"samplingTime\">3</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
     </collectedMetric>
     <metricAggregation aggregateFunction=\"Average\" groupingClass=\"VM\"/>
     <actions>
@@ -23,13 +29,13 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"cpuStealRule\" timeStep=\"3\" timeWindow=\"3\">
+  <monitoringRule id=\"cpuStealRule\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"VM\" type=\"Frontend\"/>
     </monitoredTargets>
     <collectedMetric metricName=\"CPUStolen\">
       <parameter name=\"samplingProbability\">1</parameter>
-      <parameter name=\"samplingTime\">3</parameter>
+      <parameter name=\"samplingTime\">$5</parameter>
     </collectedMetric>
     <metricAggregation aggregateFunction=\"Average\" groupingClass=\"VM\"/>
     <actions>
@@ -40,7 +46,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"respTimeRule\" timeStep=\"2\" timeWindow=\"10\">
+  <monitoringRule id=\"respTimeRule\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\" type=\"answerQuestions\"/>
       <monitoredTarget class=\"Method\" type=\"saveAnswers\"/>
@@ -84,7 +90,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     </monitoredTargets>
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_5Min\">
       <parameter name=\"order\">1</parameter>
-      <parameter name=\"forecastPeriod\">30</parameter>
+      <parameter name=\"forecastPeriod\">$PREV1</parameter>
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
@@ -104,7 +110,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     </monitoredTargets>
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_10Min\">
       <parameter name=\"order\">1</parameter>
-      <parameter name=\"forecastPeriod\">60</parameter>
+      <parameter name=\"forecastPeriod\">$PREV2</parameter>
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
@@ -124,7 +130,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     </monitoredTargets>
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_15Min\">
       <parameter name=\"order\">1</parameter>
-      <parameter name=\"forecastPeriod\">90</parameter>
+      <parameter name=\"forecastPeriod\">$PREV3</parameter>
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
@@ -144,7 +150,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     </monitoredTargets>
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_20Min\">
       <parameter name=\"order\">1</parameter>
-      <parameter name=\"forecastPeriod\">120</parameter>
+      <parameter name=\"forecastPeriod\">$PREV4</parameter>
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
@@ -164,7 +170,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
     </monitoredTargets>
     <collectedMetric metricName=\"ForecastingTimeseriesARIMA_Workload_25Min\">
       <parameter name=\"order\">1</parameter>
-      <parameter name=\"forecastPeriod\">150</parameter>
+      <parameter name=\"forecastPeriod\">$PREV5</parameter>
       <parameter name=\"autoregressive\">1</parameter>
       <parameter name=\"movingAverage\">1</parameter>
       <parameter name=\"integrated\">1</parameter>
@@ -178,7 +184,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"workloadRule\" timeStep=\"10\" timeWindow=\"10\">
+  <monitoringRule id=\"workloadRule\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\" type=\"answerQuestions\"/>
       <monitoredTarget class=\"Method\" type=\"saveAnswers\"/>

@@ -1,6 +1,7 @@
 package it.polimi.modaclouds.sdatests;
 
 import it.cloud.Configuration;
+import it.polimi.modaclouds.sdatests.validator.Validator;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -68,7 +69,7 @@ public class Main {
 	private String demandEstimator = Test.DEFAULT_DEMAND_ESTIMATOR.name;
 	
 	@Parameter(names = "-sdaWindow", description = "The size in seconds of the window of the SDA")
-	private int sdaWindow = 300;
+	private int sdaWindow = Validator.DEFAULT_SDA_WINDOW;
 	
 	public static final String APP_TITLE = "\nSDA Test\n";
 
