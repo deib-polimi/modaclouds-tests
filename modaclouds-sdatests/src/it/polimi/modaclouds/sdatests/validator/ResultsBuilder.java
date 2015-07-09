@@ -279,7 +279,7 @@ public class ResultsBuilder {
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
 				}
-				u *= 1000;
+				u /= 1000;
 				
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
 				

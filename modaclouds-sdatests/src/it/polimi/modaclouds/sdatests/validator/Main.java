@@ -30,7 +30,7 @@ public class Main {
 	public static final String APP_TITLE = "\nSDA Validator\n";
 
 	public static void main(String[] args) {
-//		args = "-parent /Users/ft/Lavoro/tmp/sdatests-0.0.17/tests/0907150040-m3.large-250x2-httpagent-ERPS/mpl1/home/ubuntu -cores 2 -skip 12 -app httpagent -window 10".split(" ");
+//		args = "-parent /Users/ft/Lavoro/tmp/sdatests-0.0.17/tests/0907151240-m3.large-250x2-httpagent-ERPS/mpl1/home/ubuntu -cores 2 -skip 12 -app httpagent -window 10".split(" ");
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);

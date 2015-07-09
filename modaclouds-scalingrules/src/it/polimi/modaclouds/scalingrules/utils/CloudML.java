@@ -1,6 +1,8 @@
 package it.polimi.modaclouds.scalingrules.utils;
 
+import it.cloud.amazon.ec2.AmazonEC2;
 import it.cloud.amazon.ec2.VirtualMachine;
+import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.polimi.modaclouds.scalingrules.Configuration;
 import it.polimi.modaclouds.scalingrules.Test;
 
@@ -36,14 +38,33 @@ public class CloudML implements PropertyChangeListener {
 	private WSClient wsClient;
 	
 	public static void main(String[] args) throws Exception {
-		String mplIp = "52.18.81.98";
-		String cloudMLIp = mplIp;
-		
 		Test.App usedApp = Test.App.HTTPAGENT;
 		
 		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
 		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.medium", 1);
 		String loadBalancer = "ScalingRules155";
+		
+		AmazonEC2 ec2 = new AmazonEC2();
+		ec2.addRunningInstances(mpl);
+		
+		if (mpl.getInstances().size() == 0)
+			throw new RuntimeException("No running machine found!");
+		
+		Instance impl = mpl.getInstances().get(0);
+		
+		impl.waitUntilSshAvailable();
+		
+		String mplIp = impl.getIp();
+		String cloudMLIp = mplIp;
+		
+//		impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
+//		impl.exec(String.format("bash /home/ubuntu/snapshotMPStarter %s", mplIp));
+//		
+//		Thread.sleep(10000);
+//		
+		impl.exec(String.format(mpl.getParameter("CLOUDML_STARTER"), "9000"));
+		
+		Thread.sleep(10000);
 		
 		CloudML cml = new CloudML(cloudMLIp, Configuration.DEFAULT_CLOUDML_PORT);
 		
@@ -290,6 +311,20 @@ public class CloudML implements PropertyChangeListener {
 					}
 				} catch (Exception e) { }
 			}
+			
+			JSONArray providers = jsonObject.getJSONArray("providers");
+			
+			providersAvailable = new ArrayList<String>();
+			
+			for (int i = 0; i < providers.length(); i++) {
+				try {
+					JSONObject provider = providers.getJSONObject(i);
+					if (provider.get("name") != null) {
+						String name = provider.getString("name");
+						providersAvailable.add(name);
+					}
+				} catch (Exception e) { }
+			}
 		}
 		
 		private void parseInstanceInformation(String body) throws Exception {
@@ -300,6 +335,7 @@ public class CloudML implements PropertyChangeListener {
 			String status = jsonObject.has("status") && !jsonObject.isNull("status") ? jsonObject.getString("status") : null;
 			String ip = jsonObject.has("ip") ? jsonObject.getString("ip") : null;
 			String id = jsonObject.has("id") ? jsonObject.getString("id").replaceAll("<>", "/") : null;
+			String provider = jsonObject.has("provider") ? jsonObject.getString("provider") : null;
 			
 			if (tier.indexOf("fromImage") > -1)
 				tier = tier.substring(0, tier.indexOf('('));
@@ -324,7 +360,7 @@ public class CloudML implements PropertyChangeListener {
 				inst.ipPerId.put(id, ip);
 				inst.idPerName.put(vm, id);
 				inst.statusPerId.put(id, status);
-					
+				inst.providerPerId.put(id, provider);
 			}
 		}
 		
@@ -550,7 +586,7 @@ public class CloudML implements PropertyChangeListener {
 		GET_INSTANCE_STATUS("GET_INSTANCE_STATUS",
 				"!getSnapshot\n" +
 						"path : /componentInstances[id='%1$s']\n" +
-						"multimaps : { vm : name, tier : type/name, id : id, status : status, ip : publicAddress }", true, false, false),
+						"multimaps : { vm : name, tier : type/name, id : id, status : status, ip : publicAddress, provider : type/provider/name }", true, false, false),
 		DEPLOY("DEPLOY", "!extended { name : Deploy }", false, true, false),
 		LOAD_DEPLOYMENT("LOAD_DEPLOYMENT",
 				"!extended { name : LoadDeployment }\n" +
@@ -588,6 +624,7 @@ public class CloudML implements PropertyChangeListener {
 
 	private Map<Command, String> commandParam;
 	private Map<String, Instances> instancesPerTier;
+	private List<String> providersAvailable;
 	
 	private class Instances {
 		String vm = null;
@@ -665,7 +702,7 @@ public class CloudML implements PropertyChangeListener {
 		if (n == 0)
 			return true;
 		
-		commandParam.put(Command.GET_STATUS, String.format("%s;%d", id, n));
+		commandParam.put(Command.GET_STATUS, String.format("%s;%d;%s", id, n, Command.SCALE.name));
 		
 		wsClient.sendBlocking(Command.GET_STATUS.command, Command.SCALE);
 
@@ -673,10 +710,16 @@ public class CloudML implements PropertyChangeListener {
 	}
 	
 	public boolean burst(String id) {
-		commandParam.put(Command.GET_STATUS, String.format("%s;1", id));
+		commandParam.put(Command.GET_STATUS, String.format("%s;1;%s", id, Command.BURST.name));
 		
 		wsClient.sendBlocking(Command.GET_STATUS.command, Command.BURST);
 
+		return true;
+	}
+	
+	private boolean burst(String id, String provider) {
+		wsClient.sendBlocking(String.format(Command.BURST.command, id, provider), Command.BURST);
+		
 		return true;
 	}
 	
@@ -728,45 +771,79 @@ public class CloudML implements PropertyChangeListener {
 			
 			String tier = paramsArray[0];
 			int n = Integer.parseInt(paramsArray[1]);
+			Command cmd = Command.getByName(paramsArray[2]);
 			
-			if (!instancesPerTier.containsKey(tier)) {
-				signalCompleted(Command.SCALE, "Scaling an unknown tier");
-				
+			if (cmd == null)
 				return;
-			}
 			
-			Instances instances = instancesPerTier.get(tier).clone();
-			
-			if (n < 0 && instances.running.size() > 0) {
-				int toBeShuttedDown = -n;
-				if (instances.running.size() -1 < toBeShuttedDown)
-					toBeShuttedDown = instances.running.size() - 1;
-				
-				ArrayList<String> ids = new ArrayList<String>();
-				for (int i = 0; i < toBeShuttedDown; ++i)
-					ids.add(instances.running.get(i));
-				
-				stopInstances(ids);
-				
-			} else if (n > 0) {
-				int toBeStarted = n;
-				int toBeCreated = 0;
-				if (instances.stopped.size() < toBeStarted) {
-					toBeStarted = instances.stopped.size();
-					toBeCreated = n - toBeStarted;
+			if (cmd == Command.SCALE) {
+				if (!instancesPerTier.containsKey(tier)) {
+					signalCompleted(Command.SCALE, "Scaling an unknown tier");
+					
+					return;
 				}
 				
-				ArrayList<String> ids = new ArrayList<String>();
-				for (int i = 0; i < toBeStarted; ++i)
-					ids.add(instances.stopped.get(i));
+				Instances instances = instancesPerTier.get(tier).clone();
 				
-				startInstances(ids);
+				if (n < 0 && instances.running.size() > 0) {
+					int toBeShuttedDown = -n;
+					if (instances.running.size() -1 < toBeShuttedDown)
+						toBeShuttedDown = instances.running.size() - 1;
+					
+					ArrayList<String> ids = new ArrayList<String>();
+					for (int i = 0; i < toBeShuttedDown; ++i)
+						ids.add(instances.running.get(i));
+					
+					stopInstances(ids);
+					
+				} else if (n > 0) {
+					int toBeStarted = n;
+					int toBeCreated = 0;
+					if (instances.stopped.size() < toBeStarted) {
+						toBeStarted = instances.stopped.size();
+						toBeCreated = n - toBeStarted;
+					}
+					
+					ArrayList<String> ids = new ArrayList<String>();
+					for (int i = 0; i < toBeStarted; ++i)
+						ids.add(instances.stopped.get(i));
+					
+					startInstances(ids);
+					
+					if (toBeCreated > 0)
+						scaleOut(instances.idPerName.get(instances.vm), toBeCreated);
+				}
 				
-				if (toBeCreated > 0)
-					scaleOut(instances.idPerName.get(instances.vm), toBeCreated);
+				signalCompleted(Command.SCALE);
+			} else if (cmd == Command.BURST) {
+				if (!instancesPerTier.containsKey(tier)) {
+					signalCompleted(Command.BURST, "Bursting an unknown tier");
+					
+					return;
+				}
+				
+				Instances instances = instancesPerTier.get(tier).clone();
+				if (instances.running.size() == 0) {
+					signalCompleted(Command.BURST, "Bursting a non running tier");
+					
+					return;
+				}
+				List<String> usedProviders = instances.getUsedProviders();
+				String provider = null;
+				for (int i = 0; provider != null && i < providersAvailable.size(); ++i) {
+					if (!usedProviders.contains(providersAvailable.get(i)))
+						provider = providersAvailable.get(i);
+				}
+				if (provider == null) {
+					signalCompleted(Command.BURST, "No available provider to burst to");
+					
+					return;
+				}
+				
+				burst(instances.idPerName.get(instances.vm), provider);
+				
+				signalCompleted(Command.BURST);
 			}
-			
-			signalCompleted(Command.SCALE);
 		}
 		
 	}

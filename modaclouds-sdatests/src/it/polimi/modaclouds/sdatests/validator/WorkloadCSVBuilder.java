@@ -1,5 +1,6 @@
 package it.polimi.modaclouds.sdatests.validator;
 
+import it.polimi.modaclouds.sdatests.validator.util.Datum;
 import it.polimi.modaclouds.sdatests.validator.util.Workload;
 
 import java.io.BufferedWriter;
@@ -8,14 +9,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WorkloadCSVBuilder {
-	
-	private static final Logger logger = LoggerFactory.getLogger(WorkloadCSVBuilder.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(WorkloadCSVBuilder.class);
 
 	public static void main(String[] args) {
 		perform(Paths.get("."), Validator.FIRST_INSTANCES_TO_SKIP);
@@ -27,8 +28,9 @@ public class WorkloadCSVBuilder {
 	public static final String FORECASTED_WORKLOAD_AGGREGATE = "workload_timestep_%d.csv";
 
 	public static void perform(Path parent, int firstInstancesToSkip) {
-		
-		// It's always 1: the SDAs and the "normal" monitoring rules use the same time window now.
+
+		// It's always 1: the SDAs and the "normal" monitoring rules use the
+		// same time window now.
 		int window = 1;
 
 		List<Workload> monitored = new ArrayList<Workload>();
@@ -48,31 +50,31 @@ public class WorkloadCSVBuilder {
 						|| !monitoredWorkload.toFile().exists())
 					throw new RuntimeException(
 							"Monitored workload file not found or wrong path ("
-									+ monitoredWorkload == null ? "null" : monitoredWorkload.toString() + ")");
+									+ monitoredWorkload == null ? "null"
+									: monitoredWorkload.toString() + ")");
 
-				try (Scanner input = new Scanner(monitoredWorkload);
-						BufferedWriter writer = new BufferedWriter(
-								new FileWriter(Paths.get(parent.toString(),
-										MONITORED_WORKLOAD_AGGREGATE).toFile()))) {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(
+						Paths.get(parent.toString(),
+								MONITORED_WORKLOAD_AGGREGATE).toFile()))) {
+					List<Datum> data = Datum
+							.getAllData(monitoredWorkload, true).get(
+									Datum.MIXED);
+
 					writer.write("TIMESTEP,METRIC\n");
 
 					int j = 0;
 
 					float sum = 0;
-					
-					while (input.hasNextLine()) {
-						String line = input.nextLine();
-						String[] splitted = line.split(",");
-						float value = 0;
 
-						value = Float.parseFloat(splitted[3]);
-						sum += value;
-						
+					for (Datum d : data) {
+						sum += d.value;
+
 						j++;
 
 						if (j == window) {
 							int avg = (int) Math.round(sum / window);
-							logger.trace("AVG workload at timestep {}: {}", cont, avg);
+							logger.trace("AVG workload at timestep {}: {}",
+									cont, avg);
 							writer.write(cont + "," + avg + "\n");
 							monitored.add(new Workload(cont, avg));
 							cont++;
@@ -83,7 +85,8 @@ public class WorkloadCSVBuilder {
 
 					writer.flush();
 				} catch (Exception e) {
-					logger.error("Error while considering the actual workload.", e);
+					logger.error(
+							"Error while considering the actual workload.", e);
 				}
 			} else {
 				Path forecastedWorkload = Paths.get(parent.toString(),
@@ -92,22 +95,21 @@ public class WorkloadCSVBuilder {
 						|| !forecastedWorkload.toFile().exists())
 					throw new RuntimeException(
 							"Forecasted workload file not found or wrong path ("
-									+ forecastedWorkload == null ? "null" : forecastedWorkload.toString() + ")");
+									+ forecastedWorkload == null ? "null"
+									: forecastedWorkload.toString() + ")");
 
-				try (Scanner input = new Scanner(forecastedWorkload);
-						BufferedWriter writer = new BufferedWriter(
-								new FileWriter(Paths.get(
-										parent.toString(),
+				try (BufferedWriter writer = new BufferedWriter(
+						new FileWriter(Paths
+								.get(parent.toString(),
 										String.format(
 												FORECASTED_WORKLOAD_AGGREGATE,
 												i)).toFile()))) {
-					writer.write("TIMESTEP,METRIC\n");
-					while (input.hasNextLine()) {
-						String line = input.nextLine();
-						String[] splitted = line.split(",");
-						float value = 0;
+					List<Datum> data = Datum.getAllData(forecastedWorkload,
+							true).get(Datum.MIXED);
 
-						value = Float.parseFloat(splitted[3]);
+					writer.write("TIMESTEP,METRIC\n");
+					for (Datum d : data) {
+						float value = d.value.floatValue();
 
 						writer.write(cont + "," + value + "\n");
 
@@ -128,7 +130,9 @@ public class WorkloadCSVBuilder {
 
 					writer.flush();
 				} catch (Exception e) {
-					logger.error("Error while considering the forecasted workload.", e);
+					logger.error(
+							"Error while considering the forecasted workload.",
+							e);
 				}
 			}
 		}
