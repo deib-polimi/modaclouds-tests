@@ -274,6 +274,8 @@ public class ResultsBuilder {
 			
 			GenericChart<XYSeriesCollection> graph = GenericChart.createDemandLawGraph();
 			
+			double sumUaoverm = 0;
+			
 			for (int i = 0; i < maxCommonLength; ++i) {
 				double u = 0;
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
@@ -291,8 +293,12 @@ public class ResultsBuilder {
 				
 				sb.append(doubleFormatter.format(u) + "," + doubleFormatter.format(uMeasured) + "," + doubleFormatter.format(u / uMeasured));
 				
+				sumUaoverm += u / uMeasured;
+				
 				out.println(sb.toString());
 			}
+			
+			out.printf("%1$s,%1$s,%1$s,%1$s,%2$s", ResponseTimeValidator.EMPTY, doubleFormatter.format(sumUaoverm / maxCommonLength));
 			
 			graph.updateGraph();
 			graph.updateImage();

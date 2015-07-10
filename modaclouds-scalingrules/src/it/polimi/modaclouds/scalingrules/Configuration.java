@@ -20,8 +20,7 @@ public class Configuration {
 	
 	public static final String CONFIGURATION = "configuration.properties";
 	
-	public static final String MONITORING_RULE_CPU_ABOVE_FILE = "cpuRuleAbove.txt";
-	public static final String MONITORING_RULE_CPU_UNDER_FILE = "cpuRuleUnder.txt";
+	public static final String MONITORING_RULES = "rules.txt";
 	
 	public static final int DEFAULT_CLOUDML_PORT = 9000;
 	public static int CLOUDML_PORT = DEFAULT_CLOUDML_PORT;

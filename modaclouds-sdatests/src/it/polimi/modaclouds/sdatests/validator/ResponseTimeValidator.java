@@ -184,7 +184,7 @@ public class ResponseTimeValidator {
 							sumComputedRTs.put(s, sumComputedRTs.get(s) + r);
 							double avgRT = avgRTs.get(s);
 							
-							sb.append(String.format("%s,%s,%s%%,", doubleFormatter.format(r), doubleFormatter.format(r / avgRT), doubleFormatter.format(((avgRT - r)/ r) * 100)));
+							sb.append(String.format("%s,%s,%s%%,", doubleFormatter.format(r), doubleFormatter.format(r / avgRT), doubleFormatter.format(((avgRT - r)/ avgRT) * 100)));
 						}
 						countR++;
 						

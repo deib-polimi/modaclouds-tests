@@ -488,12 +488,8 @@ public class Test {
 		MonitoringRules rules = new MonitoringRules();
 		rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
-						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_ABOVE_FILE,
-						doubleFormatter.format(aboveValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
-		rules.getMonitoringRules()
-				.addAll(getMonitoringRulesFromFile(
-						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULE_CPU_UNDER_FILE,
-						doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
+						it.polimi.modaclouds.scalingrules.Configuration.MONITORING_RULES,
+						doubleFormatter.format(aboveValue), doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
 
 		monitoringPlatform.installRules(rules);
 	}
