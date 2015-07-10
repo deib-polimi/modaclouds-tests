@@ -25,6 +25,7 @@
 	<modules>
 		<module>modaclouds-sdatests</module>
 		<module>modaclouds-scalingrules</module>
+        <module>modaclouds-scalingsdatests</module>
 		<module>cloudmldaemon</module>
         <module>http-agent-helper</module>
 	</modules>
