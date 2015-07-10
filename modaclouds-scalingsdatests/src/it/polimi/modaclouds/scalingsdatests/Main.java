@@ -82,7 +82,7 @@ public class Main {
 	private int cooldown = 600;
 	
 	@Parameter(names = "-useSDA", description = "Use the SDA")
-	private boolean useSDA = true;
+	private boolean useSDA = false;
 	
 	@Parameter(names = "-useCloudML", description = "Use CloudML and the auto scaling rules")
 	private boolean useCloudML = false;
