@@ -276,6 +276,8 @@ public class ResultsBuilder {
 			
 			for (int i = 0; i < maxCommonLength; ++i) {
 				double u = 0;
+				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
+				
 				StringBuilder sb = new StringBuilder();
 				for (int j = 0; j < methodsNames.length; ++j) {
 					double d = demands.get(DEMAND_COLUMN_PREFIX + methodsNames[j]).get(i);
@@ -283,11 +285,9 @@ public class ResultsBuilder {
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
 					
-					graph.add(methodsNames[j], x, (d*x) / 1000);
+					graph.add(methodsNames[j], x, uMeasured);
 				}
 				u /= 1000;
-				
-				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
 				
 				sb.append(doubleFormatter.format(u) + "," + doubleFormatter.format(uMeasured) + "," + doubleFormatter.format(u / uMeasured));
 				
