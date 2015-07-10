@@ -415,7 +415,8 @@ public class CloudMLCall extends AbstractAction {
         public void updateStatus() {
             getLogger().info("Asking for the deployment model...");
             
-            wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
+//            wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
+            wsClient.send(Command.GET_STATUS.command);
         }
 
         private void getInstanceInfo(String id) {
