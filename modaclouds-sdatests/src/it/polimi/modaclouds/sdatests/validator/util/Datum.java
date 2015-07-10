@@ -105,6 +105,12 @@ public class Datum {
 		return resourceId;
 	}
 	
+	public static String getActualResourceId(String resourceId) {
+		if (resourceId.lastIndexOf("_") > -1)
+			return resourceId.substring(0, resourceId.lastIndexOf("_"));
+		return resourceId;
+	}
+	
 	@Override
 	public String toString() {
 		return this.getClass().getName() + "[resourceId: " + resourceId + ", metric: " + metric + ", value: " + value + ", timestamp: " + timestamp + "]";

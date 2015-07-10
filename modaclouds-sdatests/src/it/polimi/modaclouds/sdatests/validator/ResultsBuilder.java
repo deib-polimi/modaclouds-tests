@@ -3,6 +3,7 @@ package it.polimi.modaclouds.sdatests.validator;
 import it.polimi.modaclouds.sdatests.Test;
 import it.polimi.modaclouds.sdatests.validator.util.Datum;
 import it.polimi.modaclouds.sdatests.validator.util.FileHelper;
+import it.polimi.modaclouds.sdatests.validator.util.GenericChart;
 
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,6 +272,8 @@ public class ResultsBuilder {
 				out.printf("Demand_%1$s,X_%1$s,", methodsNames[i]);
 			out.println("U_actual,U_measured,U_aoverm");
 			
+			GenericChart<XYSeriesCollection> graph = GenericChart.createDemandLawGraph();
+			
 			for (int i = 0; i < maxCommonLength; ++i) {
 				double u = 0;
 				StringBuilder sb = new StringBuilder();
@@ -281,12 +285,21 @@ public class ResultsBuilder {
 				}
 				u /= 1000;
 				
+				for (int j = 0; j < methodsNames.length; ++j) {
+					double x = methodsWorkloads.get(j).get(i) / (window * cores);
+					graph.add(methodsNames[j], x, u);
+				}
+				
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
 				
 				sb.append(doubleFormatter.format(u) + "," + doubleFormatter.format(uMeasured) + "," + doubleFormatter.format(u / uMeasured));
 				
 				out.println(sb.toString());
 			}
+			
+			graph.updateGraph();
+			graph.updateImage();
+			graph.save2png(parent.toString(), "demandLaw.png");
 			
 			out.flush();
 			

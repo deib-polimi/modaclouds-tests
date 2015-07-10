@@ -58,6 +58,9 @@ public class Validator {
 				WorkloadCSVBuilder.perform(Paths.get(parent.toString(), "method" + i), firstInstancesToSkip);
 			}
 			
+			logger.info("Launching the ResponseTimeValidator class...");
+			ResponseTimeValidator.perform(parent, cores, firstInstancesToSkip, window, ResponseTimeValidator.DEFAULT_AVG_WINDOWS);
+			
 			logger.info("Generating the full results file...");
 			ResultsBuilder.perform(parent, app, window, cores);
 			
