@@ -282,13 +282,10 @@ public class ResultsBuilder {
 					double x = methodsWorkloads.get(j).get(i) / (window * cores);
 					sb.append(doubleFormatter.format(d) + "," + doubleFormatter.format(x) + ",");
 					u += d*x;
+					
+					graph.add(methodsNames[j], x, (d*x) / 1000);
 				}
 				u /= 1000;
-				
-				for (int j = 0; j < methodsNames.length; ++j) {
-					double x = methodsWorkloads.get(j).get(i) / (window * cores);
-					graph.add(methodsNames[j], x, u);
-				}
 				
 				double uMeasured = demands.get(CPU_UTIL_COLUMN).get(i);
 				
