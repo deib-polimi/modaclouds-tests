@@ -86,7 +86,7 @@ public class ResponseTimeValidator {
 								parent.toString(), String.format(RESULT, avgWindow)).toFile(), "UTF-8")) {
 					
 					for (String s : demands.keySet())
-						out.printf("Demand_%1$s,X_%1$s,R_measured_%1$s,R_actual_%1$s,R_aoverm_%1$s,", Datum.getActualResourceId(s));
+						out.printf("Demand_%1$s,X_%1$s,R_measured_%1$s,R_actual_%1$s,R_aoverm_%1$s,GAP_R_%1$s,", Datum.getActualResourceId(s));
 					out.printf("U\n", avgWindow);
 					
 					Map<String, Integer> iRTs = new HashMap<String, Integer>();
@@ -180,17 +180,17 @@ public class ResponseTimeValidator {
 						
 						for (String s : demands.keySet()) {
 							double avgDemand = avgDemands.get(s);
-							double r = avgDemand / (1 - u); /// 1000;
+							double r = avgDemand / (1 - u); // / 1000;
 							sumComputedRTs.put(s, sumComputedRTs.get(s) + r);
 							double avgRT = avgRTs.get(s);
 							
-							sb.append(String.format("%s,%s,", doubleFormatter.format(r), doubleFormatter.format(r / avgRT)));
+							sb.append(String.format("%s,%s,%s%%,", doubleFormatter.format(r), doubleFormatter.format(r / avgRT), doubleFormatter.format(((avgRT - r)/ r) * 100)));
 						}
 						countR++;
 						
 						sb.append(String.format("%s", doubleFormatter.format(u)));
 						
-						out.printf(sb.toString() + "\n");
+						out.println(sb.toString());
 					}
 					
 					for (String s : demands.keySet()) {
