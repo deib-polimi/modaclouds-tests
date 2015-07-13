@@ -1,8 +1,0 @@
-/target
-/bin
-/src/it/polimi/modaclouds/scalingrules/schemas
-sun-jaxb.episode
-/securitygroupcreated.txt
-/tests
-debug*.log
-.DS_Store

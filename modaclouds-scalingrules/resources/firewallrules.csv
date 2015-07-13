@@ -1,2 +1,0 @@
-ip,from,to,protocol
-0.0.0.0/0,0,65535,tcp
