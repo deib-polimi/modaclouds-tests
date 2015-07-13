@@ -536,18 +536,28 @@ public class Test {
 		String cloudMLIp = mplIp;
 		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
 		
+		logger.info("Trying connecting to the CloudML daemon...");
 		try {
 			cloudML = new CloudML(cloudMLIp, cloudMLPort);
 		} catch (Exception e) {
-			Ssh.execInBackground(cloudMLIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.valueOf(cloudMLPort).toString()));
+			logger.info("The daemon wasn't running, starting it...");
+			Ssh.execInBackground(cloudMLIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.toString(cloudMLPort)));
 			
-			try {
-				Thread.sleep(10000);
-			} catch (Exception e1) { }
-			
-			cloudML = new CloudML(cloudMLIp, cloudMLPort);
-			
+			boolean goOn = true;
+			while (goOn) {
+				try {
+					Thread.sleep(10000);
+				} catch (Exception e1) { }
+				
+				try {
+					cloudML = new CloudML(cloudMLIp, cloudMLPort);
+					goOn = false;
+				} catch (Exception e1) {
+					logger.warn("Trying again to connect to the CloudML daemon in 10 seconds...");
+				}
+			}
 		}
+		logger.info("Connected to the CloudML daemon!");
 		
 		cloudML.deploy(getActualDeploymentModel(app, true).toFile());
 		
