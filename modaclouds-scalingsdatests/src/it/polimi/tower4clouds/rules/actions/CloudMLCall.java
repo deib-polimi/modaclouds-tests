@@ -739,6 +739,10 @@ public class CloudMLCall extends AbstractAction {
                 
                     pcs.firePropertyChange("Deploy", false, true);
                     
+                    try {
+                    	Thread.sleep(10000);
+                    } catch (Exception e) { }
+                    
                     updateStatus();
                 } else if (s.contains("ack")) {
                     
