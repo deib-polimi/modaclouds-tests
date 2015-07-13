@@ -81,6 +81,7 @@
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
+		<appender-ref ref="STDERR" />
 	</root>
 	
 	<root level="TRACE">

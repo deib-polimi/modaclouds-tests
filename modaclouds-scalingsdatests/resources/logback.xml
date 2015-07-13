@@ -70,17 +70,24 @@
             </pattern>
         </encoder>
     </appender>
-
+	
 	<logger name="it.polimi" level="TRACE" />
-	
-	<logger name="it.cloud" level="TRACE" />
-	
-	<logger name="com.amazonaws" level="WARN" />
-	
-	<logger name="org.apache" level="WARN" />
+
+    <logger name="org.cloudml" level="TRACE" />
+
+    <logger name="it.cloud" level="TRACE" />
+
+    <logger name="com.amazonaws" level="WARN" />
+
+    <logger name="org.apache" level="WARN" />
+
+    <logger name="javax.management" level="WARN" />
+
+    <logger name="org.cloudml.facade.util.WSClient" level="TRACE" />
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
+		<appender-ref ref="STDERR" />
 	</root>
 	
 	<root level="TRACE">
