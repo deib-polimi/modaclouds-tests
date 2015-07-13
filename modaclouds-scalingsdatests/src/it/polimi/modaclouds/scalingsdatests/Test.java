@@ -680,7 +680,7 @@ public class Test {
 				app.getImageId(),
 				it.cloud.amazon.Configuration.REGION,
 				String.format(
-						app.getParameter("STARTER").replaceAll("&&", " ; "),
+						getWholeListOfParameters(app, "STARTER", " && ").replaceAll("&&", " ; "),
 						ipMpl),
 				String.format(
 						app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),
@@ -701,6 +701,28 @@ public class Test {
 		FileUtils.writeStringToFile(p.toFile(), body);
 		
 		return p;
+	}
+	
+	private static String getWholeListOfParameters(VirtualMachine vm, String parameter, String concatenator) {
+		String tmp = vm.getParameter(parameter);
+		if (tmp != null)
+			return tmp;
+		
+		StringBuilder res = new StringBuilder();
+		boolean goOn = true;
+		for (int i = 0; goOn; ++i) {
+			tmp = vm.getParameter(parameter + i);
+			if (tmp == null) {
+				goOn = false;
+			} else {
+				if (res.length() != 0) {
+					res.append(concatenator);
+				}
+				res.append(tmp);
+			}
+		}
+		
+		return res.toString();
 	}
 	
 	public Path runTest(App app, String data, String method) throws Exception {
