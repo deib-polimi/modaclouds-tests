@@ -638,10 +638,10 @@ public class Test {
 	
 	public Path getActualDeploymentModel(App app, boolean remotePathIfNecessary) throws Exception {
 		String ipMpl = mpl.getInstances().get(0).getIp();
-		return getActualDeploymentModel(ipMpl, mpl, this.app, app.cloudMl, loadBalancer, remotePathIfNecessary);
+		return getActualDeploymentModel(ipMpl, mpl, this.app, app.cloudMl, loadBalancer, remotePathIfNecessary, useDatabase, database);
 	}
 	
-	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine app, String cloudMl, String loadBalancer, boolean remotePathIfNecessary) throws Exception {
+	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine app, String cloudMl, String loadBalancer, boolean remotePathIfNecessary, boolean useDatabase, VirtualMachine database) throws Exception {
 		String body = FileUtils.readFileToString(Configuration.getPathToFile(cloudMl).toFile());
 		
 		JSONObject jsonObject = new JSONObject(body);
@@ -691,6 +691,7 @@ public class Test {
 				it.cloud.amazon.Configuration.REGION,
 				String.format(
 						getWholeListOfParameters(app, "STARTER", " && ").replaceAll("&&", " ; "),
+						useDatabase ? database.getIps().get(0) : "127.0.0.1",
 						ipMpl),
 				String.format(
 						app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),

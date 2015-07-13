@@ -70,7 +70,7 @@ public class CloudML implements PropertyChangeListener {
 		
 		logger.info("Deploy the system...");
 		
-		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, loadBalancer, true).toFile());
+		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, loadBalancer, true, false, null).toFile());
 		
 		logger.info("Starting the test...");
 		
