@@ -73,8 +73,6 @@ public class WorkloadCSVBuilder {
 
 						if (j == window) {
 							int avg = (int) Math.round(sum / window);
-							logger.trace("AVG workload at timestep {}: {}",
-									cont, avg);
 							writer.write(cont + "," + avg + "\n");
 							monitored.add(new Workload(cont, avg));
 							cont++;

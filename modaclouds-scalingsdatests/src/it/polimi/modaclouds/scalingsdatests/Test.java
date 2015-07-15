@@ -611,6 +611,7 @@ public class Test {
 						doubleFormatter.format(aboveValue), doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
 
 		monitoringPlatform.installRules(rules);
+		monitoringPlatform.attachObserver("FrontendCPUUtilization", cloudMLIp, "8001");
 	}
 
 	public static String getActualFile(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
