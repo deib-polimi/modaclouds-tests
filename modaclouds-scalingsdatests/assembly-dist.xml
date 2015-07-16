@@ -107,7 +107,7 @@
       <destName>cloudml-HTTPAgent.json</destName>
     </file>
     <file>
-      <source>resources/rules.txt</source>
+      <source>resources/cloudmlrules.txt</source>
       <outputDirectory></outputDirectory>
       <destName>rules.txt</destName>
     </file>
@@ -121,7 +121,7 @@
         <include>doc/**</include>
       </includes>
     </fileSet>
-    
+
     <fileSet>
       <outputDirectory>lib</outputDirectory>
       <directory>target/lib</directory>
