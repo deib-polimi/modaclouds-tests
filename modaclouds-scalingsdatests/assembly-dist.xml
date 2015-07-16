@@ -109,7 +109,7 @@
     <file>
       <source>resources/cloudmlrules.txt</source>
       <outputDirectory></outputDirectory>
-      <destName>rules.txt</destName>
+      <destName>cloudmlrules.txt</destName>
     </file>
   </files>
 
