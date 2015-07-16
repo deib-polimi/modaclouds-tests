@@ -4,6 +4,7 @@ import it.cloud.utils.rest.RestClient;
 import it.polimi.modaclouds.scalingsdatests.schemas.adaptationRuntime.ApplicationTier;
 import it.polimi.modaclouds.scalingsdatests.schemas.adaptationRuntime.Container;
 import it.polimi.modaclouds.scalingsdatests.schemas.adaptationRuntime.Containers;
+import it.polimi.tower4clouds.manager.api.ManagerAPI;
 import it.polimi.tower4clouds.rules.Action;
 import it.polimi.tower4clouds.rules.CollectedMetric;
 import it.polimi.tower4clouds.rules.MonitoredTarget;
@@ -22,56 +23,39 @@ import org.restlet.data.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MonitoringPlatform extends RestClient {
+public class MonitoringPlatform {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(MonitoringPlatform.class);
 
 	private ObjectFactory factory = new ObjectFactory();
 
+	private String ip;
+	private int port;
+
 	public MonitoringPlatform(String ip, int port) {
-		super(ip, port);
+		this.ip = ip;
+		this.port = port;
 	}
 
 	public void installRules(MonitoringRules toInstall) throws Exception {
-		JAXBContext context = JAXBContext
-				.newInstance(MonitoringRules.class);
-		Marshaller marshaller = context.createMarshaller();
-		marshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
-		marshaller.setProperty("jaxb.schemaLocation", "http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema");
-		StringWriter sw = new StringWriter();
-
-		marshaller.marshal(toInstall, sw);
-		
-		String body = sw.toString();
-		body = body.substring(body.indexOf("<monitoringRules"));
-
-		Status status = sendMessage("/v1/monitoring-rules", body, Method.POST);
-
-		if (status.getCode() != 204) {
-			throw new RuntimeException("Failed : HTTP error code : "
-					+ status.getCode());
-		}
+		ManagerAPI manager = new ManagerAPI(ip, port);
+		manager.installRules(toInstall);
 	}
-	
+
 //	public void loadModel() throws Exception {
 //		sendMessageFromFile("/v1/model/resources", Configuration.MONITORING_PLATFORM_MODEL, Method.PUT);
 //	}
 
 	public void attachObserver(String targetMetric, String observerIP,
-			String observerPort) throws Exception {
-		String input = "http://" + observerIP + ":" + observerPort
-				+ "/v1/results";
+							   String observerPort) throws Exception {
+		attachObserver(targetMetric, observerIP, observerPort, "TOWER/JSON");
+	}
 
-		logger.info(input);
-
-		Status status = sendMessage("/v1/metrics/" + targetMetric + "/observers", input,
-				Method.POST);
-
-		if (status.getCode() != 201) {
-			throw new RuntimeException("Failed : HTTP error code : "
-					+ status.getCode());
-		}
+	public void attachObserver(String targetMetric, String observerIP,
+			String observerPort, String format) throws Exception {
+		ManagerAPI manager = new ManagerAPI(ip, port);
+		manager.registerHttpObserver(targetMetric, String.format("http://%s:%s/data", observerIP, observerPort), format);
 	}
 
 	public MonitoringRules buildDemandRule(Containers containers) {

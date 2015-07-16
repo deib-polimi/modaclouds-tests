@@ -595,19 +595,21 @@ public class Test {
 		return myFormatter;
 	}
 
-	public void addCPUUtilizationMonitoringRules(String file, String tierName, double aboveValue,
-			double belowValue, int window, int cooldown) throws Exception {
-		if (aboveValue > 1.0)
-			aboveValue = 1.0;
-		if (aboveValue <= 0.0)
-			aboveValue = 0.6;
-		if (belowValue <= 0.0)
-			belowValue = 0.0;
-		if (belowValue >= 1.0)
-			belowValue = 0.1;
+	public static void main(String[] args) throws Exception {
+		double aboveValue = 0.3;
+		double belowValue = 0.05;
+		String tierName = "HTTPAgent";
+		int window = 10;
+		int cooldown = 600;
+		String mplIp = "localhost";
+		int mplPort = 8170;
+		String cloudMLIp = mplIp;
+		int cloudMLPort = 9000;
+		String file = Configuration.getPathToFile("rules.txt").toString();
 
-		String cloudMLIp = mpl.getInstances().get(0).getIp();
-		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
+		MonitoringPlatform monitoringPlatform = new MonitoringPlatform(mplIp, mplPort);
+
+		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.xlarge", 1);
 
 		MonitoringRules rules = new MonitoringRules();
 		rules.getMonitoringRules()

@@ -88,7 +88,7 @@
 					</archive>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
@@ -258,6 +258,17 @@
         <dependency>
             <groupId>it.polimi.tower4clouds</groupId>
             <artifactId>rules</artifactId>
+            <version>0.3-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>it.polimi.tower4clouds</groupId>
+            <artifactId>manager-api</artifactId>
             <version>0.3-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
