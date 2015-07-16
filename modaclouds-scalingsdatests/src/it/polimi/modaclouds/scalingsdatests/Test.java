@@ -427,6 +427,15 @@ public class Test {
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
 
+		{
+			String starterBg = mpl.getParameter("STARTER_BG");
+			if (starterBg != null && starterBg.trim().length() > 0) {
+				Ssh.execInBackground(impl, starterBg);
+
+				try { Thread.sleep(10000); } catch (Exception e) { }
+			}
+		}
+
 		monitoringPlatform = new MonitoringPlatform(mplIp, mplPort);
 
 		int cores = getCores();
@@ -452,14 +461,10 @@ public class Test {
 		if (!useCloudML)
 			for (Instance iapp : app.getInstances()) {
 				iapp.exec(String.format(
-						app.getParameter("STARTER0"),
+						app.getParameter("STARTER"),
 						useDatabase ? database.getIps().get(0) : "127.0.0.1",
 						mplIp
 						));
-
-				try { Thread.sleep(10000); } catch (Exception e) { }
-
-				iapp.exec(app.getParameter("STARTER1"));
 
 				try { Thread.sleep(10000); } catch (Exception e) { }
 
@@ -691,7 +696,7 @@ public class Test {
 				app.getImageId(),
 				it.cloud.amazon.Configuration.REGION,
 				String.format(
-						getWholeListOfParameters(app, "STARTER", " && ").replaceAll("&&", " ; "),
+						app.getParameter("STARTER").replaceAll("&&", " ; "),
 						useDatabase ? database.getIps().get(0) : "127.0.0.1",
 						ipMpl),
 				String.format(
@@ -713,28 +718,6 @@ public class Test {
 		FileUtils.writeStringToFile(p.toFile(), body);
 
 		return p;
-	}
-
-	private static String getWholeListOfParameters(VirtualMachine vm, String parameter, String concatenator) {
-		String tmp = vm.getParameter(parameter);
-		if (tmp != null)
-			return tmp;
-
-		StringBuilder res = new StringBuilder();
-		boolean goOn = true;
-		for (int i = 0; goOn; ++i) {
-			tmp = vm.getParameter(parameter + i);
-			if (tmp == null) {
-				goOn = false;
-			} else {
-				if (res.length() != 0) {
-					res.append(concatenator);
-				}
-				res.append(tmp);
-			}
-		}
-
-		return res.toString();
 	}
 
 	public Path runTest(App app, String data, String method) throws Exception {
