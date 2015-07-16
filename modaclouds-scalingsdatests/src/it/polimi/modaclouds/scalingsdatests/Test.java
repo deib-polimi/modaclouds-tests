@@ -79,7 +79,7 @@ public class Test {
 				new String[] { "reg", "save", "answ" },
 				"MIC",
 				"cloudml-MiC.json",
-				"rules.txt"),
+				"cloudmlrules.txt"),
 		HTTPAGENT(
 				"httpagent",
 				"MPloadModel-HTTPAgent",
@@ -90,7 +90,7 @@ public class Test {
 				new String[] { "getPage" },
 				"HTTPAgent",
 				"cloudml-HTTPAgent.json",
-				"rules.txt"
+				"cloudmlrules.txt"
 				);
 
 		public String name;
@@ -177,39 +177,42 @@ public class Test {
 
 		t.createLoadBalancer();
 
-		t.initSystem(loadModelFile, demandEstimator, window);
-
-		if (onlyStartMachines)
-			return -1;
-
-		boolean performTheTest = false;
-		if (useCloudML) {
-			String status;
-			int attempt = 0;
-			do {
-				t.initCloudML(app);
-				status = t.getTierStatus(app.tierName);
-				attempt++;
-			} while ((status == null || status.equals("null")) && attempt < MAX_ATTEMPTS);
-
-			if (status != null && !status.equals("null")) {
-				t.addCPUUtilizationMonitoringRules(app.cpuUtilizationRules, app.tierName, highCpu, lowCpu, window, cooldown);
-				performTheTest = true;
-			} else {
-				logger.error("CloudML isn't working (the statuses are null).");
-				performTheTest = false;
-			}
-		} else {
-			performTheTest = true;
-		}
-
 		Path path = null;
-		if (performTheTest)
-			try {
-				path = t.runTest(app, data, demandEstimator);
-			} catch (Exception e) {
-				logger.error("Error while performing the test.", e);
+		Exception thrown = null;
+
+		try {
+			t.initSystem(loadModelFile, demandEstimator, window);
+
+			if (onlyStartMachines)
+				return -1;
+
+			boolean performTheTest = false;
+			if (useCloudML) {
+				String status;
+				int attempt = 0;
+				do {
+					t.initCloudML(app);
+					status = t.getTierStatus(app.tierName);
+					attempt++;
+				} while ((status == null || status.equals("null")) && attempt < MAX_ATTEMPTS);
+
+				if (status != null && !status.equals("null")) {
+					t.addCPUUtilizationMonitoringRules(app.cpuUtilizationRules, app.tierName, highCpu, lowCpu, window, cooldown);
+					performTheTest = true;
+				} else {
+					logger.error("CloudML isn't working (the statuses are null).");
+					performTheTest = false;
+				}
+			} else {
+				performTheTest = true;
 			}
+
+			if (performTheTest)
+				path = t.runTest(app, data, demandEstimator);
+		} catch (Exception e) {
+			logger.error("Error while performing the test.", e);
+			thrown = e;
+		}
 
 		if (useCloudML) {
 			t.stopCloudMLInstances();
@@ -223,6 +226,9 @@ public class Test {
 
 		if (useSDA)
 			Validator.perform(path, t.getCores(), firstInstancesToSkip, app, window);
+
+		if (thrown != null)
+			throw thrown;
 
 		return System.currentTimeMillis() - init;
 	}
@@ -616,7 +622,6 @@ public class Test {
 						doubleFormatter.format(aboveValue), doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
 
 		monitoringPlatform.installRules(rules);
-		monitoringPlatform.attachObserver("FrontendCPUUtilization", cloudMLIp, "8001");
 	}
 
 	public static String getActualFile(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
