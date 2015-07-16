@@ -1,6 +1,0 @@
-/target
-/bin
-debug*.log
-.DS_Store
-/tests
-/securitygroupcreated.txt
