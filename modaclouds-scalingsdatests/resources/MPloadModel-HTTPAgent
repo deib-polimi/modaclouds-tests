@@ -4,6 +4,13 @@
 #$3=CPU NUMBER
 #$4=DEMAND ESTIMATOR
 #$5=SDA WINDOW
+#$6=USE SDA
+
+USE_SDA=false
+if [ "$#" -gt 5 ]
+then
+	USE_SDA=$6
+fi
 
 PREV1=`expr 300 / $5`
 PREV2=`expr 600 / $5`
@@ -62,6 +69,25 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
+  <monitoringRule id=\"workloadRule\" timeStep=\"$5\" timeWindow=\"$5\">
+    <monitoredTargets>
+      <monitoredTarget class=\"Method\" type=\"getPage\"/>
+    </monitoredTargets>
+    <collectedMetric metricName=\"EffectiveResponseTime\">
+      <parameter name=\"samplingProbability\">1</parameter>
+    </collectedMetric>
+    <metricAggregation aggregateFunction=\"Count\" groupingClass=\"Method\"/>
+    <actions>
+      <action name=\"OutputMetric\">
+        <parameter name=\"metric\">Workload</parameter>
+        <parameter name=\"value\">METRIC</parameter>
+        <parameter name=\"resourceId\">ID</parameter>
+      </action>
+    </actions>
+  </monitoringRule>
+</monitoringRules>"
+
+MODEL_SDA="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">
   <monitoringRule id=\"sdaHaproxy\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
       <monitoredTarget class=\"Method\"/>
@@ -182,22 +208,6 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id=\"workloadRule\" timeStep=\"$5\" timeWindow=\"$5\">
-    <monitoredTargets>
-      <monitoredTarget class=\"Method\" type=\"getPage\"/>
-    </monitoredTargets>
-    <collectedMetric metricName=\"EffectiveResponseTime\">
-      <parameter name=\"samplingProbability\">1</parameter>
-    </collectedMetric>
-    <metricAggregation aggregateFunction=\"Count\" groupingClass=\"Method\"/>
-    <actions>
-      <action name=\"OutputMetric\">
-        <parameter name=\"metric\">Workload</parameter>
-        <parameter name=\"value\">METRIC</parameter>
-        <parameter name=\"resourceId\">ID</parameter>
-      </action>
-    </actions>
-  </monitoringRule>
 </monitoringRules>"
 
 echo "$MODEL" | curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitoring-rules -d @-
@@ -213,10 +223,16 @@ JSON_END="/data\"
 echo "$JSON_INIT"8178"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/AvarageEffectiveResponseTime/observers -d @-
 echo "$JSON_INIT"8173"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUUtilization/observers -d @-
 echo "$JSON_INIT"8174"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/FrontendCPUStolen/observers -d @-
-echo "$JSON_INIT"8179"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/EstimatedDemand/observers -d @-
-echo "$JSON_INIT"8180"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload1/observers -d @-
-echo "$JSON_INIT"8181"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload2/observers -d @-
-echo "$JSON_INIT"8182"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload3/observers -d @-
-echo "$JSON_INIT"8183"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload4/observers -d @-
-echo "$JSON_INIT"8184"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload5/observers -d @-
 echo "$JSON_INIT"8177"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/Workload/observers -d @-
+
+if [ $USE_SDA = true ]
+then
+  echo "$MODEL_SDA" | curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitoring-rules -d @-
+
+  echo "$JSON_INIT"8179"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/EstimatedDemand/observers -d @-
+  echo "$JSON_INIT"8180"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload1/observers -d @-
+  echo "$JSON_INIT"8181"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload2/observers -d @-
+  echo "$JSON_INIT"8182"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload3/observers -d @-
+  echo "$JSON_INIT"8183"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload4/observers -d @-
+  echo "$JSON_INIT"8184"$JSON_END" | curl -X POST -i -H "Content-type: application/json" http://"$1":8170/v1/metrics/ForecastedWorkload5/observers -d @-
+fi

@@ -446,13 +446,14 @@ public class Test {
 
 		int cores = getCores();
 
-		exec(String.format("bash %s %s %s %d %s %d",
+		exec(String.format("bash %s %s %s %d %s %d %b",
 				loadModelFile,
 				impl.getIp(),
 				impl.getIp(),
 				cores,
 				demandEstimator,
-				window));
+				window,
+				useSDA));
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
 
