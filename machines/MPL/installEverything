@@ -2,10 +2,11 @@
 
 cd
 
-rm .bashrc_mic
+rm .bashrc_mpl
+rm .bashrc_sda
 
-bash ~/installMIC
-bash ~/installImperialDC
+bash ~/installPlatform
+bash ~/installSDA
 
 cd
 curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
