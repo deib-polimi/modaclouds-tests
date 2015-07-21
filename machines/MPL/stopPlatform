@@ -1,0 +1,21 @@
+#!/bin/bash
+
+sudo service rabbitmq-server stop
+
+PROCESSES_TO_KILL="[f]useki-server [r]sp-services-csparql [m]onitoring-manager"
+
+echo "Shutting down platform"
+for p2k in $PROCESSES_TO_KILL
+do
+	PID=$(ps aux | grep $p2k | awk '{print $2}')
+	if [ "$PID" != "" ]
+	then
+		kill $PID 2>/dev/null
+	fi
+done
+
+cd ~/tower4clouds/scripts/
+bash stop-local-platform.sh
+sleep 2
+
+cd

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+FUSEKI_PORT="3030"
+FUSEKI_DIR="fuseki"
+FUSEKI_DS_DIR="modaclouds_kb_ds"
+SLEEP_TIME=5s
+
+function abspath {
+	if [[ -d "$1" ]]
+	then
+		pushd "$1" >/dev/null
+		pwd
+		popd >/dev/null
+	elif [[ -e $1 ]]
+	then
+		pushd $(dirname $1) >/dev/null
+		echo $(pwd)/$(basename $1)
+		popd >/dev/null
+	else
+		echo $1 does not exist! >&2
+		return 127
+	fi
+}
+
+cd
+
+sudo service rabbitmq-server start
+
+mkdir -p logs
+LOGS_FOLDER_ABS=$(abspath logs)
+
+sudo rm -rf $FUSEKI_DS_DIR
+mkdir -p $FUSEKI_DS_DIR
+FUSEKI_DS_DIR_ABS=$(abspath $FUSEKI_DS_DIR)
+cd $FUSEKI_DIR
+echo "Starting KB"
+nohup ./fuseki-server --update --port $FUSEKI_PORT --loc $FUSEKI_DS_DIR_ABS /modaclouds/kb >> $LOGS_FOLDER_ABS/fuseki.log 2>&1 &
+sleep $SLEEP_TIME
+
+export MODACLOUDS_HDB_DB_DATASET_PATH=/modaclouds/kb
+export MODACLOUDS_HDB_DB_ENDPOINT_PORT=$FUSEKI_PORT
+
+cd ~/tower4clouds/scripts/
+echo "Starting Monitoring Platform"
+bash start-local-platform.sh $1
+sleep $SLEEP_TIME
+
+cd

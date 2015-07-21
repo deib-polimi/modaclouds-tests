@@ -1,0 +1,69 @@
+#!/bin/bash
+
+cd
+rm .bashrc_sda
+touch .bashrc_sda
+
+if [ -z ${BASHRC_SET+x} ]
+then
+	echo "source .bashrc_sda" >> ~/.bashrc
+	echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
+
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo apt-get install build-essential -y
+
+sudo apt-get install default-jre -q -y
+export JAVA_HOME=/usr/lib/jvm/default-java
+echo "export JAVA_HOME=/usr/lib/jvm/default-java" >> ~/.bashrc_sda
+
+rm -rf MCR
+mkdir MCR
+cd MCR
+
+wget http://it.mathworks.com/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_glnxa64_installer.zip
+unzip MCR_R2013a_glnxa64_installer.zip
+sudo ./install -mode silent -agreeToLicense yes
+
+sudo rm -rf /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/sys/java/jre/glnxa64/jre
+sudo ln -s /usr/lib/jvm/default-java/jre /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/sys/java/jre/glnxa64/jre
+
+wget http://central.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.1/httpcore-4.4.1.jar
+sudo rm /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/java/jarext/axis2/httpcore.jar
+sudo ln -s /home/ubuntu/MCR/httpcore-4.4.1.jar /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/java/jarext/axis2/httpcore.jar
+
+cd
+rm -rf modaclouds-sda
+mkdir modaclouds-sda
+cd modaclouds-sda
+# wget modaclouds-sda
+# tar xf file
+
+cd ~/modaclouds-sda
+git clone https://github.com/deib-polimi/Modaclouds-SDASync.git
+cd Modaclouds-SDASync
+mvn clean package assembly:assembly -U
+mv target/sdaSync*.jar ~/modaclouds-sda/lib/
+
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=localhost" >> ~/.bashrc_sda
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> ~/.bashrc_sda
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=mic-frontend-mon" >> ~/.bashrc_sda
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=Mic" >> ~/.bashrc_sda
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=MIC" >> ~/.bashrc_sda
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> ~/.bashrc_sda
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=amazon" >> ~/.bashrc_sda
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> ~/.bashrc_sda
+echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_IP=localhost" >> ~/.bashrc_sda
+echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_PORT=8175" >> ~/.bashrc_sda
+echo "export MODACLOUDS_MATLAB_SDA_IP=localhost" >> ~/.bashrc_sda
+echo "export MODACLOUDS_MATLAB_SDA_PORT=8176" >> ~/.bashrc_sda
+echo "export MODACLOUDS_JAVA_SDA_IP=localhost" >> ~/.bashrc_sda
+echo "export MODACLOUDS_JAVA_SDA_PORT=8177" >> ~/.bashrc_sda
+echo "export MODACLOUDS_WEKA_SDA_IP=localhost" >> ~/.bashrc_sda
+echo "export MODACLOUDS_WEKA_SDA_PORT=8177" >> ~/.bashrc_sda
+echo "export MODACLOUDS_MONITORING_MANAGER_PORT=8170" >> ~/.bashrc_sda
+
+source ~/.bashrc_sda
+cd

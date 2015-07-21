@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd
+
+rm .bashrc_mic
+
+bash ~/installMIC
+bash ~/installImperialDC

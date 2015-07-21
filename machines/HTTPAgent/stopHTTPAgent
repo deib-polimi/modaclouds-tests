@@ -1,0 +1,5 @@
+#!/bin/bash
+
+bash ~/http-agent-helper/stopTomcat.sh
+
+cd

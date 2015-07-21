@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd ~/cloudmldaemon
+exec ./cloudmldaemon "$@" >> /home/ubuntu/logs/cloudmldaemon.log
+
+cd

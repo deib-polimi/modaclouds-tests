@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rm -rf logs/
+rm -rf modaclouds_kb_ds/
+source .bashrc
+bash startPlatform "$@"
+exit

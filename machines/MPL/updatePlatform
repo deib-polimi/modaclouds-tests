@@ -1,0 +1,44 @@
+#!/bin/bash
+
+cd ~/tower4clouds
+git pull
+mvn clean package install -DskipTests -U
+
+sudo service fuseki stop
+sudo service rabbitmq-server stop
+
+sudo unlink /vagrant/graphite-conf
+sudo ln -s /home/ubuntu/tower4clouds/observers/influxdb-graphite-grafana/graphite-conf /vagrant/graphite-conf
+
+bash ~/tower4clouds/observers/rdf-history-db/scripts/setup-rabbitmq-fuseki.sh
+bash ~/tower4clouds/observers/influxdb-graphite-grafana/setup.sh
+
+cd
+rm tower4clouds/jena-fuseki*.tar.gz*
+rm tower4clouds/*.deb*
+unlink fuseki
+ln -s tower4clouds/jena-fuseki* fuseki
+
+sudo update-rc.d fuseki disable
+sudo update-rc.d rabbitmq-server disable
+
+sudo service fuseki stop
+sudo service rabbitmq-server stop
+
+cd ~/modaclouds-tests
+git pull
+cd cloudmldaemon
+mvn clean package -DskipTests -U
+rm -rf ~/cloudmldaemon*
+cp target/cloudmldaemon*.tar.gz ~/cloudmldaemon.tar.gz
+cd
+tar zxf cloudmldaemon.tar.gz
+mv cloudmldaemon-* cloudmldaemon
+
+cd
+rm -rf data2stdout*
+cp /home/ubuntu/tower4clouds/observers/data2stdout/target/data2stdout-*.tar.gz data2stdout.tar.gz
+tar zxf data2stdout.tar.gz
+mv data2stdout-* data2stdout
+
+cd

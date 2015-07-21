@@ -1,0 +1,117 @@
+#!/bin/bash
+
+cd ~/mic_unzip/WEB-INF/classes/META-INF/
+sudo rm -f *
+
+touch persistence.xml
+touch configuration.xml
+touch queue.xml
+
+echo '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+
+    Copyright 2013 deib-polimi
+    Contact: deib-polimi <marco.miglierina@polimi.it>
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<persistence version="1.0" xmlns="http://java.sun.com/xml/ns/persistence"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"><persistence-unit name="MyPersistenceUnit" transaction-type="JTA">
+  <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+  <jta-data-source>jdbc/mic2glass</jta-data-source>
+  <class>it.polimi.modaclouds.cloudapp.mic.entity.Topic</class>
+  <class>it.polimi.modaclouds.cloudapp.mic.entity.UserRatings</class>
+  <exclude-unlisted-classes>false</exclude-unlisted-classes>
+  <properties>
+    <property name="javax.persistence.jdbc.password" value="deib-polimi"/>
+    <property name="javax.persistence.jdbc.user" value="deib-polimi"/>
+    <property name="javax.persistence.driver" value="com.mysql.jdbc.Driver"/>
+    <property name="javax.persistence.url" value="jdbc:mysql://'$1':3306/mic_db"/>
+    <property name="eclipselink.ddl-generation" value="create-tables"/>
+    <property name="eclipselink.logging.level" value="INFO"/>
+    <property name="dataSource" value="jdbc/mic2glass" />
+    <property name="blobDataSource" value="jdbc/mic2glass" />
+  </properties>
+
+</persistence-unit>
+</persistence>' >> persistence.xml
+
+echo '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+
+    Copyright 2013 deib-polimi
+    Contact: deib-polimi <marco.miglierina@polimi.it>
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<queue-entries>
+<queue>
+<name>queuetask</name>
+<mode>PUSH</mode>
+<rate>1/s</rate>
+</queue>
+</queue-entries>' >> queue.xml
+
+echo '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+
+    Copyright 2013 deib-polimi
+    Contact: deib-polimi <marco.miglierina@polimi.it>
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<configurations>
+<vendor>Glassfish</vendor>
+<services>
+<sql>
+<connection string="jdbc:mysql://'$1':3306/mic_db"/>
+<blobconnection string="jdbc:mysql://'$1':3306/mic_blobdb"/>
+</sql>
+<memcache>
+<host address="127.0.0.1" port="11211"/>
+</memcache>
+<backend name="http://localhost:8080/mic-frontend"/>
+</services>
+</configurations>
+' >> configuration.xml
+
+cd ~/mic_unzip
+
+zip -r -u mic-frontend-mon.war *
+
+sudo rm -f ~/mic-frontend-mon.war
+mv mic-frontend-mon.war ~

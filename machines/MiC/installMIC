@@ -1,0 +1,54 @@
+#!/bin/bash
+
+cd
+touch .bashrc_mic
+
+if [ -z ${BASHRC_SET+x} ]
+then
+	echo "source .bashrc_mic" >> ~/.bashrc
+	echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
+
+MIC_DIST_LOCATION="https://github.com/deib-polimi/mic-frontend.git"
+MIC_DIST_BRANCH="modaclouds-integration"
+CPIM_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-cpim-library.git"
+CPIM_DIST_BRANCH="master"
+
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo apt-get install build-essential -y
+
+sudo apt-get install maven git -y
+
+export M2_HOME=/usr/share/maven
+echo "export M2_HOME=/usr/share/maven" >> ~/.bashrc_mic
+export M2=$M2_HOME/bin
+echo "export M2=\$M2_HOME/bin" >> ~/.bashrc_mic
+export PATH=$M2:$PATH
+echo "export PATH=\$M2:\$PATH" >> ~/.bashrc_mic
+
+sudo apt-get install default-jre -q -y
+export JAVA_HOME=/usr/lib/jvm/default-java
+echo "export JAVA_HOME=/usr/lib/jvm/default-java" >> ~/.bashrc_mic
+
+cd
+sudo rm -rf modaclouds-cpim-library
+git clone $CPIM_DIST_LOCATION -b $CPIM_DIST_BRANCH
+cd modaclouds-cpim-library
+mvn clean install -DskipTests
+
+cd
+sudo rm -rf mic-frontend
+git clone $MIC_DIST_LOCATION -b $MIC_DIST_BRANCH
+cd mic-frontend
+mvn clean package
+
+cp -R ~/mic-frontend/target/mic-frontend-* ~/
+rm -rf ~/mic-frontend-*.war
+rm -rf ~/mic_unzip
+mv ~/mic-frontend-* ~/mic_unzip
+mkdir -p ~/mic_unzip/WEB-INF/classes/META-INF
+
+cd
+source .bashrc_mic

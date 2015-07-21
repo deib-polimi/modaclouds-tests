@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd ~/modaclouds-data-collectors
+git pull
+mvn clean package assembly:single -U
+
+cp target/data-collector-*.jar ~/data-collector.jar
+
+cd

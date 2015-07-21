@@ -1,0 +1,74 @@
+#!/bin/bash
+
+cd
+rm .bashrc_httpagent
+touch .bashrc_httpagent
+
+if [ -z ${BASHRC_SET+x} ]
+then
+	echo "source ~/.bashrc_httpagent" >> ~/.bashrc
+	echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
+
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> ~/.bashrc_httpagent
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=http-agent-helper" >> ~/.bashrc_httpagent
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=HTTPAgentHelper" >> ~/.bashrc_httpagent
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=HTTPAgent" >> ~/.bashrc_httpagent
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> ~/.bashrc_httpagent
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=amazon" >> ~/.bashrc_httpagent
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> ~/.bashrc_httpagent
+source ~/.bashrc_httpagent
+
+TESTS_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-tests.git"
+TESTS_DIST_BRANCH="master"
+
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo apt-get install build-essential -y
+
+sudo apt-get install maven git -y
+
+export M2_HOME=/usr/share/maven
+echo "export M2_HOME=/usr/share/maven" >> ~/.bashrc_httpagent
+export M2=$M2_HOME/bin
+echo "export M2=\$M2_HOME/bin" >> ~/.bashrc_httpagent
+export PATH=$M2:$PATH
+echo "export PATH=\$M2:\$PATH" >> ~/.bashrc_httpagent
+
+sudo apt-get install default-jre default-jdk -q -y
+export JAVA_HOME=/usr/lib/jvm/default-java
+echo "export JAVA_HOME=/usr/lib/jvm/default-java" >> ~/.bashrc_httpagent
+
+wget -qO- https://get.docker.com/ | sh
+
+cd
+sudo rm -rf modaclouds-tests
+git clone $TESTS_DIST_LOCATION -b $TESTS_DIST_BRANCH
+cd modaclouds-tests/http-agent-helper
+mvn clean package -U
+rm -rf ~/http-agent-helper*
+cp target/http-agent-helper*.tar.gz ~/http-agent-helper.tar.gz
+cd
+tar zxf http-agent-helper.tar.gz
+mv http-agent-helper-* http-agent-helper
+
+cd
+tar zxf modaclouds.tar.gz
+cd ~/modaclouds
+mv httpagent.docker httpagent-orig.docker
+mv httpAgentRun.sh httpAgentRun-orig.sh
+cp ~/http-agent-helper/httpagent.docker .
+cp ~/http-agent-helper/httpAgentRun.sh .
+cp ~/http-agent-helper/http-agent-helper.war .
+chmod +x httpAgentRun.sh
+
+cd ~/http-agent-helper
+bash stopTomcat.sh
+
+cd ~/modaclouds
+sudo docker rm `sudo docker ps -a | grep httpagent16 | awk '{print $1}'`
+sudo ./build.sh httpagent 16
+
+source ~/.bashrc_httpagent
+cd

@@ -1,0 +1,93 @@
+#!/bin/bash
+
+cd
+rm .bashrc_mpl
+touch .bashrc_mpl
+
+if [ -z ${BASHRC_SET+x} ]
+then
+	echo "source .bashrc_mpl" >> ~/.bashrc
+	echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
+
+echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_IP=localhost" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_PORT=8175" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_MATLAB_SDA_IP=localhost" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_MATLAB_SDA_PORT=8175" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_WEKA_SDA_IP=localhost" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_WEKA_SDA_PORT=8175" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_MONITORING_MANAGER_PORT=8170" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_KNOWLEDGEBASE_ENDPOINT_IP=localhost" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_KNOWLEDGEBASE_ENDPOINT_PORT=3030" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_KNOWLEDGEBASE_DATASET_PATH=/modaclouds/kb" >> ~/.bashrc_mpl
+source ~/.bashrc_mpl
+
+T4C_DIST_LOCATION="https://github.com/deib-polimi/tower4clouds.git"
+T4C_DIST_BRANCH="develop"
+TESTS_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-tests.git"
+TESTS_DIST_BRANCH="master"
+
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo apt-get install build-essential -y
+
+sudo apt-get install maven git -y
+
+export M2_HOME=/usr/share/maven
+echo "export M2_HOME=/usr/share/maven" >> ~/.bashrc_mpl
+export M2=$M2_HOME/bin
+echo "export M2=\$M2_HOME/bin" >> ~/.bashrc_mpl
+export PATH=$M2:$PATH
+echo "export PATH=\$M2:\$PATH" >> ~/.bashrc_mpl
+
+sudo apt-get install default-jre -q -y
+export JAVA_HOME=/usr/lib/jvm/default-java
+echo "export JAVA_HOME=/usr/lib/jvm/default-java" >> ~/.bashrc_mpl
+
+sudo service fuseki stop
+
+cd
+sudo rm -rf tower4clouds
+git clone $T4C_DIST_LOCATION -b $T4C_DIST_BRANCH
+cd tower4clouds
+mvn clean package -U
+
+sudo mkdir -p /vagrant
+sudo unlink /vagrant/graphite-conf
+sudo ln -s /home/ubuntu/tower4clouds/observers/influxdb-graphite-grafana/graphite-conf /vagrant/graphite-conf
+
+bash ~/tower4clouds/observers/rdf-history-db/scripts/setup-rabbitmq-fuseki.sh
+bash ~/tower4clouds/observers/influxdb-graphite-grafana/setup.sh
+
+cd
+rm tower4clouds/jena-fuseki*.tar.gz*
+rm tower4clouds/*.deb*
+unlink fuseki
+ln -s tower4clouds/jena-fuseki* fuseki
+
+sudo update-rc.d fuseki disable
+sudo update-rc.d rabbitmq-server disable
+
+sudo service fuseki stop
+sudo service rabbitmq-server stop
+
+cd
+sudo rm -rf modaclouds-tests
+git clone $TESTS_DIST_LOCATION -b $TESTS_DIST_BRANCH
+cd modaclouds-tests/cloudmldaemon
+mvn clean package -U
+rm -rf ~/cloudmldaemon*
+cp target/cloudmldaemon*.tar.gz ~/cloudmldaemon.tar.gz
+cd
+tar zxf cloudmldaemon.tar.gz
+mv cloudmldaemon-* cloudmldaemon
+
+cd
+rm -rf data2stdout*
+cp /home/ubuntu/tower4clouds/observers/data2stdout/target/data2stdout-*.tar.gz data2stdout.tar.gz
+tar zxf data2stdout.tar.gz
+mv data2stdout-* data2stdout
+
+source ~/.bashrc_mpl
+cd

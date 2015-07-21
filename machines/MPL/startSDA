@@ -1,0 +1,26 @@
+#!/bin/bash
+
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$1" >> ~/.bashrc_sda
+echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_IP=$1" >> ~/.bashrc_sda
+echo "export MODACLOUDS_MATLAB_SDA_IP=$1" >> ~/.bashrc_sda
+echo "export MODACLOUDS_JAVA_SDA_IP=$1" >> ~/.bashrc_sda
+echo "export MODACLOUDS_WEKA_SDA_IP=$1" >> ~/.bashrc_sda
+
+cd /home/ubuntu/data2stdout
+nohup bash tower4clouds-data2stdout 8173 > /home/ubuntu/cpu.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8174 > /home/ubuntu/cpuSteal.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8177 > /home/ubuntu/wl.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8178 > /home/ubuntu/rt.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8179 > /home/ubuntu/d.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8185 > /home/ubuntu/thresholds.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8180 > /home/ubuntu/wlforFirst.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8181 > /home/ubuntu/wlforSecond.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8182 > /home/ubuntu/wlforThird.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8183 > /home/ubuntu/wlforFourth.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8184 > /home/ubuntu/wlforFifth.out 2>&1 &
+
+cd /home/ubuntu/modaclouds-sda
+source ~/.bashrc_sda
+sudo -E nohup bash run_main.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81 tower4clouds > /home/ubuntu/sda.out 2>&1 &
+
+cd

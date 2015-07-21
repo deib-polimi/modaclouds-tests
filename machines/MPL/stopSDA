@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PROCESSES_TO_KILL="[r]un_main.sh"
+# lol
+
+echo "Shutting down SDA"
+for p2k in $PROCESSES_TO_KILL
+do
+	PID=$(ps aux | grep $p2k | awk '{print $2}')
+	if [ "$PID" != "" ]
+	then
+		kill $PID 2>/dev/null
+	fi
+done
+
+pkill -f tower4clouds-data2stdout
+
+cd

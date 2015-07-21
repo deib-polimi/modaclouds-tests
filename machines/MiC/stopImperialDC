@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PROCESSES_TO_KILL="[d]ata-collector.jar"
+
+echo "Stopping imperial data colletor"
+for p2k in $PROCESSES_TO_KILL
+do
+	PID=$(ps aux | grep $p2k | awk '{print $2}')
+	if [ "$PID" != "" ]
+	then
+		kill $PID 2>/dev/null
+	fi
+done

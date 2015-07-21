@@ -1,0 +1,17 @@
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$2" >> ~/glassfish4/glassfish/config/asenv.conf
+
+sudo nohup ~/glassfish4/bin/asadmin start-domain > ~/nohup-glass.out &
+sleep 45s
+
+cd ~/glassfish4/bin
+./asadmin set resources.jdbc-connection-pool.mic2glass_connection_pool.property.serverName="$1"
+./asadmin set resources.jdbc-connection-pool.mic2glass_blobconnection.property.serverName="$1"
+./asadmin set resources.jdbc-connection-pool.mic2glass_connection_pool.max-pool-size=6000
+./asadmin set resources.jdbc-connection-pool.mic2glass_connection_pool.steady-pool-size=40
+./asadmin set resources.jdbc-connection-pool.mic2glass_connection_pool.max-wait-time-in-millis=0
+./asadmin set resources.jdbc-connection-pool.mic2glass_connection_pool.idle-timeout-in-seconds=0
+
+./asadmin get resources.jdbc-connection-pool.mic2glass_connection_pool
+./asadmin get resources.jdbc-connection-pool.mic2glass_blobconnection.property
+
+

@@ -1,0 +1,65 @@
+#!/bin/bash
+
+cd
+touch .bashrc_mic
+
+if [ -z ${BASHRC_SET+x} ]
+then
+	echo "source .bashrc_mic" >> ~/.bashrc
+	echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
+
+DC_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-data-collectors.git"
+DC_DIST_BRANCH="master"
+SIGAR_DIST_LOCATION="http://downloads.sourceforge.net/project/sigar/sigar/1.6/hyperic-sigar-1.6.4.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fsigar%2F&ts=1408674953&use_mirror=kent"
+SIGAR_FOLDER=hyperic-sigar-1.6.4
+
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=mic-frontend-mon" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=Mic" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=MIC" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=amazon" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> .bashrc_mic
+source ~/.bashrc_mic
+
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo apt-get install build-essential -y
+
+sudo apt-get install maven git -y
+
+export M2_HOME=/usr/share/maven
+echo "export M2_HOME=/usr/share/maven" >> ~/.bashrc_mic
+export M2=$M2_HOME/bin
+echo "export M2=\$M2_HOME/bin" >> ~/.bashrc_mic
+export PATH=$M2:$PATH
+echo "export PATH=\$M2:\$PATH" >> ~/.bashrc_mic
+
+sudo apt-get install collectl -y
+
+if [ ! -d "$SIGAR_FOLDER" ]
+then
+	echo "Downloading and installing sigar"
+	wget -q -O sigar.zip $SIGAR_DIST_LOCATION
+	RC=$?
+	if [ "$RC" -ne 0 ]
+	then
+		echo "Error while downloading sigar from $SIGAR_DIST_LOCATION"
+		rm sigar.zip
+		exit $RC
+	fi
+	unzip -q sigar.zip
+fi
+
+cd
+sudo rm -rf modaclouds-data-collectors
+git clone $DC_DIST_LOCATION -b $DC_DIST_BRANCH
+cd modaclouds-data-collectors
+mvn clean package assembly:single
+
+cp target/data-collector-*.jar ~/data-collector.jar
+
+cd
+source .bashrc_mic

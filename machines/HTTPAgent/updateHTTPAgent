@@ -1,0 +1,26 @@
+#!/bin/bash
+
+cd ~/modaclouds-tests
+git pull
+cd http-agent-helper
+mvn clean package -DskipTests -U
+rm -rf ~/http-agent-helper*
+cp target/http-agent-helper*.tar.gz ~/http-agent-helper.tar.gz
+cd
+tar zxf http-agent-helper.tar.gz
+mv http-agent-helper-* http-agent-helper
+
+cd ~/modaclouds
+cp ~/http-agent-helper/httpagent.docker .
+cp ~/http-agent-helper/httpAgentRun.sh .
+cp ~/http-agent-helper/http-agent-helper.war .
+chmod +x httpAgentRun.sh
+
+cd ~/http-agent-helper
+bash stopTomcat.sh
+
+cd ~/modaclouds
+sudo docker rm `sudo docker ps -a | grep httpagent16 | awk '{print $1}'`
+sudo ./build.sh httpagent 16
+
+cd
