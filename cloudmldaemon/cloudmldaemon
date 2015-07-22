@@ -30,4 +30,4 @@ fi
 
 JVM_ARGS=${JVM_ARGS:--Xmx1200M}
 
-exec java $JVM_ARGS -cp "$JAR:lib/*" $CLASS "$@"
+exec java $JVM_ARGS -cp "$JAR:lib/*" $CLASS "$@" &

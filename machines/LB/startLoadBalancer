@@ -1,3 +1,32 @@
 #!/bin/bash
+#$1=LB PORT
+#$2->$INF=IP:PORT OF THE SERVERS
+
+FILE="/etc/haproxy/haproxy.cfg"
+PORT=8080
+if [ "$#" -gt 0 ]
+then
+    PORT=$1
+fi
+
+if [ ! -f "$FILE-prestart" ]
+then
+    sudo cp "$FILE" "$FILE-prestart"
+fi
+
+sudo cp "$FILE-prestart" "$FILE"
+
+sudo sed "s/REPLACE_PORT/$PORT/" <$FILE >$FILE-new
+
+shift
+for server in "$@"
+do
+    sudo sed "s/REPLACE_SERVER/server app $server cookie checkNEWLINE    REPLACE_SERVER/" <$FILE-new >$FILE-new1
+    sudo sed 's/NEWLINE/\
+/g' <$FILE-new1 >$FILE-new
+done
+sudo sed "s/REPLACE_SERVER//" <$FILE-new >$FILE-new1
+sudo mv $FILE-new1 $FILE-new
+sudo mv $FILE-new $FILE
 
 sudo service haproxy start

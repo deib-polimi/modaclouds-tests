@@ -7,7 +7,9 @@ ENV TARGETDIR /var/www/html/sync
 ENV CATALINA  /var/lib/tomcat7
 
 # Installing Open SSH and public key
-RUN apt-get update && apt-get install -y openssh-server openssh-client
+RUN apt-get update -y
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+RUN apt-get install -y openssh-server openssh-client
 RUN mkdir $USERHOME/.ssh
 COPY id_rsa $USERHOME/.ssh/id_rsa
 COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub
@@ -50,7 +52,7 @@ RUN sed 's/%h %l %u %t &quot;%r&quot; %s %b/%h %l %u %t \&quot;%r\&quot; %s %b %
 RUN mv $CATALINA/conf/server-new.xml $CATALINA/conf/server.xml
 
 # Other goodness
-RUN apt-get -y install nano language-pack-it language-pack-en
+RUN apt-get -y install nano
 
 # Start servers
 CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
