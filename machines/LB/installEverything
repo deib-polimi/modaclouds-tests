@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd
+
+rm .bashrc_lb
+touch .bashrc_lb
+
+if [ -z ${BASHRC_SET+x} ]
+then
+    echo "source ~/.bashrc_lb" >> ~/.bashrc
+    echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
+
+bash ~/installLoadBalancer
