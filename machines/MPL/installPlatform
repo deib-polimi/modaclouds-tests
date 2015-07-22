@@ -20,8 +20,8 @@ TESTS_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-tests.git"
 TESTS_DIST_BRANCH="master"
 
 sudo apt-get update -y
-sudo apt-get upgrade -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+# sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 sudo apt-get install build-essential -y
 
 sudo apt-get install maven git -y
