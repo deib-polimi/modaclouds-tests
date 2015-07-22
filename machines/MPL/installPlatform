@@ -1,14 +1,6 @@
 #!/bin/bash
 
 cd
-rm .bashrc_mpl
-touch .bashrc_mpl
-
-if [ -z ${BASHRC_SET+x} ]
-then
-	echo "source .bashrc_mpl" >> ~/.bashrc
-	echo "export BASHRC_SET=true" >> ~/.bashrc
-fi
 
 echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_IP=localhost" >> ~/.bashrc_mpl
 echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_PORT=8175" >> ~/.bashrc_mpl
@@ -29,7 +21,7 @@ TESTS_DIST_BRANCH="master"
 
 sudo apt-get update -y
 sudo apt-get upgrade -y
-sudo apt-get dist-upgrade -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 sudo apt-get install build-essential -y
 
 sudo apt-get install maven git -y

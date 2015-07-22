@@ -1,14 +1,6 @@
 #!/bin/bash
 
 cd
-rm .bashrc_httpagent
-touch .bashrc_httpagent
-
-if [ -z ${BASHRC_SET+x} ]
-then
-	echo "source ~/.bashrc_httpagent" >> ~/.bashrc
-	echo "export BASHRC_SET=true" >> ~/.bashrc
-fi
 
 echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> ~/.bashrc_httpagent
 echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=http-agent-helper" >> ~/.bashrc_httpagent
@@ -24,7 +16,7 @@ TESTS_DIST_BRANCH="master"
 
 sudo apt-get update -y
 sudo apt-get upgrade -y
-sudo apt-get dist-upgrade -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 sudo apt-get install build-essential -y
 
 sudo apt-get install maven git -y

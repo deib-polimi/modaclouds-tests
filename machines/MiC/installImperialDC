@@ -1,13 +1,6 @@
 #!/bin/bash
 
 cd
-touch .bashrc_mic
-
-if [ -z ${BASHRC_SET+x} ]
-then
-	echo "source .bashrc_mic" >> ~/.bashrc
-	echo "export BASHRC_SET=true" >> ~/.bashrc
-fi
 
 DC_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-data-collectors.git"
 DC_DIST_BRANCH="master"

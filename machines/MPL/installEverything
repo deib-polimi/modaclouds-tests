@@ -3,7 +3,13 @@
 cd
 
 rm .bashrc_mpl
-rm .bashrc_sda
+touch .bashrc_mpl
+
+if [ -z ${BASHRC_SET+x} ]
+then
+    echo "source .bashrc_mpl" >> ~/.bashrc
+    echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
 
 bash ~/installPlatform
 bash ~/installSDA

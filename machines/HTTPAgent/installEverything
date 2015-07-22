@@ -3,6 +3,13 @@
 cd
 
 rm .bashrc_httpagent
+touch .bashrc_httpagent
+
+if [ -z ${BASHRC_SET+x} ]
+then
+    echo "source ~/.bashrc_httpagent" >> ~/.bashrc
+    echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
 
 bash ~/installHTTPAgent
 bash ~/installImperialDC

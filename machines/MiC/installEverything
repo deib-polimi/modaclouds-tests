@@ -3,6 +3,13 @@
 cd
 
 rm .bashrc_mic
+touch .bashrc_mic
+
+if [ -z ${BASHRC_SET+x} ]
+then
+    echo "source .bashrc_mic" >> ~/.bashrc
+    echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
 
 bash ~/installMIC
 bash ~/installImperialDC
