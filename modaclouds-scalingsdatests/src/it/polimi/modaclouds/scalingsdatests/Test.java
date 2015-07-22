@@ -78,7 +78,7 @@ public class Test {
 				"grep_methodResult-MiC",
 				new String[] { "reg", "save", "answ" },
 				"MIC",
-				"cloudml-MiC.json",
+				"cloudml.json",
 				"cloudmlrules.txt"),
 		HTTPAGENT(
 				"httpagent",
@@ -89,7 +89,7 @@ public class Test {
 				"grep_methodResult-HTTPAgent",
 				new String[] { "getPage" },
 				"HTTPAgent",
-				"cloudml-HTTPAgent.json",
+				"cloudml.json",
 				"cloudmlrules.txt"
 				);
 
@@ -429,6 +429,7 @@ public class Test {
 		String mplIp = impl.getIp();
 		int mplPort = Integer.parseInt(mpl.getParameter("MP_PORT"));
 
+		impl.exec(mpl.getParameter("UPDATER"));
 		impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
@@ -467,11 +468,12 @@ public class Test {
 
 		if (!useCloudML)
 			for (Instance iapp : app.getInstances()) {
+				iapp.exec(app.getParameter("UPDATER"));
 				iapp.exec(String.format(
 						app.getParameter("STARTER"),
 						useDatabase ? database.getIps().get(0) : "127.0.0.1",
 						mplIp
-						));
+				));
 
 				try { Thread.sleep(10000); } catch (Exception e) { }
 
@@ -704,6 +706,8 @@ public class Test {
 				RandomStringUtils.randomNumeric(3),
 				app.getImageId(),
 				it.cloud.amazon.Configuration.REGION,
+				app.getParameter("DOWNLOADER").replaceAll("&&", " ; "),
+				app.getParameter("INSTALLER").replaceAll("&&", " ; "),
 				String.format(
 						app.getParameter("STARTER").replaceAll("&&", " ; "),
 						useDatabase ? database.getIps().get(0) : "127.0.0.1",
@@ -720,7 +724,8 @@ public class Test {
 						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 						it.cloud.amazon.Configuration.REGION,
 						loadBalancer),
-				app.getSize()
+				app.getSize(),
+				app.getParameter("NAME")
 				);
 
 		Path p = Files.createTempFile("model", ".json");

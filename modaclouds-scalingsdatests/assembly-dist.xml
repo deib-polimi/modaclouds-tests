@@ -97,14 +97,9 @@
       <destName>stopContainerMonitoring-HTTPAgent.sh</destName>
     </file>
     <file>
-      <source>resources/cloudml-MiC.json</source>
+      <source>resources/cloudml.json</source>
       <outputDirectory></outputDirectory>
-      <destName>cloudml-MiC.json</destName>
-    </file>
-    <file>
-      <source>resources/cloudml-HTTPAgent.json</source>
-      <outputDirectory></outputDirectory>
-      <destName>cloudml-HTTPAgent.json</destName>
+      <destName>cloudml.json</destName>
     </file>
     <file>
       <source>resources/cloudmlrules.txt</source>
