@@ -3,6 +3,7 @@
 #$2->$INF=IP:PORT OF THE SERVERS
 
 FILE="/etc/haproxy/haproxy.cfg"
+TMP_FILE="/tmp/haproxy.cfg"
 PORT=8080
 if [ "$#" -gt 0 ]
 then
@@ -16,17 +17,17 @@ fi
 
 sudo cp "$FILE-prestart" "$FILE"
 
-sudo sed "s/REPLACE_PORT/$PORT/" <$FILE >$FILE-new
+sed "s/REPLACE_PORT/$PORT/" <$FILE >$TMP_FILE
 
 shift
 for server in "$@"
 do
-    sudo sed "s/REPLACE_SERVER/server app $server cookie checkNEWLINE    REPLACE_SERVER/" <$FILE-new >$FILE-new1
-    sudo sed 's/NEWLINE/\
-/g' <$FILE-new1 >$FILE-new
+    sed "s/REPLACE_SERVER/server app $server cookie checkNEWLINE    REPLACE_SERVER/" <$TMP_FILE >$TMP_FILE-1
+    sed 's/NEWLINE/\
+/g' <$TMP_FILE-1 >$TMP_FILE
 done
-sudo sed "s/REPLACE_SERVER//" <$FILE-new >$FILE-new1
-sudo mv $FILE-new1 $FILE-new
-sudo mv $FILE-new $FILE
+sed "s/REPLACE_SERVER//" <$TMP_FILE >$TMP_FILE-1
+mv $TMP_FILE-1 $TMP_FILE
+sudo mv $TMP_FILE $FILE
 
-sudo service haproxy start
+sudo service haproxy restart
