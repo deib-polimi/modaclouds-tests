@@ -6,17 +6,19 @@ ENV USERHOME  /root
 ENV TARGETDIR /var/www/html/sync
 ENV CATALINA  /var/lib/tomcat7
 
-# Installing Open SSH and public key
+# Upgrade the repos and the system
 RUN apt-get update -y
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
-RUN apt-get install -y openssh-server openssh-client
-RUN mkdir $USERHOME/.ssh
-COPY id_rsa $USERHOME/.ssh/id_rsa
-COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub
-RUN cat $USERHOME/.ssh/id_rsa.pub > $USERHOME/.ssh/authorized_keys
-RUN chmod go-rwx $USERHOME/.ssh/id_rsa $USERHOME/.ssh/id_rsa.pub
-RUN mkdir /var/run/sshd
-EXPOSE 22
+#RUN DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+
+# Installing Open SSH and public key
+#RUN apt-get install -y openssh-server openssh-client
+#RUN mkdir $USERHOME/.ssh
+#COPY id_rsa $USERHOME/.ssh/id_rsa
+#COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub
+#RUN cat $USERHOME/.ssh/id_rsa.pub > $USERHOME/.ssh/authorized_keys
+#RUN chmod go-rwx $USERHOME/.ssh/id_rsa $USERHOME/.ssh/id_rsa.pub
+#RUN mkdir /var/run/sshd
+#EXPOSE 22
 
 # Installing Apache2
 RUN sudo apt-get install -y apache2
@@ -33,7 +35,8 @@ RUN unzip $TARGETDIR/model.zip -d $TARGETDIR
 RUN chmod 755 -R /var/www/ && mv $TARGETDIR/model /tmp/model && mv /tmp/model $TARGETDIR/model
 
 # Installing Tomcat7 and the application
-RUN apt-get -y install tomcat7 default-jre default-jdk
+RUN apt-get -y install tomcat7 default-jre
+#RUN apt-get -y install default-jdk
 ENV JAVA_HOME /usr/lib/jvm/default-java
 ENV TOMCAT7_USER root
 ENV TOMCAT7_GROUP root
@@ -51,8 +54,6 @@ COPY http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
 RUN sed 's/%h %l %u %t &quot;%r&quot; %s %b/%h %l %u %t \&quot;%r\&quot; %s %b %D/' <$CATALINA/conf/server.xml >$CATALINA/conf/server-new.xml
 RUN mv $CATALINA/conf/server-new.xml $CATALINA/conf/server.xml
 
-# Other goodness
-RUN apt-get -y install nano
-
 # Start servers
-CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
+#CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
+CMD sudo /usr/sbin/apache2ctl -D FOREGROUND
