@@ -39,13 +39,14 @@ public class CloudML implements PropertyChangeListener {
 	public static void main(String[] args) throws Exception {
 		boolean machineAlreadyPrepared = true;
 		boolean restartCloudML = true;
-		boolean useLocalCloudML = true;
+		boolean useLocalCloudML = false;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
 
 		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
 		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.medium", 1);
-		String loadBalancer = "ScalingSDATests090";
+//		String loadBalancer = "ScalingSDATests090";
+		String loadBalancer = "109.231.126.56";
 		String cloudMLIp = null;
 		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
 
@@ -65,6 +66,7 @@ public class CloudML implements PropertyChangeListener {
 			cloudMLIp = mplIp;
 
 			if (!machineAlreadyPrepared) {
+				impl.exec(mpl.getParameter("UPDATER"));
 				impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
 				Thread.sleep(10000);
 
@@ -87,16 +89,14 @@ public class CloudML implements PropertyChangeListener {
 
 		logger.info("Deploy the system...");
 
-		System.setProperty("jsse.enableSNIExtension", "false");
-
-		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, loadBalancer, true, false, null).toFile());
+		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, true).toFile());
 
 		logger.info("Starting the test...");
 
 //		cml.scale(usedApp.tierName, 1);
-
-		cml.burst(usedApp.tierName);
-
+//
+//		cml.burst(usedApp.tierName);
+//
 //		cml.scale(usedApp.tierName, oneAmong(-1, 1));
 //
 //		cml.scale(usedApp.tierName, oneAmong(-1, 1));

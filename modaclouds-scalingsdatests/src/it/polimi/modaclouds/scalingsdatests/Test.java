@@ -56,6 +56,7 @@ public class Test {
 	private boolean useDatabase;
 	private boolean useCloudML;
 	private boolean useSDA;
+	private boolean useOwnLoadBalancer;
 
 	private boolean running;
 	private boolean initialized;
@@ -79,6 +80,7 @@ public class Test {
 				new String[] { "reg", "save", "answ" },
 				"MIC",
 				"cloudml.json",
+				"cloudml-LB.json",
 				"cloudmlrules.txt"),
 		HTTPAGENT(
 				"httpagent",
@@ -90,6 +92,7 @@ public class Test {
 				new String[] { "getPage" },
 				"HTTPAgent",
 				"cloudml.json",
+				"cloudml-LB.json",
 				"cloudmlrules.txt"
 				);
 
@@ -102,9 +105,10 @@ public class Test {
 		public String[] methods;
 		public String tierName;
 		public String cloudMl;
+		public String cloudMlLoadBalancer;
 		public String cpuUtilizationRules;
 
-		private App(String name, String fileModel, String baseJmx, String startContainerMonitoringFile, String stopContainerMonitoringFile, String grepMethodResult, String[] methods, String tierName, String cloudMl, String cpuUtilizationRules) {
+		private App(String name, String fileModel, String baseJmx, String startContainerMonitoringFile, String stopContainerMonitoringFile, String grepMethodResult, String[] methods, String tierName, String cloudMl, String cloudMlLoadBalancer, String cpuUtilizationRules) {
 			this.name = name;
 			this.fileModel = fileModel;
 			this.baseJmx = baseJmx;
@@ -114,6 +118,7 @@ public class Test {
 			this.methods = methods;
 			this.tierName = tierName;
 			this.cloudMl = cloudMl;
+			this.cloudMlLoadBalancer = cloudMlLoadBalancer;
 			this.cpuUtilizationRules = cpuUtilizationRules;
 		}
 
@@ -154,7 +159,7 @@ public class Test {
 	public static final int MAX_ATTEMPTS = 5;
 
 	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown) throws Exception {
+			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp) throws Exception {
 		String baseJmx = app.getBaseJmxPath().toString();
 
 		if (baseJmx == null || !new File(baseJmx).exists())
@@ -169,13 +174,16 @@ public class Test {
 
 		long init = System.currentTimeMillis();
 
-		Test t = new Test(size, clients, servers, app.name, useDatabase, useSDA, useCloudML);
+		Test t = new Test(size, clients, servers, app.name, useDatabase, useSDA, useCloudML, loadBalancerIp != null);
 
 		if (reuseInstances)
 			t.considerRunningMachines();
 		t.startMachines(startAsOnDemand);
 
-		t.createLoadBalancer();
+		if (loadBalancerIp != null)
+			t.loadBalancer = loadBalancerIp;
+		else
+			t.createLoadBalancer();
 
 		Path path = null;
 		Exception thrown = null;
@@ -219,7 +227,8 @@ public class Test {
 			t.terminateCloudMLDaemon();
 		}
 
-		t.destroyLoadBalancer();
+		if (loadBalancerIp == null)
+			t.destroyLoadBalancer();
 
 		if (!leaveInstancesOn)
 			t.stopMachines();
@@ -233,7 +242,7 @@ public class Test {
 		return System.currentTimeMillis() - init;
 	}
 
-	public Test(String size, int clients, int servers, String app, boolean useDatabase, boolean useSDA, boolean useCloudML) throws CloudException {
+	public Test(String size, int clients, int servers, String app, boolean useDatabase, boolean useSDA, boolean useCloudML, boolean useOwnLoadBalancer) throws CloudException {
 		if (clients <= 0)
 			throw new RuntimeException("You need at least 1 client!");
 
@@ -254,6 +263,7 @@ public class Test {
 
 		this.useCloudML = useCloudML;
 		this.useSDA = useSDA;
+		this.useOwnLoadBalancer = useOwnLoadBalancer;
 
 		otherThreads = new ArrayList<Thread>();
 	}
@@ -655,11 +665,15 @@ public class Test {
 
 	public Path getActualDeploymentModel(App app, boolean remotePathIfNecessary) throws Exception {
 		String ipMpl = mpl.getInstances().get(0).getIp();
-		return getActualDeploymentModel(ipMpl, mpl, this.app, app.cloudMl, loadBalancer, remotePathIfNecessary, useDatabase, database);
+		return getActualDeploymentModel(ipMpl, mpl, this.app, app.cloudMl, app.cloudMlLoadBalancer, loadBalancer, remotePathIfNecessary, useDatabase, database, useOwnLoadBalancer);
 	}
 
-	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine app, String cloudMl, String loadBalancer, boolean remotePathIfNecessary, boolean useDatabase, VirtualMachine database) throws Exception {
-		String body = FileUtils.readFileToString(Configuration.getPathToFile(cloudMl).toFile());
+	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine app, String cloudMl, String cloudMlLoadBalancer, String loadBalancer, boolean remotePathIfNecessary, boolean useDatabase, VirtualMachine database, boolean useOwnLoadBalancer) throws Exception {
+		String body = null;
+		if (useOwnLoadBalancer)
+			body = FileUtils.readFileToString(Configuration.getPathToFile(cloudMlLoadBalancer).toFile());
+		else
+			body = FileUtils.readFileToString(Configuration.getPathToFile(cloudMl).toFile());
 
 		JSONObject jsonObject = new JSONObject(body);
 
@@ -702,31 +716,49 @@ public class Test {
 			}
 		}
 
-		body = String.format(body,
-				RandomStringUtils.randomNumeric(3),
-				app.getImageId(),
-				it.cloud.amazon.Configuration.REGION,
-				app.getParameter("DOWNLOADER").replaceAll("&&", " ; "),
-				app.getParameter("INSTALLER").replaceAll("&&", " ; "),
-				String.format(
-						app.getParameter("STARTER").replaceAll("&&", " ; "),
-						useDatabase ? database.getIps().get(0) : "127.0.0.1",
-						ipMpl),
-				String.format(
-						app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						it.cloud.amazon.Configuration.REGION,
-						loadBalancer),
-				String.format(
-						app.getParameter("DEL_FROM_LOAD_BALANCER").replaceAll("&&", " ; "),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
-						it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
-						it.cloud.amazon.Configuration.REGION,
-						loadBalancer),
-				app.getSize(),
-				app.getParameter("NAME")
-				);
+		if (useOwnLoadBalancer)
+			body = String.format(body,
+					RandomStringUtils.randomNumeric(3),
+					app.getImageId(),
+					it.cloud.amazon.Configuration.REGION,
+					app.getParameter("DOWNLOADER").replaceAll("&&", " ; "),
+					app.getParameter("INSTALLER").replaceAll("&&", " ; "),
+					String.format(
+							app.getParameter("STARTER").replaceAll("&&", " ; "),
+							useDatabase ? database.getIps().get(0) : "127.0.0.1",
+							ipMpl),
+					"echo DONE",
+					"echo DONE",
+					app.getSize(),
+					app.getParameter("NAME"),
+					loadBalancer
+					);
+		else
+			body = String.format(body,
+					RandomStringUtils.randomNumeric(3),
+					app.getImageId(),
+					it.cloud.amazon.Configuration.REGION,
+					app.getParameter("DOWNLOADER").replaceAll("&&", " ; "),
+					app.getParameter("INSTALLER").replaceAll("&&", " ; "),
+					String.format(
+							app.getParameter("STARTER").replaceAll("&&", " ; "),
+							useDatabase ? database.getIps().get(0) : "127.0.0.1",
+							ipMpl),
+					String.format(
+							app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),
+							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+							it.cloud.amazon.Configuration.REGION,
+							loadBalancer),
+					String.format(
+							app.getParameter("DEL_FROM_LOAD_BALANCER").replaceAll("&&", " ; "),
+							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
+							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
+							it.cloud.amazon.Configuration.REGION,
+							loadBalancer),
+					app.getSize(),
+					app.getParameter("NAME")
+					);
 
 		Path p = Files.createTempFile("model", ".json");
 		FileUtils.writeStringToFile(p.toFile(), body);

@@ -4,3 +4,10 @@ cd
 
 sudo apt-get update -y
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install --only-upgrade -y haproxy -t trusty-backports
+
+cd ~/modaclouds-loadbalancer-controller
+rm -rf envHrapi
+git pull
+rm -rf envHrapi
+virtualenv envHrapi
+/bin/bash -c "source envHrapi/bin/activate; exec pip install -r requirements.txt"

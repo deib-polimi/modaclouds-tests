@@ -41,5 +41,14 @@ echo "\$ModLoad imudp
 
 sudo service rsyslog restart
 
+sudo apt-get install -y git sqlite3 python-pip
+cd
+git clone https://github.com/igabriel85/modaclouds-loadbalancer-controller.git
+sudo pip install virtualenv
+cd modaclouds-loadbalancer-controller
+rm -rf envHrapi
+virtualenv envHrapi
+/bin/bash -c "source envHrapi/bin/activate; exec pip install -r requirements.txt"
+
 source ~/.bashrc_lb
 cd

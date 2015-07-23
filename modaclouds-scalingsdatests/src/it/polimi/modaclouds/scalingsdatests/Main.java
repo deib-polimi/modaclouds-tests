@@ -86,6 +86,9 @@ public class Main {
 
 	@Parameter(names = "-useCloudML", description = "Use CloudML and the auto scaling rules")
 	private boolean useCloudML = false;
+	
+	@Parameter(names = "-loadBalancerIp", description = "The IP of the load balancer that will be used")
+	private String loadBalancerIp = null;
 
 	public static final String APP_TITLE = "\nScaling SDA Test\n";
 
@@ -119,7 +122,7 @@ public class Main {
 			Test.App a = Test.App.getFromName(m.app);
 			Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
 
-			doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown);
+			doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>();
 
@@ -148,9 +151,9 @@ public class Main {
 					Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
 
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown));
+						threads.add(doTestInBackground(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp));
 					else
-						doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown);
+						doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp);
 				}
 
 				for (Thread t : threads)
@@ -169,11 +172,11 @@ public class Main {
 	}
 
 	public static void doTest(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown) {
+			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp) {
 		logger.info("Preparing the system and running the test...");
 
 		try {
-			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator, window, useSDA, useCloudML, highCpu, lowCpu, cooldown);
+			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator, window, useSDA, useCloudML, highCpu, lowCpu, cooldown, loadBalancerIp);
 
 			if (duration == Test.ERROR_STATUS_NULL)
 				logger.error("There was the status == null problem...");
@@ -188,7 +191,7 @@ public class Main {
 	}
 
 	public static Thread doTestInBackground(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown) {
+			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp) {
 		final String fsize = size;
 		final int fclients = clients;
 		final String fdata = data;
@@ -208,10 +211,11 @@ public class Main {
 		final double fhighCpu = highCpu;
 		final double flowCpu = lowCpu;
 		final int fcooldown = cooldown;
+		final String floadBalancerIp = loadBalancerIp;
 
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fservers, fapp, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadModelFile, ffirstInstancesToSkip, fdemandEstimator, fwindow, fuseSDA, fuseCloudML, fhighCpu, flowCpu, fcooldown);
+				doTest(fsize, fclients, fservers, fapp, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadModelFile, ffirstInstancesToSkip, fdemandEstimator, fwindow, fuseSDA, fuseCloudML, fhighCpu, flowCpu, fcooldown, floadBalancerIp);
 			}
 		};
 

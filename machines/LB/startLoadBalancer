@@ -20,14 +20,31 @@ sudo cp "$FILE-prestart" "$FILE"
 sed "s/REPLACE_PORT/$PORT/" <$FILE >$TMP_FILE
 
 shift
+var=1
 for server in "$@"
 do
-    sed "s/REPLACE_SERVER/server app $server cookie checkNEWLINE    REPLACE_SERVER/" <$TMP_FILE >$TMP_FILE-1
+    sed "s/REPLACE_SERVER/server app$var $server cookie checkNEWLINE    REPLACE_SERVER/" <$TMP_FILE >$TMP_FILE-1
     sed 's/NEWLINE/\
 /g' <$TMP_FILE-1 >$TMP_FILE
+    var=$((var+1))
 done
 sed "s/REPLACE_SERVER//" <$TMP_FILE >$TMP_FILE-1
 mv $TMP_FILE-1 $TMP_FILE
 sudo mv $TMP_FILE $FILE
 
-sudo service haproxy restart
+#sudo service haproxy restart
+
+cd ~/modaclouds-loadbalancer-controller
+nohup /bin/bash -c "source envHrapi/bin/activate; exec python api_1_0/pyprox.py" >> /tmp/hrapi.log 2>&1 &
+
+#JSON="{
+#  "gateway": "gateHTTP",
+#  "protocol": "http",
+#  "endpoints":
+#    {
+#      "endOne": "0.0.0.0:$PORT"
+#    },
+#  "enable": "True"
+#}"
+#echo "$JSON" | curl -X PUT -i -H "Content-type: application/json" http://109.231.126.56:8088/v1/gateways/gateHTTP -d @-
+#curl -X POST -i http://109.231.126.56:8088/v1/controller/commit

@@ -46,6 +46,16 @@
           "stopCommand": "%8$s"
         }
       ],
+      "requiredPorts": [
+        {
+          "eClass": "net.cloudml.core:RequiredPort",
+          "name": "lbReq",
+          "isLocal": false,
+          "portNumber": "8080",
+          "isMandatory": true,
+          "component": "internalComponents[app]"
+        }
+      ],
       "requiredExecutionPlatform": {
         "eClass": "net.cloudml.core:RequiredExecutionPlatform",
         "name": "appRequired",
@@ -53,17 +63,56 @@
       }
     }
   ],
+  "externalComponents": [
+    {
+      "eClass": "net.cloudml.core:ExternalComponent",
+      "name": "LB",
+      "provider": "providers[flexiant]",
+      "serviceType": "loadbalancer",
+      "endPoint": "http://%11$s:8088",
+      "providedPorts": [
+        {
+          "eClass": "net.cloudml.core:ProvidedPort",
+          "name": "lbPrv",
+          "isLocal": false,
+          "portNumber": "0",
+          "component": "externalComponents[LB]"
+        }
+      ]
+    }
+  ],
   "internalComponentInstances": [
     {
       "eClass": "net.cloudml.core:InternalComponentInstance",
       "name": "appInstance",
       "type": "internalComponents[app]",
+      "requiredPortInstances": [
+        {
+          "eClass": "net.cloudml.core:RequiredPortInstance",
+          "name": "lbReq_appInstance",
+          "type": "internalComponents[app]/requiredPorts[lbReq]"
+        }
+      ],
       "requiredExecutionPlatformInstance": {
         "eClass": "net.cloudml.core:RequiredExecutionPlatformInstance",
         "name": "appRequiredInstance",
         "owner": "internalComponentInstances[appInstance]",
         "type": "internalComponents[app]/requiredExecutionPlatform[appRequired]"
       }
+    }
+  ],
+  "externalComponentInstances": [
+    {
+      "eClass": "net.cloudml.core:ExternalComponentInstance",
+      "name": "lb",
+      "type": "externalComponents[LB]",
+      "providedPortInstances": [
+        {
+          "eClass": "net.cloudml.core:ProvidedPortInstance",
+          "name": "lbPrv_lb",
+          "type": "externalComponents[LB]/providedPorts[lbPrv]"
+        }
+      ]
     }
   ],
   "vms": [
@@ -145,6 +194,23 @@
           "type": "vms[%10$sFlexiant]/providedExecutionPlatforms[%10$sTIERFlexiant]"
         }
       ]
+    }
+  ],
+  "relationships": [
+    {
+      "eClass": "net.cloudml.core:Relationship",
+      "name": "AppToLB",
+      "requiredPort": "internalComponents[App]/requiredPorts[lbReq]",
+      "providedPort": "externalComponents[LB]/providedPorts[lbPrv]"
+    }
+  ],
+  "relationshipInstances": [
+    {
+      "eClass": "net.cloudml.core:RelationshipInstance",
+      "name": "appToLbInstance",
+      "type": "relationships[AppToLB]",
+      "requiredPortInstance": "internalComponentInstances[appInstance]/requiredPortInstances[lbReq_appInstance]",
+      "providedPortInstance": "externalComponentInstances[lb]/providedPortInstances[lbPrv_lb]"
     }
   ],
   "executesInstances": [
