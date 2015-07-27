@@ -86,6 +86,13 @@
       "eClass": "net.cloudml.core:InternalComponentInstance",
       "name": "appInstance",
       "type": "internalComponents[app]",
+      "properties": [
+        {
+          "eClass": "net.cloudml.core:Property",
+          "name": "port",
+          "value": "8080"
+        }
+      ],
       "requiredPortInstances": [
         {
           "eClass": "net.cloudml.core:RequiredPortInstance",
@@ -200,7 +207,7 @@
     {
       "eClass": "net.cloudml.core:Relationship",
       "name": "AppToLB",
-      "requiredPort": "internalComponents[App]/requiredPorts[lbReq]",
+      "requiredPort": "internalComponents[app]/requiredPorts[lbReq]",
       "providedPort": "externalComponents[LB]/providedPorts[lbPrv]"
     }
   ],

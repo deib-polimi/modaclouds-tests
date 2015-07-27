@@ -744,7 +744,17 @@ public class CloudMLCall extends AbstractAction {
                     } catch (Exception e) { }
                     
                     updateStatus();
-                } else if (s.contains("ack")) {
+                } else if (s.contains("ack") && s.contains("Burst")) {
+                	getLogger().info("Burst completed.");
+
+    				pcs.firePropertyChange("Burst", false, true);
+
+    				try {
+    					Thread.sleep(10000);
+    				} catch (Exception e) { }
+
+    				updateStatus();
+    			} else if (s.contains("ack")) {
                     
                     getLogger().trace("Ack received: {}", s);
                     pcs.firePropertyChange("OtherCommand", false, true);

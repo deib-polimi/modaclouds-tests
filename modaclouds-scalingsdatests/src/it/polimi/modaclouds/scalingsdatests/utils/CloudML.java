@@ -52,10 +52,16 @@ public class CloudML implements PropertyChangeListener {
 
 		if (!useLocalCloudML) {
 			AmazonEC2 ec2 = new AmazonEC2();
-			ec2.addRunningInstances(mpl);
-
-			if (mpl.getInstances().size() == 0)
-				throw new RuntimeException("No running machine found!");
+			
+			do {
+				ec2.addRunningInstances(mpl);
+				if (mpl.getInstances().size() == 0) {
+					logger.info("No machines found, retrying in 10 seconds...");
+					try {
+						Thread.sleep(10000);
+					} catch (Exception e) { }
+				}
+			} while (mpl.getInstances().size() == 0);
 
 			Instance impl = mpl.getInstances().get(0);
 			impl.setName("MPLSDA");
@@ -89,13 +95,14 @@ public class CloudML implements PropertyChangeListener {
 
 		logger.info("Deploy the system...");
 
+//		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, false).toFile());
 		cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, true).toFile());
 
 		logger.info("Starting the test...");
 
 //		cml.scale(usedApp.tierName, 1);
 //
-//		cml.burst(usedApp.tierName);
+//		cml.burst(usedApp.tierName +"Flexiant");
 //
 //		cml.scale(usedApp.tierName, oneAmong(-1, 1));
 //
@@ -532,6 +539,16 @@ public class CloudML implements PropertyChangeListener {
 				logger.info("Deploy completed.");
 
 				pcs.firePropertyChange("Deploy", false, true);
+
+				try {
+					Thread.sleep(10000);
+				} catch (Exception e) { }
+
+				updateStatus();
+			} else if (s.contains("ack") && s.contains("Burst")) {
+				logger.info("Burst completed.");
+
+				pcs.firePropertyChange("Burst", false, true);
 
 				try {
 					Thread.sleep(10000);
