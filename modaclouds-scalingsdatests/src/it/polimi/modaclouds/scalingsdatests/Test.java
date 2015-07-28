@@ -667,6 +667,78 @@ public class Test {
 		String ipMpl = mpl.getInstances().get(0).getIp();
 		return getActualDeploymentModel(ipMpl, mpl, this.app, app.cloudMl, app.cloudMlLoadBalancer, loadBalancer, remotePathIfNecessary, useDatabase, database, useOwnLoadBalancer);
 	}
+	
+	public static void main(String[] args) throws Exception {
+//		String body = FileUtils.readFileToString(Configuration.getPathToFile(App.HTTPAGENT.cloudMl).toFile());
+//		logger.info(body);
+//		logger.info("#############################");
+//		logger.info(removeCommentedLines(body));
+//		logger.info("#############################");
+//		JSONObject jsonObject = new JSONObject(removeCommentedLines(body));
+//		logger.info(jsonObject.toString(0));
+		
+		String pattern = "(\"[^\"]+\")[ \t]*:[ \t]*";//"([\"][^\"]+[\"][ \t]*): ";
+		String subst = "$1:";
+		
+		String s = "\"questa è una prova\": [";
+		
+		logger.info(">\n\n{}\n{}\n", s, s.replaceAll(pattern, subst));
+		
+		s = "\"questa è una prova\": {";
+		
+		logger.info(">\n\n{}\n{}\n", s, s.replaceAll(pattern, subst));
+		
+		s = "\"questa è una prova\": \"";
+		
+		logger.info(">\n\n{}\n{}\n", s, s.replaceAll(pattern, subst));
+	}
+	
+	private static boolean isInString(String previousString) {
+		int count = 0;
+		int i = previousString.indexOf('"');
+		while (i > -1) {
+			count++;
+			i = previousString.indexOf('"', i+1);
+		}
+		return count % 2 == 1;
+	}
+	
+	public static String removeCommentedLines(String body) {
+		StringBuilder sb = new StringBuilder();
+		boolean inComment = false;
+		try (Scanner sc = new Scanner(body)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				int i = line.indexOf("//");
+				int j = line.indexOf("/*");
+				int k = line.indexOf("*/");
+				
+				if (inComment && (k == -1 || isInString(line.substring(0, k)))) {
+					continue;
+				} else if (inComment) {
+					line = line.substring(k+2);
+					inComment = false;
+					if (line.trim().length() == 0)
+						continue;
+				} else if (j > -1 && !isInString(line.substring(0, j))) {
+					if (k > -1) {
+						line = line.substring(0, j).concat(line.substring(k+2));
+					} else {
+						line = line.substring(0, j);
+						inComment = true;
+					}
+					if (line.trim().length() == 0)
+						continue;
+				} else if (i > -1 && !isInString(line.substring(0, i))) {
+					line = line.substring(0, i);
+					if (line.trim().length() == 0)
+						continue;
+				}
+				sb.append(line + "\n");
+			}
+		}
+		return sb.toString();
+	}
 
 	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine app, String cloudMl, String cloudMlLoadBalancer, String loadBalancer, boolean remotePathIfNecessary, boolean useDatabase, VirtualMachine database, boolean useOwnLoadBalancer) throws Exception {
 		String body = null;
@@ -674,6 +746,8 @@ public class Test {
 			body = FileUtils.readFileToString(Configuration.getPathToFile(cloudMlLoadBalancer).toFile());
 		else
 			body = FileUtils.readFileToString(Configuration.getPathToFile(cloudMl).toFile());
+		
+		body = removeCommentedLines(body);
 
 		JSONObject jsonObject = new JSONObject(body);
 
@@ -721,10 +795,10 @@ public class Test {
 					RandomStringUtils.randomNumeric(3),
 					app.getImageId(),
 					it.cloud.amazon.Configuration.REGION,
-					app.getParameter("DOWNLOADER").replaceAll("&&", " ; "),
-					app.getParameter("INSTALLER").replaceAll("&&", " ; "),
+					app.getParameter("DOWNLOADER").replaceAll("&&", ";"),
+					app.getParameter("INSTALLER").replaceAll("&&", ";"),
 					String.format(
-							app.getParameter("STARTER").replaceAll("&&", " ; "),
+							app.getParameter("STARTER").replaceAll("&&", ";"),
 							useDatabase ? database.getIps().get(0) : "127.0.0.1",
 							ipMpl),
 					"echo DONE",
@@ -738,20 +812,20 @@ public class Test {
 					RandomStringUtils.randomNumeric(3),
 					app.getImageId(),
 					it.cloud.amazon.Configuration.REGION,
-					app.getParameter("DOWNLOADER").replaceAll("&&", " ; "),
-					app.getParameter("INSTALLER").replaceAll("&&", " ; "),
+					app.getParameter("DOWNLOADER").replaceAll("&&", ";"),
+					app.getParameter("INSTALLER").replaceAll("&&", ";"),
 					String.format(
-							app.getParameter("STARTER").replaceAll("&&", " ; "),
+							app.getParameter("STARTER").replaceAll("&&", ";"),
 							useDatabase ? database.getIps().get(0) : "127.0.0.1",
 							ipMpl),
 					String.format(
-							app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", " ; "),
+							app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", ";"),
 							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 							it.cloud.amazon.Configuration.REGION,
 							loadBalancer),
 					String.format(
-							app.getParameter("DEL_FROM_LOAD_BALANCER").replaceAll("&&", " ; "),
+							app.getParameter("DEL_FROM_LOAD_BALANCER").replaceAll("&&", ";"),
 							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),
 							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSSecretKey(),
 							it.cloud.amazon.Configuration.REGION,

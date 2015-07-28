@@ -391,23 +391,30 @@ public class CloudMLCall extends AbstractAction {
             
             try (Scanner sc = new Scanner(orig)) {
                 while (sc.hasNextLine())
-                    body.append(" " + sc.nextLine().trim());
+                    body.append(sc.nextLine().trim().replaceAll("(\"[^\"]+\")[ \t]*:[ \t]*", "$1:"));
             } catch (Exception e) {
                 getLogger().error("Error while reading the file.", e);
                 return null;
             }
             
-            return body.toString();
+    		return body.toString();
+            
+//            JSONObject jsonObject = new JSONObject(body.toString());
+//    		return jsonObject.toString(0);
         }
         
         public void deploy(File orig) {
             pushDeploymentModel(orig);
             
-            wsClient.sendBlocking(Command.DEPLOY.command, WSClient.TIMEOUT*2, Command.DEPLOY);
+            wsClient.sendBlocking(Command.DEPLOY.command, -1, Command.DEPLOY);
         }
         
         private void scaleOut(String vmId, int times) {
-            getLogger().info("Scaling out " + times + " instances");
+        	if (times <= 0) {
+    			getLogger().info("Scaling out of {} skipped because {} <= 0.", vmId, times);
+    			return;
+    		}
+        	getLogger().info("Scaling out {} instances...", times);
             
             wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.valueOf(times).toString()), Command.SCALE_OUT);
         }
@@ -433,7 +440,7 @@ public class CloudMLCall extends AbstractAction {
                 return;
             
             for (String instanceId : instances)
-                getLogger().info("Stopping the instance with id " + instanceId);
+                getLogger().info("Stopping the instance with id {}...", instanceId);
             
             String toSend = "";
             for (String instance : instances) {
@@ -459,7 +466,7 @@ public class CloudMLCall extends AbstractAction {
                 return;
             
             for (String instanceId : instances)
-                getLogger().info("Restarting the instance with id " + instanceId);
+                getLogger().info("Restarting the instance with id {}...", instanceId);
             
             String toSend = "";
             for (String instance : instances) {
@@ -714,7 +721,7 @@ public class CloudMLCall extends AbstractAction {
                         && s.contains("!snapshot")) {
 
                     try {
-                        getLogger().info("Received instance information");
+                        getLogger().info("Received instance information.");
                         parseInstanceInformation(s);
                     } catch (Exception e) {
                         getLogger().error("Error while updating the instance information.", e);
@@ -734,10 +741,10 @@ public class CloudMLCall extends AbstractAction {
                             pcs.firePropertyChange(Command.GET_STATUS.name, false, true);
                     }
                     
-                } else if (s.contains("ack") && s.contains("Deploy")) {
+                } else if (s.contains("ack") && s.contains("Deploy") && !s.contains("MaxVMsReached")) {
                     getLogger().info("Deploy completed.");
                 
-                    pcs.firePropertyChange("Deploy", false, true);
+                    pcs.firePropertyChange(Command.DEPLOY.name, false, true);
                     
                     try {
                     	Thread.sleep(10000);
@@ -747,13 +754,25 @@ public class CloudMLCall extends AbstractAction {
                 } else if (s.contains("ack") && s.contains("Burst")) {
                 	getLogger().info("Burst completed.");
 
-    				pcs.firePropertyChange("Burst", false, true);
+    				pcs.firePropertyChange(Command.BURST.name, false, true);
 
     				try {
     					Thread.sleep(10000);
     				} catch (Exception e) { }
 
     				updateStatus();
+    			} else if (s.contains("ack") && s.contains("MaxVMsReached")) {
+    				getLogger().info("It was impossible to perform the scale out because you reached the max VM constraint.");
+
+    				pcs.firePropertyChange(Command.SCALE_OUT.name, false, true);
+    				
+    				String params = commandParam.remove(Command.SCALE_OUT);
+    				if (params != null) {
+    					getLogger().info("Trying the burst instead...");
+    					String[] paramsArray = params.split(";");
+    					String id = paramsArray[0];
+    					burst(id);
+    				}
     			} else if (s.contains("ack")) {
                     
                     getLogger().trace("Ack received: {}", s);
@@ -774,7 +793,7 @@ public class CloudMLCall extends AbstractAction {
 
             @Override
             public void onClose(int i, String s, boolean b) {
-                getLogger().info("Disconnected from the CloudML server " + s);
+                getLogger().info("Disconnected from the CloudML server {}.", s);
                 super.close();
                 
                 pcs.firePropertyChange("Connection", true, false);
@@ -808,7 +827,7 @@ public class CloudMLCall extends AbstractAction {
         }
         
         public void disconnect() {
-            if (wsClient != null)
+            if (wsClient != null && wsClient.isConnected())
                 wsClient.disconnect();
             
             wsClient = null;
@@ -1002,8 +1021,12 @@ public class CloudMLCall extends AbstractAction {
                         
                         startInstances(ids);
                         
-                        if (toBeCreated > 0)
-                            scaleOut(instances.idPerName.get(instances.vm), toBeCreated);
+                        if (toBeCreated > 0) {
+    						String id = instances.idPerName.get(instances.vm);
+    						
+    						commandParam.put(Command.SCALE_OUT, String.format("%s;%d;%s", id, toBeCreated, Command.SCALE_OUT.name));
+    						scaleOut(id, toBeCreated);
+    					}
                     }
                     
                     signalCompleted(Command.SCALE);
