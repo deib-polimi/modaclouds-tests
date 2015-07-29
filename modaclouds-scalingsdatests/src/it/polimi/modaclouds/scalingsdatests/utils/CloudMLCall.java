@@ -201,7 +201,6 @@ public class CloudMLCall {
 				return;
 	
 			while (wait > 0 && (end - init) <= timeout) {
-				logger.trace("Waiting for {}...", cmd.name);
 				try {
 					Thread.sleep(1000);
 				} catch (Exception e) { }
