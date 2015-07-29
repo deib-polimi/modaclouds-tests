@@ -4,6 +4,7 @@ import it.cloud.amazon.ec2.AmazonEC2;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.cloud.utils.Ssh;
+import it.polimi.modaclouds.cloudml.CloudMLDaemon;
 import it.polimi.modaclouds.scalingsdatests.Test;
 
 import java.beans.PropertyChangeEvent;
@@ -32,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public class CloudMLCall {
 
@@ -42,11 +44,23 @@ public class CloudMLCall {
 	}
 
 	public static void main(String[] args) throws Exception {
+		{
+			System.setProperty("jsse.enableSNIExtension", "false");
+			
+			// Optionally remove existing handlers attached to j.u.l root logger
+			SLF4JBridgeHandler.removeHandlersForRootLogger();  // (since SLF4J 1.6.5)
+
+			// add SLF4JBridgeHandler to j.u.l's root logger, should be done once during
+			// the initialization phase of your application
+			SLF4JBridgeHandler.install();
+		}
+		
 		boolean machineAlreadyPrepared = true;
 		boolean restartCloudML = false;
-		boolean useLocalCloudML = false;
+		boolean useLocalCloudML = true;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
+		boolean forceDeploy = true;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
 
@@ -127,7 +141,7 @@ public class CloudMLCall {
 		CloudML cml = null;
 		while (cml == null) {
 			try {
-				cml = new CloudML(cloudMLIp, cloudMLPort);
+				cml = getCloudML(cloudMLIp, cloudMLPort);
 			} catch (Exception e) {
 				getLogger().error("Error", e);
 				cml = null;
@@ -149,7 +163,7 @@ public class CloudMLCall {
 
 		getLogger().info("Deploy the system...");
 
-		if (restartCloudML || !machineAlreadyPrepared || rebootMachine)
+		if (restartCloudML || !machineAlreadyPrepared || rebootMachine || forceDeploy)
 			cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, useExternalLoadBalancer).toFile());
 
 		getLogger().info("Starting the test...");
@@ -165,7 +179,15 @@ public class CloudMLCall {
 		getLogger().info("Test ended!");
 	}
 	
-	public static class CloudML implements PropertyChangeListener {
+	private static CloudMLCall instance = null;
+	
+	public static CloudML getCloudML(String ip, int port) throws Exception {
+		if (instance == null)
+			instance = new CloudMLCall();
+		return instance.new CloudML(ip, port);
+	}
+	
+	public class CloudML implements PropertyChangeListener {
 	
 		private WSClient wsClient;
 	
@@ -360,6 +382,14 @@ public class CloudMLCall {
 			waitingPerCommand = new HashMap<Command, Integer>();
 		}
 		
+		public void send(String command) {
+			wsClient.send(command);
+		}
+		
+		public void sendBlocking(String command, Command cmd) {
+			wsClient.sendBlocking(command, cmd);
+		}
+		
 		@ClientEndpoint
 		public class WSClient implements AutoCloseable {
 			private String serverURI;
@@ -382,7 +412,7 @@ public class CloudMLCall {
 				JSONObject jsonObject = new JSONObject(body.substring( body.indexOf('{') ));
 				JSONArray instances = jsonObject.getJSONArray("vmInstances");
 	
-				instancesPerTier = new HashMap<String, CloudML.Instances>();
+				instancesPerTier = new HashMap<String, Instances>();
 	
 				for (int i = 0; i < instances.length(); i++) {
 					try {
@@ -932,90 +962,6 @@ public class CloudMLCall {
 	//				signalCompleted(Command.BURST);
 				}
 			}
-	
-		}
-		
-		private static class Instances {
-			String vm = null;
-			String tier = null;
-			List<String> running = new ArrayList<String>();
-			List<String> stopped = new ArrayList<String>();
-			Map<String, String> ipPerId = new HashMap<String, String>();
-			Map<String, String> idPerName = new HashMap<String, String>();
-			Map<String, String> statusPerId = new HashMap<String, String>();
-			Map<String, String> providerPerId = new HashMap<String, String>();
-
-			public Instances clone() {
-				Instances ret = new Instances();
-				ret.vm = vm;
-				ret.tier = tier;
-				ret.running.addAll(running);
-				ret.stopped.addAll(stopped);
-				ret.ipPerId.putAll(ipPerId);
-				ret.idPerName.putAll(idPerName);
-				ret.statusPerId.putAll(statusPerId);
-				ret.providerPerId.putAll(providerPerId);
-
-				return ret;
-			}
-
-			public String toString() {
-				StringBuilder sb = new StringBuilder();
-				sb.append(String.format("Tier: %s, VM: %s", tier, vm));
-				if (running.size() > 0) {
-					sb.append(", Running: [ ");
-					for (String s : running) {
-						String provider = providerPerId.get(s);
-						sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
-					}
-					sb.deleteCharAt(sb.length() - 2);
-					sb.append("]");
-				}
-				if (stopped.size() > 0) {
-					sb.append(", Stopped: [ ");
-					for (String s : stopped) {
-						String provider = providerPerId.get(s);
-						sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
-					}
-					sb.deleteCharAt(sb.length() - 2);
-					sb.append("]");
-				}
-
-				return sb.toString();
-			}
-
-			public List<String> getUsedProviders() {
-				List<String> res = new ArrayList<String>();
-				for (String key : providerPerId.keySet()) {
-					String provider = providerPerId.get(key);
-					if (!res.contains(provider))
-						res.add(provider);
-				}
-				return res;
-			}
-
-			public int count() {
-				return running.size() + stopped.size();
-			}
-
-			public String getTierStatus() {
-				return statusPerId.get(idPerName.get(vm));
-			}
-
-			public String getTierIp() {
-				return ipPerId.get(idPerName.get(vm));
-			}
-			
-			public static String sanitizeName(String name) {
-				if (name.indexOf("fromImage") > -1)
-					name = name.substring(0, name.indexOf('('));
-				if (name.indexOf("(no_") > -1)
-					name = name.substring(0, name.indexOf("(no_"));
-				if (name.indexOf('@') > -1)
-					name = name.substring(0, name.indexOf('@'));
-				
-				return name;
-			}
 		}
 	}
 	
@@ -1067,6 +1013,89 @@ public class CloudMLCall {
 				sb.append(", ");
 			}
 			return sb.substring(0, sb.lastIndexOf(","));
+		}
+	}
+	
+	private static class Instances {
+		String vm = null;
+		String tier = null;
+		List<String> running = new ArrayList<String>();
+		List<String> stopped = new ArrayList<String>();
+		Map<String, String> ipPerId = new HashMap<String, String>();
+		Map<String, String> idPerName = new HashMap<String, String>();
+		Map<String, String> statusPerId = new HashMap<String, String>();
+		Map<String, String> providerPerId = new HashMap<String, String>();
+
+		public Instances clone() {
+			Instances ret = new Instances();
+			ret.vm = vm;
+			ret.tier = tier;
+			ret.running.addAll(running);
+			ret.stopped.addAll(stopped);
+			ret.ipPerId.putAll(ipPerId);
+			ret.idPerName.putAll(idPerName);
+			ret.statusPerId.putAll(statusPerId);
+			ret.providerPerId.putAll(providerPerId);
+
+			return ret;
+		}
+
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(String.format("Tier: %s, VM: %s", tier, vm));
+			if (running.size() > 0) {
+				sb.append(", Running: [ ");
+				for (String s : running) {
+					String provider = providerPerId.get(s);
+					sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
+				}
+				sb.deleteCharAt(sb.length() - 2);
+				sb.append("]");
+			}
+			if (stopped.size() > 0) {
+				sb.append(", Stopped: [ ");
+				for (String s : stopped) {
+					String provider = providerPerId.get(s);
+					sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
+				}
+				sb.deleteCharAt(sb.length() - 2);
+				sb.append("]");
+			}
+
+			return sb.toString();
+		}
+
+		public List<String> getUsedProviders() {
+			List<String> res = new ArrayList<String>();
+			for (String key : providerPerId.keySet()) {
+				String provider = providerPerId.get(key);
+				if (!res.contains(provider))
+					res.add(provider);
+			}
+			return res;
+		}
+
+		public int count() {
+			return running.size() + stopped.size();
+		}
+
+		public String getTierStatus() {
+			return statusPerId.get(idPerName.get(vm));
+		}
+
+		public String getTierIp() {
+			return ipPerId.get(idPerName.get(vm));
+		}
+		
+		public static String sanitizeName(String name) {
+			if (name.indexOf("fromImage") > -1)
+				name = name.substring(0, name.indexOf('('));
+			if (name.indexOf("(no_") > -1)
+				name = name.substring(0, name.indexOf("(no_"));
+			if (name.indexOf('@') > -1)
+				name = name.substring(0, name.indexOf('@'));
+			
+			return name;
 		}
 	}
 

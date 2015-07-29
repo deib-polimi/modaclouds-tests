@@ -11,6 +11,7 @@ import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
 import it.cloud.utils.Ssh;
 import it.polimi.modaclouds.scalingsdatests.sdavalidator.Validator;
+import it.polimi.modaclouds.scalingsdatests.utils.CloudMLCall;
 import it.polimi.modaclouds.scalingsdatests.utils.CloudMLCall.CloudML;
 import it.polimi.modaclouds.scalingsdatests.utils.MonitoringPlatform;
 import it.polimi.tower4clouds.rules.MonitoringRule;
@@ -562,7 +563,7 @@ public class Test {
 
 		logger.info("Trying connecting to the CloudML daemon...");
 		try {
-			cloudML = new CloudML(cloudMLIp, cloudMLPort);
+			cloudML = CloudMLCall.getCloudML(cloudMLIp, cloudMLPort);
 		} catch (Exception e) {
 			logger.info("The daemon wasn't running, starting it...");
 			Ssh.execInBackground(cloudMLIp, mpl, String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.toString(cloudMLPort)));
@@ -574,7 +575,7 @@ public class Test {
 				} catch (Exception e1) { }
 
 				try {
-					cloudML = new CloudML(cloudMLIp, cloudMLPort);
+					cloudML = CloudMLCall.getCloudML(cloudMLIp, cloudMLPort);
 					goOn = false;
 				} catch (Exception e1) {
 					logger.warn("Trying again to connect to the CloudML daemon in 10 seconds...");
