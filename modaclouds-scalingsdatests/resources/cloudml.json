@@ -78,7 +78,7 @@
       "maxCores": "0",
       "minStorage": "8",
       "maxStorage": "0",
-      "name": "%10$sAmazon",
+      "name": "%10$s@Amazon",
       "os": "ubuntu",
       "privateKey": "desantis-ireland.pem",
       "provider": "providers[aws-ec2]",
@@ -88,7 +88,7 @@
         {
           "eClass": "net.cloudml.core:ProvidedExecutionPlatform",
           "name": "%10$sTIERAmazon",
-          "owner": "vms[%10$sAmazon]",
+          "owner": "vms[%10$s@Amazon]",
           "offers": [
             {
               "eClass": "net.cloudml.core:Property",
@@ -109,7 +109,7 @@
       "maxCores": "0",
       "minStorage": "50",
       "maxStorage": "0",
-      "name": "%10$sFlexiant",
+      "name": "%10$s@Flexiant",
       "os": "ubuntu",
       "privateKey": "polimi-review-2014.pem",
       "groupName": "Polimi CEPH Cluster",
@@ -120,7 +120,7 @@
         {
           "eClass": "net.cloudml.core:ProvidedExecutionPlatform",
           "name": "%10$sTIERFlexiant",
-          "owner": "vms[%10$sFlexiant]",
+          "owner": "vms[%10$s@Flexiant]",
           "offers": [
             {
               "eClass": "net.cloudml.core:Property",
@@ -136,13 +136,13 @@
     {
       "eClass": "net.cloudml.core:NodeInstance",
       "name": "%10$sInstance%1$s",
-      "type": "vms[%10$sFlexiant]",
+      "type": "vms[%10$s@Flexiant]",
       "providedExecutionPlatformInstances": [
         {
           "eClass": "net.cloudml.core:ProvidedExecutionPlatformInstance",
           "name": "%10$sTier",
           "owner": "vmInstances[%10$sInstance%1$s]",
-          "type": "vms[%10$sFlexiant]/providedExecutionPlatforms[%10$sTIERFlexiant]"
+          "type": "vms[%10$s@Flexiant]/providedExecutionPlatforms[%10$sTIERFlexiant]"
         }
       ]
     }

@@ -36,10 +36,14 @@ import org.slf4j.LoggerFactory;
 public class CloudMLCall {
 
 	protected static final Logger logger = LoggerFactory.getLogger(CloudMLCall.class);
+	
+	public static Logger getLogger() {
+		return logger;
+	}
 
 	public static void main(String[] args) throws Exception {
 		boolean machineAlreadyPrepared = true;
-		boolean restartCloudML = false;
+		boolean restartCloudML = true;
 		boolean useLocalCloudML = false;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
@@ -63,7 +67,7 @@ public class CloudMLCall {
 			do {
 				ec2.addRunningInstances(mpl);
 				if (mpl.getInstances().size() == 0) {
-					logger.info("No machines found, retrying in 10 seconds...");
+					getLogger().info("No machines found, retrying in 10 seconds...");
 					try {
 						Thread.sleep(10000);
 					} catch (Exception e) { }
@@ -125,9 +129,9 @@ public class CloudMLCall {
 			try {
 				cml = new CloudML(cloudMLIp, cloudMLPort);
 			} catch (Exception e) {
-				logger.error("Error", e);
+				getLogger().error("Error", e);
 				cml = null;
-				logger.info("No CloudML found, retrying in 10 seconds...");
+				getLogger().info("No CloudML found, retrying in 10 seconds...");
 				
 				if (!useLocalCloudML) {
 					mpl.getInstances().get(0).exec(String.format(mpl.getParameter("CLOUDML_STOPPER"), Integer.toString(cloudMLPort)));
@@ -143,22 +147,26 @@ public class CloudMLCall {
 			}
 		}
 
-		logger.info("Deploy the system...");
+		getLogger().info("Deploy the system...");
 
 		if (restartCloudML || !machineAlreadyPrepared || rebootMachine)
 			cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, useExternalLoadBalancer).toFile());
 
-		logger.info("Starting the test...");
-
-		cml.scale(usedApp.tierName + "Flexiant", 1);
+		getLogger().info("Starting the test...");
 		
+		cml.updateStatus();
+
+//		cml.scale(usedApp.tierName + "Flexiant", 1);
+//		
+//		cml.scale(usedApp.tierName + "Amazon(no_1)-scaled", 1);
+//		
 //		cml.scale(usedApp.tierName + "Flexiant", 1);
 //
 //		cml.burst(usedApp.tierName + "Flexiant");
 //
 //		cml.terminateAllInstances();
 
-		logger.info("Test ended!");
+		getLogger().info("Test ended!");
 	}
 	
 	public static class CloudML implements PropertyChangeListener {
@@ -181,11 +189,11 @@ public class CloudMLCall {
 	
 		private void printStatus() {
 			if (instancesPerTier.size() == 0)
-				logger.info("No instances found!");
+				getLogger().info("No instances found!");
 	
 			for (String tier : instancesPerTier.keySet()) {
 				Instances i = instancesPerTier.get(tier);
-				logger.info(i.toString());
+				getLogger().info(i.toString());
 			}
 		}
 		
@@ -243,7 +251,7 @@ public class CloudMLCall {
 				while (sc.hasNextLine())
 					body.append(sc.nextLine().trim().replaceAll("(\"[^\"]+\")[ \t]*:[ \t]*", "$1:"));
 			} catch (Exception e) {
-				logger.error("Error while reading the file.", e);
+				getLogger().error("Error while reading the file.", e);
 				return null;
 			}
 			
@@ -258,22 +266,28 @@ public class CloudMLCall {
 	
 		private void scaleOut(String vmId, int times, boolean blocking) {
 			if (times <= 0) {
-				logger.info("Scaling out of {} skipped because {} <= 0.", vmId, times);
+				getLogger().info("Scaling out of {} skipped because {} <= 0.", vmId, times);
 				return;
 			}
-			logger.info("Scaling out {} instances.", times);
+			getLogger().info("Scaling out {} instances.", times);
 	
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.toString(times)), Command.SCALE_OUT);
 			else
 				wsClient.send(String.format(Command.SCALE_OUT.command, vmId, Integer.toString(times)));
 		}
-	
+		
 		public void updateStatus() {
-			logger.info("Asking for the deployment model...");
+			updateStatus(true);
+		}
 	
-	//		wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
-			wsClient.send(Command.GET_STATUS.command);
+		private void updateStatus(boolean blocking) {
+			getLogger().info("Asking for the deployment model...");
+	
+			if (blocking)
+				wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
+			else
+				wsClient.send(Command.GET_STATUS.command);
 		}
 	
 		private void getInstanceInfo(String id) {
@@ -291,7 +305,7 @@ public class CloudMLCall {
 	
 			StringBuilder toSend = new StringBuilder();
 			for (String instance : instances) {
-				logger.info("Stopping the instance with id {}...", instance);
+				getLogger().info("Stopping the instance with id {}...", instance);
 				
 				if (toSend.length() == 0) {
 					toSend.append(instance);
@@ -320,7 +334,7 @@ public class CloudMLCall {
 	
 			StringBuilder toSend = new StringBuilder();
 			for (String instance : instances) {
-				logger.info("Restarting the instance with id {}...", instance);
+				getLogger().info("Restarting the instance with id {}...", instance);
 				
 				if (toSend.length() == 0) {
 					toSend.append(instance);
@@ -362,7 +376,7 @@ public class CloudMLCall {
 			
 			public void open() throws Exception {
 				if (session != null)
-					logger.info("You're already connected!");
+					getLogger().info("You're already connected!");
 				
 				WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		        container.connectToServer(this, new URI(serverURI));
@@ -372,7 +386,7 @@ public class CloudMLCall {
 				JSONObject jsonObject = new JSONObject(body.substring( body.indexOf('{') ));
 				JSONArray instances = jsonObject.getJSONArray("vmInstances");
 	
-				instancesPerTier = new HashMap<String, CloudMLCall.Instances>();
+				instancesPerTier = new HashMap<String, CloudML.Instances>();
 	
 				for (int i = 0; i < instances.length(); i++) {
 					try {
@@ -382,9 +396,9 @@ public class CloudMLCall {
 							String tier = instance.getString("type");
 							tier = tier.substring(tier.indexOf('[')+1, tier.indexOf(']'));
 							boolean scaledOut = false;
-							if (tier.indexOf("fromImage") > -1) {
+							if (tier.indexOf("fromImage") > -1 || tier.indexOf("scaled") > -1) {
 								scaledOut = true;
-								tier = tier.substring(0, tier.indexOf('('));
+								tier = Instances.sanitizeName(tier);
 							}
 							String name = instance.getString("name");
 							String ip = instance.getString("publicAddress");
@@ -395,7 +409,7 @@ public class CloudMLCall {
 								ins.tier = tier;
 								instancesPerTier.put(tier, ins);
 							}
-							if (!scaledOut)
+							if (ins.vm == null || !scaledOut)
 								ins.vm = name;
 	
 							ins.ipPerId.put(id, ip);
@@ -430,13 +444,12 @@ public class CloudMLCall {
 				String id = jsonObject.has("id") ? jsonObject.getString("id").replaceAll("<>", "/") : null;
 				String provider = jsonObject.has("provider") ? jsonObject.getString("provider") : null;
 	
-				if (tier.indexOf("fromImage") > -1)
-					tier = tier.substring(0, tier.indexOf('('));
+				tier = Instances.sanitizeName(tier);
 	
 				Instances inst = instancesPerTier.get(tier);
 				if (inst != null) {
 	
-					logger.trace("{} is {}", id, status);
+					getLogger().trace("{} is {}", id, status);
 	
 					if ((status != null && status.indexOf("RUNNING") >= 0) || (status == null && isReachable(ip))) {
 						if (inst.stopped.contains(id))
@@ -456,10 +469,15 @@ public class CloudMLCall {
 					inst.providerPerId.put(id, provider);
 				}
 			}
-	
-			private boolean parseUpdate(String body) throws Exception {
+			
+			private JSONObject getUpdateJSON(String body) {
 				body = body.replaceAll("''", "<>");
 				JSONObject jsonObject = new JSONObject(body.substring(body.indexOf('{'), body.lastIndexOf('}')+1));
+				return jsonObject;
+			}
+	
+			private boolean parseUpdate(String body) throws Exception {
+				JSONObject jsonObject = getUpdateJSON(body);
 	
 				String newValue = jsonObject.has("newValue") ? jsonObject.getString("newValue") : null;
 				String parent = jsonObject.has("parent") ? jsonObject.getString("parent") : null;
@@ -470,7 +488,7 @@ public class CloudMLCall {
 	
 				parent = parent.substring(parent.indexOf("<>")+2, parent.lastIndexOf("<>"));
 	
-				logger.trace("Vm: {}, Property: {}, NewValue: {}", parent, property, newValue);
+				getLogger().trace("Vm: {}, Property: {}, NewValue: {}", parent, property, newValue);
 	
 				printStatus();
 	
@@ -488,7 +506,7 @@ public class CloudMLCall {
 				if (id == null)
 					return false;
 	
-				logger.trace("{} is {}", id, newValue);
+				getLogger().trace("{} is {}", id, newValue);
 	
 				if (newValue.indexOf("RUNNING") >= 0) {
 					if (inst.stopped.contains(id))
@@ -516,7 +534,7 @@ public class CloudMLCall {
 				if (!isConnected())
 					throw new RuntimeException("You're not connected to any server!");
 				
-				logger.trace(">>> {}", command);
+				getLogger().trace(">>> {}", command);
 				
 				try {
 					session.getBasicRemote().sendText("!listenToAny");
@@ -525,7 +543,7 @@ public class CloudMLCall {
 					
 					session.getBasicRemote().sendText(command);
 				} catch (Exception e) {
-					logger.error("Error while sending the command.", e);
+					getLogger().error("Error while sending the command.", e);
 				}
 			}
 	
@@ -559,11 +577,11 @@ public class CloudMLCall {
 				if (s.trim().length() == 0)
 					return;
 	
-				logger.trace("<<< {}", s);
+				getLogger().trace("<<< {}", s);
 	
 				if (s.contains("ack") && s.contains("ScaleOut")) {
 					if (somebodyWaiting(Command.SCALE_OUT)) {
-						logger.info("Scale out completed.");
+						getLogger().info("Scale out completed.");
 		
 						pcs.firePropertyChange(Command.SCALE_OUT.name, false, true);
 					}
@@ -571,10 +589,10 @@ public class CloudMLCall {
 						&& !s.contains("!snapshot")) {
 	
 					try {
-						logger.info("Updating the runtime environment...");
+						getLogger().info("Updating the runtime environment...");
 						parseRuntimeDeploymentModel(s);
 					} catch (Exception e) {
-						logger.error("Error while updating the runtime environment.", e);
+						getLogger().error("Error while updating the runtime environment.", e);
 					}
 	
 	//				pcs.firePropertyChange(Command.GET_STATUS.name, false, true);
@@ -582,28 +600,28 @@ public class CloudMLCall {
 						&& s.contains("!snapshot")) {
 	
 					try {
-						logger.info("Received instance information.");
+						getLogger().info("Received instance information.");
 						parseInstanceInformation(s);
 					} catch (Exception e) {
-						logger.error("Error while updating the instance information.", e);
+						getLogger().error("Error while updating the instance information.", e);
 					}
 	
 					pcs.firePropertyChange(Command.GET_INSTANCE_STATUS.name, false, true);
+					
+					boolean end = true;
 	
 					for (String tier : instancesPerTier.keySet()) {
-						boolean end = true;
 						Instances ins = instancesPerTier.get(tier);
 						end &= ins.count() == ins.ipPerId.size();
-	
-						logger.trace("Received the information about {} instances out of {} for the tier {}.", ins.count(), ins.ipPerId.size(), tier);
+					}
+					
+					if (end) {
 						printStatus();
-	
-						if (end)
-							pcs.firePropertyChange(Command.GET_STATUS.name, false, true);
+						pcs.firePropertyChange(Command.GET_STATUS.name, false, true);
 					}
 	
 				} else if (s.contains("ack") && s.contains("Deploy") && !s.contains("MaxVMsReached")) {
-					logger.info("Deploy completed.");
+					getLogger().info("Deploy completed.");
 	
 					pcs.firePropertyChange(Command.DEPLOY.name, false, true);
 	
@@ -611,9 +629,9 @@ public class CloudMLCall {
 						Thread.sleep(10000);
 					} catch (Exception e) { }
 	
-					updateStatus();
+					updateStatus(false);
 				} else if (s.contains("ack") && s.contains("Burst")) {
-					logger.info("Burst completed.");
+					getLogger().info("Burst completed.");
 	
 					pcs.firePropertyChange(Command.BURST.name, false, true);
 	
@@ -621,22 +639,23 @@ public class CloudMLCall {
 						Thread.sleep(10000);
 					} catch (Exception e) { }
 	
-					updateStatus();
-				} else if (s.contains("ack") && s.contains("MaxVMsReached")) {
-					logger.info("It was impossible to perform the scale out because you reached the max VM constraint.");
+					updateStatus(false);
+				} else if (s.contains("ack") && s.contains("MaxVMsReached") ||
+						(s.contains("!updated") && getUpdateJSON(s).getString("newValue").equals("ERROR") && getUpdateJSON(s).getString("property").equals("status") && getUpdateJSON(s).getString("fromPeer").contains("CloudAppDeployer"))) {
+					getLogger().info("It was impossible to perform the scale out because you reached the max VM constraint.");
 	
-					pcs.firePropertyChange(Command.SCALE_OUT.name, false, true);
+//					pcs.firePropertyChange(Command.SCALE_OUT.name, false, true);
 					
 					String params = commandParam.remove(Command.SCALE_OUT);
 					if (params != null) {
-						logger.info("Trying the burst instead...");
+						getLogger().info("Trying the burst instead...");
 						String[] paramsArray = params.split(";");
 						String id = paramsArray[0];
-						burst(id);
+						burst(id, false);
 					}
 				} else if (s.contains("ack")) {
 	
-					logger.trace("Ack received: {}", s);
+					getLogger().trace("Ack received: {}", s);
 					pcs.firePropertyChange("OtherCommand", false, true);
 				} else if (s.contains("!updated")) {
 	
@@ -645,7 +664,7 @@ public class CloudMLCall {
 					try {
 						res = parseUpdate(s);
 					} catch (Exception e) {
-						logger.error("Error while updating the saved informations.", e);
+						getLogger().error("Error while updating the saved informations.", e);
 					}
 					if (res)
 						pcs.firePropertyChange("Update", false, true);
@@ -654,8 +673,9 @@ public class CloudMLCall {
 			
 			@OnOpen
 			public void onOpen(Session session) {
-				logger.info("Connected to the CloudML server {}.", serverURI);
+				getLogger().info("Connected to the CloudML server {}.", serverURI);
 				this.session = session;
+				this.session.setMaxTextMessageBufferSize(10 * 1024 * 1024);
 				
 				pcs.firePropertyChange("Connection", false, true);
 				signalClearWaiting();
@@ -663,7 +683,7 @@ public class CloudMLCall {
 	
 			@OnClose
 			public void onClose(CloseReason closeReason) {
-				logger.info("Disconnected from the CloudML server {} ({}: {}).", serverURI, closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
+				getLogger().info("Disconnected from the CloudML server {} ({}: {}).", serverURI, closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
 				session = null;
 				
 				pcs.firePropertyChange("Connection", true, false);
@@ -672,7 +692,7 @@ public class CloudMLCall {
 			
 			@OnError
 			public void onError(Throwable e) {
-				logger.error("Error met.", e);
+				getLogger().error("Error met.", e);
 	
 				pcs.firePropertyChange("Error", false, true);
 			}
@@ -686,7 +706,7 @@ public class CloudMLCall {
 				try {
 					session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Requested explicitly"));
 				} catch (Exception e) {
-					logger.error("Error while disconnecting.", e);
+					getLogger().error("Error while disconnecting.", e);
 				}
 			}
 		}
@@ -712,18 +732,27 @@ public class CloudMLCall {
 	
 			return true;
 		}
-	
+		
 		public boolean burst(String id) {
+			return burst(id, true);
+		}
+	
+		private boolean burst(String id, boolean blocking) {
 			commandParam.put(Command.GET_STATUS, String.format("%s;1;%s", id, Command.BURST.name));
 	
-			wsClient.sendBlocking(Command.GET_STATUS.command, Command.BURST);
+			if (blocking)
+				wsClient.sendBlocking(Command.GET_STATUS.command, Command.BURST);
+			else
+				wsClient.send(Command.GET_STATUS.command);
 	
 			return true;
 		}
 	
-		private boolean burst(String id, String provider) {
-	//		wsClient.sendBlocking(String.format(Command.BURST.command, id, provider), Command.BURST);
-			wsClient.send(String.format(Command.BURST.command, id, provider));
+		private boolean burst(String id, String provider, boolean blocking) {
+			if (blocking)
+				wsClient.sendBlocking(String.format(Command.BURST.command, id, provider), Command.BURST);
+			else
+				wsClient.send(String.format(Command.BURST.command, id, provider));
 	
 			return true;
 		}
@@ -734,7 +763,7 @@ public class CloudMLCall {
 				wait = 0;
 	
 			wait++;
-			logger.trace("New operation [{}] started, {} waiting in total.", what.name, wait);
+			getLogger().trace("New operation [{}] started, {} waiting in total.", what.name, wait);
 	
 			waitingPerCommand.put(what, wait);
 		}
@@ -756,25 +785,29 @@ public class CloudMLCall {
 			if (wait > 0)
 				wait--;
 			if (reason == null)
-				logger.trace("Operation [{}] completed, {} waiting in total.", what.name, wait);
+				getLogger().trace("Operation [{}] completed, {} waiting in total.", what.name, wait);
 			else
-				logger.trace("Operation [{}] completed with reason '{}', {} waiting in total.", what.name, reason, wait);
+				getLogger().trace("Operation [{}] completed with reason '{}', {} waiting in total.", what.name, reason, wait);
 	
 			waitingPerCommand.put(what, wait);
 		}
 	
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
-			logger.debug("Property changed: {}", evt.getPropertyName());
+			getLogger().debug("Property changed: {}", evt.getPropertyName());
 	
 			if (evt.getPropertyName().equals(Command.SCALE_OUT.name)) {
 				signalCompleted(Command.SCALE_OUT);
-				signalCompleted(Command.SCALE);
+				if (somebodyWaiting(Command.SCALE))
+					signalCompleted(Command.SCALE);
 			} else if (evt.getPropertyName().equals(Command.BURST.name)) {
-				signalCompleted(Command.BURST); 
+				signalCompleted(Command.BURST);
+				if (somebodyWaiting(Command.SCALE))
+					signalCompleted(Command.SCALE);
 			} else if (evt.getPropertyName().equals(Command.GET_STATUS.name)) {
 				signalCompleted(Command.GET_STATUS);
-				signalCompleted(Command.DEPLOY);
+				if (somebodyWaiting(Command.DEPLOY))
+					signalCompleted(Command.DEPLOY);
 	
 				String params = commandParam.remove(Command.GET_STATUS);
 				if (params == null)
@@ -825,8 +858,12 @@ public class CloudMLCall {
 	
 						if (toBeCreated > 0) {
 							String id = instances.idPerName.get(instances.vm);
+							if (id == null && instances.running.size() > 0)
+								id = instances.running.get(0);
+							else if (id == null && instances.stopped.size() > 0)
+								id = instances.stopped.get(0);
 							
-							commandParam.put(Command.SCALE_OUT, String.format("%s;%d;%s", id, toBeCreated, Command.SCALE_OUT.name));
+							commandParam.put(Command.SCALE_OUT, String.format("%s;%d;%s", instances.tier, toBeCreated, Command.SCALE_OUT.name));
 							scaleOut(id, toBeCreated, false);
 						}
 					}
@@ -835,6 +872,8 @@ public class CloudMLCall {
 				} else if (cmd == Command.BURST) {
 					if (!instancesPerTier.containsKey(tier)) {
 						signalCompleted(Command.BURST, "Bursting an unknown tier");
+						if (somebodyWaiting(Command.SCALE))
+							signalCompleted(Command.SCALE);
 	
 						return;
 					}
@@ -842,6 +881,8 @@ public class CloudMLCall {
 					Instances instances = instancesPerTier.get(tier).clone();
 					if (instances.running.size() == 0) {
 						signalCompleted(Command.BURST, "Bursting a non running tier");
+						if (somebodyWaiting(Command.SCALE))
+							signalCompleted(Command.SCALE);
 	
 						return;
 					}
@@ -853,16 +894,101 @@ public class CloudMLCall {
 					}
 					if (provider == null) {
 						signalCompleted(Command.BURST, "No available provider to burst to");
+						if (somebodyWaiting(Command.SCALE))
+							signalCompleted(Command.SCALE);
 	
 						return;
 					}
 	
-					burst(instances.idPerName.get(instances.vm), provider);
+					burst(instances.idPerName.get(instances.vm), provider, false);
 	
 	//				signalCompleted(Command.BURST);
 				}
 			}
 	
+		}
+		
+		private static class Instances {
+			String vm = null;
+			String tier = null;
+			List<String> running = new ArrayList<String>();
+			List<String> stopped = new ArrayList<String>();
+			Map<String, String> ipPerId = new HashMap<String, String>();
+			Map<String, String> idPerName = new HashMap<String, String>();
+			Map<String, String> statusPerId = new HashMap<String, String>();
+			Map<String, String> providerPerId = new HashMap<String, String>();
+
+			public Instances clone() {
+				Instances ret = new Instances();
+				ret.vm = vm;
+				ret.tier = tier;
+				ret.running.addAll(running);
+				ret.stopped.addAll(stopped);
+				ret.ipPerId.putAll(ipPerId);
+				ret.idPerName.putAll(idPerName);
+				ret.statusPerId.putAll(statusPerId);
+				ret.providerPerId.putAll(providerPerId);
+
+				return ret;
+			}
+
+			public String toString() {
+				StringBuilder sb = new StringBuilder();
+				sb.append(String.format("Tier: %s, VM: %s", tier, vm));
+				if (running.size() > 0) {
+					sb.append(", Running: [ ");
+					for (String s : running) {
+						String provider = providerPerId.get(s);
+						sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
+					}
+					sb.deleteCharAt(sb.length() - 2);
+					sb.append("]");
+				}
+				if (stopped.size() > 0) {
+					sb.append(", Stopped: [ ");
+					for (String s : stopped) {
+						String provider = providerPerId.get(s);
+						sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
+					}
+					sb.deleteCharAt(sb.length() - 2);
+					sb.append("]");
+				}
+
+				return sb.toString();
+			}
+
+			public List<String> getUsedProviders() {
+				List<String> res = new ArrayList<String>();
+				for (String key : providerPerId.keySet()) {
+					String provider = providerPerId.get(key);
+					if (!res.contains(provider))
+						res.add(provider);
+				}
+				return res;
+			}
+
+			public int count() {
+				return running.size() + stopped.size();
+			}
+
+			public String getTierStatus() {
+				return statusPerId.get(idPerName.get(vm));
+			}
+
+			public String getTierIp() {
+				return ipPerId.get(idPerName.get(vm));
+			}
+			
+			public static String sanitizeName(String name) {
+				if (name.indexOf("fromImage") > -1)
+					name = name.substring(0, name.indexOf('('));
+				if (name.indexOf("(no_") > -1)
+					name = name.substring(0, name.indexOf("(no_"));
+				if (name.indexOf('@') > -1)
+					name = name.substring(0, name.indexOf('@'));
+				
+				return name;
+			}
 		}
 	}
 	
@@ -914,78 +1040,6 @@ public class CloudMLCall {
 				sb.append(", ");
 			}
 			return sb.substring(0, sb.lastIndexOf(","));
-		}
-	}
-	
-	private static class Instances {
-		String vm = null;
-		String tier = null;
-		List<String> running = new ArrayList<String>();
-		List<String> stopped = new ArrayList<String>();
-		Map<String, String> ipPerId = new HashMap<String, String>();
-		Map<String, String> idPerName = new HashMap<String, String>();
-		Map<String, String> statusPerId = new HashMap<String, String>();
-		Map<String, String> providerPerId = new HashMap<String, String>();
-
-		public Instances clone() {
-			Instances ret = new Instances();
-			ret.vm = vm;
-			ret.tier = tier;
-			ret.running.addAll(running);
-			ret.stopped.addAll(stopped);
-			ret.ipPerId.putAll(ipPerId);
-			ret.idPerName.putAll(idPerName);
-			ret.statusPerId.putAll(statusPerId);
-			ret.providerPerId.putAll(providerPerId);
-
-			return ret;
-		}
-
-		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			sb.append(String.format("Tier: %s, VM: %s", tier, vm));
-			if (running.size() > 0) {
-				sb.append(", Running: [ ");
-				for (String s : running) {
-					String provider = providerPerId.get(s);
-					sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
-				}
-				sb.deleteCharAt(sb.length() - 2);
-				sb.append("]");
-			}
-			if (stopped.size() > 0) {
-				sb.append(", Stopped: [ ");
-				for (String s : stopped) {
-					String provider = providerPerId.get(s);
-					sb.append(String.format("%s%s, ", s, provider != null ? "@" + provider : ""));
-				}
-				sb.deleteCharAt(sb.length() - 2);
-				sb.append("]");
-			}
-
-			return sb.toString();
-		}
-
-		public List<String> getUsedProviders() {
-			List<String> res = new ArrayList<String>();
-			for (String key : providerPerId.keySet()) {
-				String provider = providerPerId.get(key);
-				if (!res.contains(provider))
-					res.add(provider);
-			}
-			return res;
-		}
-
-		public int count() {
-			return running.size() + stopped.size();
-		}
-
-		public String getTierStatus() {
-			return statusPerId.get(idPerName.get(vm));
-		}
-
-		public String getTierIp() {
-			return ipPerId.get(idPerName.get(vm));
 		}
 	}
 
