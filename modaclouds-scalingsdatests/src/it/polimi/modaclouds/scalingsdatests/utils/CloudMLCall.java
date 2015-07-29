@@ -43,7 +43,7 @@ public class CloudMLCall {
 
 	public static void main(String[] args) throws Exception {
 		boolean machineAlreadyPrepared = true;
-		boolean restartCloudML = true;
+		boolean restartCloudML = false;
 		boolean useLocalCloudML = false;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
@@ -156,14 +156,10 @@ public class CloudMLCall {
 		
 		cml.updateStatus();
 
-//		cml.scale(usedApp.tierName + "Flexiant", 1);
-//		
-//		cml.scale(usedApp.tierName + "Amazon(no_1)-scaled", 1);
-//		
-//		cml.scale(usedApp.tierName + "Flexiant", 1);
-//
-//		cml.burst(usedApp.tierName + "Flexiant");
-//
+		cml.scale(usedApp.tierName, 1);
+		
+		cml.updateStatus();
+		
 //		cml.terminateAllInstances();
 
 		getLogger().info("Test ended!");
@@ -398,8 +394,8 @@ public class CloudMLCall {
 							boolean scaledOut = false;
 							if (tier.indexOf("fromImage") > -1 || tier.indexOf("scaled") > -1) {
 								scaledOut = true;
-								tier = Instances.sanitizeName(tier);
 							}
+							tier = Instances.sanitizeName(tier);
 							String name = instance.getString("name");
 							String ip = instance.getString("publicAddress");
 	
@@ -648,10 +644,39 @@ public class CloudMLCall {
 					
 					String params = commandParam.remove(Command.SCALE_OUT);
 					if (params != null) {
-						getLogger().info("Trying the burst instead...");
 						String[] paramsArray = params.split(";");
-						String id = paramsArray[0];
-						burst(id, false);
+						String tier = paramsArray[0];
+						int toBeCreated = Integer.parseInt(paramsArray[1]);
+						List<String> providers = new ArrayList<String>();
+						for (int i = 3; i < paramsArray.length; ++i)
+							providers.add(paramsArray[i]);
+						
+						Instances instances = instancesPerTier.get(tier);
+						List<String> usedProviders = instances.getUsedProviders();
+						if (usedProviders.size() > providers.size()) {
+							String provider = null;
+							for (int i = 0; provider == null && i < usedProviders.size(); ++i) {
+								if (!providers.contains(usedProviders.get(i)))
+									provider = usedProviders.get(i);
+							}
+							
+							String vmId = null;
+							for (int i = 0; vmId == null && i < instances.running.size(); ++i) {
+								if (instances.providerPerId.get(instances.running.get(i)).equals(provider))
+									vmId = instances.running.get(i);
+							}
+							for (int i = 0; vmId == null && i < instances.stopped.size(); ++i) {
+								if (instances.providerPerId.get(instances.stopped.get(i)).equals(provider))
+									vmId = instances.stopped.get(i);
+							}
+							
+							getLogger().info("Trying another provider...");
+							commandParam.put(Command.SCALE_OUT, params + ";" + provider);
+							scaleOut(vmId, toBeCreated, false);
+						} else {
+							getLogger().info("Trying the burst instead...");
+							burst(tier, false);
+						}
 					}
 				} else if (s.contains("ack")) {
 	
@@ -833,7 +858,7 @@ public class CloudMLCall {
 	
 					if (n < 0 && instances.running.size() > 0) {
 						int toBeShuttedDown = -n;
-						if (instances.running.size() -1 < toBeShuttedDown)
+						if (instances.running.size() - 1 < toBeShuttedDown)
 							toBeShuttedDown = instances.running.size() - 1;
 	
 						ArrayList<String> ids = new ArrayList<String>();
@@ -863,7 +888,9 @@ public class CloudMLCall {
 							else if (id == null && instances.stopped.size() > 0)
 								id = instances.stopped.get(0);
 							
-							commandParam.put(Command.SCALE_OUT, String.format("%s;%d;%s", instances.tier, toBeCreated, Command.SCALE_OUT.name));
+							String provider = instances.providerPerId.get(id);
+							
+							commandParam.put(Command.SCALE_OUT, String.format("%s;%d;%s;%s", instances.tier, toBeCreated, Command.SCALE_OUT.name, provider));
 							scaleOut(id, toBeCreated, false);
 						}
 					}
