@@ -3,6 +3,7 @@ package it.polimi.modaclouds.scalingsdatests.utils;
 import it.cloud.amazon.ec2.AmazonEC2;
 import it.cloud.amazon.ec2.VirtualMachine;
 import it.cloud.amazon.ec2.VirtualMachine.Instance;
+import it.cloud.utils.Ssh;
 import it.polimi.modaclouds.scalingsdatests.Test;
 
 import java.beans.PropertyChangeEvent;
@@ -46,6 +47,7 @@ public class CloudML implements PropertyChangeListener {
 
 		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
 		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.medium", 1);
+		VirtualMachine lb = VirtualMachine.getVM("lb");
 		String loadBalancer;
 		if (useExternalLoadBalancer)
 			loadBalancer = "109.231.126.56";
@@ -93,15 +95,27 @@ public class CloudML implements PropertyChangeListener {
 			}
 			
 			if (!machineAlreadyPrepared || rebootMachine || restartCloudML) {
-				impl.exec(String.format("bash /home/ubuntu/CloudMLDaemon -stop && bash /home/ubuntu/CloudMLDaemon -port %d", cloudMLPort));
+				if (useExternalLoadBalancer) {
+					Ssh.exec(loadBalancer, lb, mpl.getParameter("STOPPER"));
+					Ssh.exec(loadBalancer, lb, mpl.getParameter("STARTER"));
+				}
+				
+				impl.exec(String.format(mpl.getParameter("CLOUDML_STOPPER"), Integer.toString(cloudMLPort)));
+				impl.exec(String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.toString(cloudMLPort)));
 				Thread.sleep(10000);
 			}
 		} else {
 			cloudMLIp = "localhost";
 
 			if (restartCloudML) {
-				CloudMLDaemon.stop();
+				if (useExternalLoadBalancer) {
+					Ssh.exec(loadBalancer, lb, mpl.getParameter("STOPPER"));
+					Ssh.exec(loadBalancer, lb, mpl.getParameter("STARTER"));
+				}
+				
+				CloudMLDaemon.stop(cloudMLPort);
 				CloudMLDaemon.start(cloudMLPort);
+				Thread.sleep(10000);
 			}
 		}
 
@@ -110,8 +124,18 @@ public class CloudML implements PropertyChangeListener {
 			try {
 				cml = new CloudML(cloudMLIp, cloudMLPort);
 			} catch (Exception e) {
+				logger.error("Error", e);
 				cml = null;
 				logger.info("No CloudML found, retrying in 10 seconds...");
+				
+				if (!useLocalCloudML) {
+					mpl.getInstances().get(0).exec(String.format(mpl.getParameter("CLOUDML_STOPPER"), Integer.toString(cloudMLPort)));
+					mpl.getInstances().get(0).exec(String.format(mpl.getParameter("CLOUDML_STARTER"), Integer.toString(cloudMLPort)));
+				} else {
+					CloudMLDaemon.stop(cloudMLPort);
+					CloudMLDaemon.start(cloudMLPort);
+				}
+				
 				try {
 					Thread.sleep(10000);
 				} catch (Exception e1) { }
@@ -127,9 +151,9 @@ public class CloudML implements PropertyChangeListener {
 
 		cml.scale(usedApp.tierName + "Flexiant", 1);
 		
-		cml.scale(usedApp.tierName + "Flexiant", 1);
+//		cml.scale(usedApp.tierName + "Flexiant", 1);
 //
-//		cml.burst(usedApp.tierName +"Flexiant");
+//		cml.burst(usedApp.tierName + "Flexiant");
 //
 //		cml.terminateAllInstances();
 
@@ -228,14 +252,17 @@ public class CloudML implements PropertyChangeListener {
 		wsClient.sendBlocking(Command.DEPLOY.command, -1, Command.DEPLOY);
 	}
 
-	private void scaleOut(String vmId, int times) {
+	private void scaleOut(String vmId, int times, boolean blocking) {
 		if (times <= 0) {
 			logger.info("Scaling out of {} skipped because {} <= 0.", vmId, times);
 			return;
 		}
 		logger.info("Scaling out {} instances.", times);
 
-		wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.valueOf(times).toString()), Command.SCALE_OUT);
+		if (blocking)
+			wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.toString(times)), Command.SCALE_OUT);
+		else
+			wsClient.send(String.format(Command.SCALE_OUT.command, vmId, Integer.toString(times)));
 	}
 
 	public void updateStatus() {
@@ -254,49 +281,55 @@ public class CloudML implements PropertyChangeListener {
 				); //, Command.GET_INSTANCE_STATUS);
 	}
 
-	private void stopInstances(List<String> instances) {
+	private void stopInstances(List<String> instances, boolean blocking) {
 		if (instances.size() == 0)
 			return;
 
-		for (String instanceId : instances)
-			logger.info("Stopping the instance with id {}...", instanceId);
-
-		String toSend = "";
+		StringBuilder toSend = new StringBuilder();
 		for (String instance : instances) {
-			if (toSend.equals("")) {
-				toSend += instance;
+			logger.info("Stopping the instance with id {}...", instance);
+			
+			if (toSend.length() == 0) {
+				toSend.append(instance);
 			} else {
-				toSend += "," + instance;
+				toSend.append(",");
+				toSend.append(instance);
 			}
 		}
 
-		wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend), Command.STOP_INSTANCE);
+		if (blocking)
+			wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend.toString()), Command.STOP_INSTANCE);
+		else
+			wsClient.send(String.format(Command.STOP_INSTANCE.command, toSend.toString()));
 	}
 
 	public void terminateAllInstances() {
 		for (String tier : instancesPerTier.keySet()) {
 			Instances instances = instancesPerTier.get(tier);
-			stopInstances(instances.running);
+			stopInstances(instances.running, true);
 		}
 	}
 
-	private void startInstances(List<String> instances) {
+	private void startInstances(List<String> instances, boolean blocking) {
 		if (instances.size() == 0)
 			return;
 
-		for (String instanceId : instances)
-			logger.info("Restarting the instance with id {}...", instanceId);
-
-		String toSend = "";
+		StringBuilder toSend = new StringBuilder();
 		for (String instance : instances) {
-			if (toSend.equals("")) {
-				toSend += instance;
+			logger.info("Restarting the instance with id {}...", instance);
+			
+			if (toSend.length() == 0) {
+				toSend.append(instance);
 			} else {
-				toSend += "," + instance;
+				toSend.append(",");
+				toSend.append(instance);
 			}
 		}
 
-		wsClient.sendBlocking(String.format(Command.START_INSTANCE.command, toSend), Command.START_INSTANCE);
+		if (blocking)
+			wsClient.sendBlocking(String.format(Command.START_INSTANCE.command, toSend.toString()), Command.START_INSTANCE);
+		else
+			wsClient.send(String.format(Command.START_INSTANCE.command, toSend.toString()));
 	}
 
 	private boolean isReachable(String ip) {
@@ -464,6 +497,9 @@ public class CloudML implements PropertyChangeListener {
 
 		@Override
 		public void send(String command) throws NotYetConnectedException {
+			if (!isConnected())
+				throw new RuntimeException("You're not connected to any server!");
+			
 			logger.trace(">>> {}", command);
 			super.send("!listenToAny");
 
@@ -514,9 +550,11 @@ public class CloudML implements PropertyChangeListener {
 			logger.trace("<<< {}", s);
 
 			if (s.contains("ack") && s.contains("ScaleOut")) {
-				logger.info("Scale out completed.");
-
-				pcs.firePropertyChange(Command.SCALE_OUT.name, false, true);
+				if (somebodyWaiting(Command.SCALE_OUT)) {
+					logger.info("Scale out completed.");
+	
+					pcs.firePropertyChange(Command.SCALE_OUT.name, false, true);
+				}
 			} else if (s.contains(RESULT_SNAPSHOT)
 					&& !s.contains("!snapshot")) {
 
@@ -687,8 +725,10 @@ public class CloudML implements PropertyChangeListener {
 
 		public static String getList() {
 			StringBuilder sb = new StringBuilder();
-			for (Command c : values())
-				sb.append(c.name + ", ");
+			for (Command c : values()) {
+				sb.append(c.name);
+				sb.append(", ");
+			}
 			return sb.substring(0, sb.lastIndexOf(","));
 		}
 	}
@@ -789,7 +829,8 @@ public class CloudML implements PropertyChangeListener {
 	}
 
 	private boolean burst(String id, String provider) {
-		wsClient.sendBlocking(String.format(Command.BURST.command, id, provider), Command.BURST);
+//		wsClient.sendBlocking(String.format(Command.BURST.command, id, provider), Command.BURST);
+		wsClient.send(String.format(Command.BURST.command, id, provider));
 
 		return true;
 	}
@@ -807,6 +848,11 @@ public class CloudML implements PropertyChangeListener {
 
 	private void signalCompleted(Command what) {
 		signalCompleted(what, null);
+	}
+	
+	private boolean somebodyWaiting(Command what) {
+		Integer wait = waitingPerCommand.get(what);
+		return (wait != null && wait > 0);
 	}
 
 	private void signalCompleted(Command what, String reason) {
@@ -826,10 +872,13 @@ public class CloudML implements PropertyChangeListener {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		logger.debug("Property changed: " + evt.getPropertyName());
+		logger.debug("Property changed: {}", evt.getPropertyName());
 
 		if (evt.getPropertyName().equals(Command.SCALE_OUT.name)) {
 			signalCompleted(Command.SCALE_OUT);
+			signalCompleted(Command.SCALE);
+		} else if (evt.getPropertyName().equals(Command.BURST.name)) {
+			signalCompleted(Command.BURST); 
 		} else if (evt.getPropertyName().equals(Command.GET_STATUS.name)) {
 			signalCompleted(Command.GET_STATUS);
 			signalCompleted(Command.DEPLOY);
@@ -865,7 +914,7 @@ public class CloudML implements PropertyChangeListener {
 					for (int i = 0; i < toBeShuttedDown; ++i)
 						ids.add(instances.running.get(i));
 
-					stopInstances(ids);
+					stopInstances(ids, false);
 
 				} else if (n > 0) {
 					int toBeStarted = n;
@@ -879,17 +928,17 @@ public class CloudML implements PropertyChangeListener {
 					for (int i = 0; i < toBeStarted; ++i)
 						ids.add(instances.stopped.get(i));
 
-					startInstances(ids);
+					startInstances(ids, false);
 
 					if (toBeCreated > 0) {
 						String id = instances.idPerName.get(instances.vm);
 						
 						commandParam.put(Command.SCALE_OUT, String.format("%s;%d;%s", id, toBeCreated, Command.SCALE_OUT.name));
-						scaleOut(id, toBeCreated);
+						scaleOut(id, toBeCreated, false);
 					}
 				}
 
-				signalCompleted(Command.SCALE);
+//				signalCompleted(Command.SCALE);
 			} else if (cmd == Command.BURST) {
 				if (!instancesPerTier.containsKey(tier)) {
 					signalCompleted(Command.BURST, "Bursting an unknown tier");
@@ -917,7 +966,7 @@ public class CloudML implements PropertyChangeListener {
 
 				burst(instances.idPerName.get(instances.vm), provider);
 
-				signalCompleted(Command.BURST);
+//				signalCompleted(Command.BURST);
 			}
 		}
 

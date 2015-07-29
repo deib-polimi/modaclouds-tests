@@ -101,11 +101,13 @@ public class CloudMLCall extends AbstractAction {
         }
 
         public static String getList() {
-            StringBuilder sb = new StringBuilder();
-            for (Command c : values())
-                sb.append(c.name + ", ");
-            return sb.substring(0, sb.lastIndexOf(","));
-        }
+			StringBuilder sb = new StringBuilder();
+			for (Command c : values()) {
+				sb.append(c.name);
+				sb.append(", ");
+			}
+			return sb.substring(0, sb.lastIndexOf(","));
+		}
     }
 
     private final Set<String> requiredParameters;
@@ -416,7 +418,7 @@ public class CloudMLCall extends AbstractAction {
     		}
         	getLogger().info("Scaling out {} instances...", times);
             
-            wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.valueOf(times).toString()), Command.SCALE_OUT);
+            wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.toString(times)), Command.SCALE_OUT);
         }
 
         public void updateStatus() {
@@ -439,19 +441,19 @@ public class CloudMLCall extends AbstractAction {
             if (instances.size() == 0)
                 return;
             
-            for (String instanceId : instances)
-                getLogger().info("Stopping the instance with id {}...", instanceId);
-            
-            String toSend = "";
-            for (String instance : instances) {
-                if (toSend.equals("")) {
-                    toSend += instance;
-                } else {
-                    toSend += "," + instance;
-                }
-            }
+            StringBuilder toSend = new StringBuilder();
+    		for (String instance : instances) {
+    			getLogger().info("Stopping the instance with id {}...", instance);
+    			
+    			if (toSend.length() == 0) {
+    				toSend.append(instance);
+    			} else {
+    				toSend.append(",");
+    				toSend.append(instance);
+    			}
+    		}
 
-            wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend), Command.STOP_INSTANCE);
+            wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend.toString()), Command.STOP_INSTANCE);
         }
         
         public void terminateAllInstances() {
@@ -465,19 +467,19 @@ public class CloudMLCall extends AbstractAction {
             if (instances.size() == 0)
                 return;
             
-            for (String instanceId : instances)
-                getLogger().info("Restarting the instance with id {}...", instanceId);
-            
-            String toSend = "";
-            for (String instance : instances) {
-                if (toSend.equals("")) {
-                    toSend += instance;
-                } else {
-                    toSend += "," + instance;
-                }
-            }
+            StringBuilder toSend = new StringBuilder();
+    		for (String instance : instances) {
+    			getLogger().info("Restarting the instance with id {}...", instance);
+    			
+    			if (toSend.length() == 0) {
+    				toSend.append(instance);
+    			} else {
+    				toSend.append(",");
+    				toSend.append(instance);
+    			}
+    		}
 
-            wsClient.sendBlocking(String.format(Command.START_INSTANCE.command, toSend), Command.START_INSTANCE);
+            wsClient.sendBlocking(String.format(Command.START_INSTANCE.command, toSend.toString()), Command.START_INSTANCE);
         }
         
         private boolean isReachable(String ip) {
@@ -653,6 +655,9 @@ public class CloudMLCall extends AbstractAction {
             
             @Override
             public void send(String command) throws NotYetConnectedException {
+            	if (!isConnected())
+    				throw new RuntimeException("You're not connected to any server!");
+            	
                 getLogger().trace(">>> {}", command);
                 super.send("!listenToAny");
                 
@@ -966,7 +971,7 @@ public class CloudMLCall extends AbstractAction {
 
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            getLogger().debug("Property changed: " + evt.getPropertyName());
+            getLogger().debug("Property changed: {}", evt.getPropertyName());
             
             if (evt.getPropertyName().equals(Command.SCALE_OUT.name)) {
                 signalCompleted(Command.SCALE_OUT);

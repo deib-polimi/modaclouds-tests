@@ -85,6 +85,10 @@ public class Main {
 	}
 
 	public static void stop() {
+		stop(port);
+	}
+
+	public static void stop(int port) {
 		if (port == -1)
 			return;
 

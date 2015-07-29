@@ -82,6 +82,8 @@
     <logger name="org.apache" level="WARN" />
 
     <logger name="javax.management" level="WARN" />
+    
+    <logger name="javax.websocket" level="WARN" />
 
     <logger name="org.cloudml.facade.util.WSClient" level="TRACE" />
 
