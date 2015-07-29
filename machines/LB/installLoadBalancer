@@ -12,6 +12,7 @@ sudo apt-get update -y
 sudo apt-get install -y haproxy -t trusty-backports
 
 sudo service haproxy stop
+sudo service haproxy disable
 
 echo "
 frontend fwebapp

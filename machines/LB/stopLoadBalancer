@@ -2,3 +2,4 @@
 
 killall -9 python
 sudo service haproxy stop
+killall -9 haproxy
