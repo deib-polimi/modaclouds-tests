@@ -1,15 +1,29 @@
 #!/bin/bash
 #$1=IP MP
-#$2=PROVIDER
+#$2=PORT MP
+#$3=PROVIDER
 
-PROVIDER="amazon"
+PORT="8170"
 if [ "$#" -gt 1 ]
 then
-    PROVIDER=$2
+    PORT=$2
 fi
 
-echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=$PROVIDER" >> ~/.bashrc_httpagent
+PROVIDER="amazon"
+if [ "$#" -gt 2 ]
+then
+    PROVIDER=$3
+fi
 
-bash ~/http-agent-helper/startTomcat.sh "$@"
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$1" >> ~/.bashrc_httpagent
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=$PORT" >> ~/.bashrc_httpagent
+if [ -z ${MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID+x} ]
+then
+    echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=$PROVIDER" >> ~/.bashrc_httpagent
+fi
+
+source ~/.bashrc_httpagent
+
+bash ~/http-agent-helper/startTomcat.sh
 
 cd

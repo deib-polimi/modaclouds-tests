@@ -2,12 +2,10 @@
 
 cd
 
-echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> ~/.bashrc_httpagent
 echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=http-agent-helper" >> ~/.bashrc_httpagent
 echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=HTTPAgentHelper" >> ~/.bashrc_httpagent
 echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=HTTPAgent" >> ~/.bashrc_httpagent
 echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> ~/.bashrc_httpagent
-echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=amazon" >> ~/.bashrc_httpagent
 echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> ~/.bashrc_httpagent
 source ~/.bashrc_httpagent
 

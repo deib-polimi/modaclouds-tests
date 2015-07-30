@@ -1,12 +1,19 @@
 #!/bin/bash
-#$1=DB-IP
-#$2=MP-IP
-#$3=PROVIDER
+#$1=DB IP
+#$2=MP IP
+#$3=MP PORT
+#$4=PROVIDER
+
+PORT="8170"
+if [ "$#" -gt 2 ]
+then
+    PORT=$3
+fi
 
 PROVIDER="amazon"
-if [ "$#" -gt 0 ]
+if [ "$#" -gt 3 ]
 then
-    PROVIDER=$1
+    PROVIDER=$4
 fi
 
 cd ~/glassfish4/bin/
@@ -19,7 +26,11 @@ bash ~/micwar_builder "$1"
 bash ~/updateGlassfish_script "$1" "$2"
 
 echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$2" >> ~/.bashrc_mic
-echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=$PROVIDER" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=$PORT" >> ~/.bashrc_mic
+if [ -z ${MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID+x} ]
+then
+    echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=$PROVIDER" >> ~/.bashrc_mic
+fi
 
 source ~/.bashrc_mic
 

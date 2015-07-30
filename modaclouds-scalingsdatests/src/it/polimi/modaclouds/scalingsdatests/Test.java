@@ -801,7 +801,8 @@ public class Test {
 					String.format(
 							app.getParameter("STARTER").replaceAll("&&", ";"),
 							useDatabase ? database.getIps().get(0) : "127.0.0.1",
-							ipMpl),
+							ipMpl,
+							mpl.getParameter("MP_PORT")),
 					"echo DONE",
 					"echo DONE",
 					app.getSize(),
@@ -818,7 +819,8 @@ public class Test {
 					String.format(
 							app.getParameter("STARTER").replaceAll("&&", ";"),
 							useDatabase ? database.getIps().get(0) : "127.0.0.1",
-							ipMpl),
+							ipMpl,
+							mpl.getParameter("MP_PORT")),
 					String.format(
 							app.getParameter("ADD_TO_LOAD_BALANCER").replaceAll("&&", ";"),
 							it.cloud.amazon.Configuration.AWS_CREDENTIALS.getAWSAccessKeyId(),

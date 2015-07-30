@@ -54,20 +54,8 @@
       "properties" : [
         {
           "eClass": "net.cloudml.core:Property",
-          "name": "env:MODACLOUDS_TOWER4CLOUDS_VM_ID",
-          "value": "${this.host.id}"
-        }, {
-          "eClass": "net.cloudml.core:Property",
-          "name": "env:MODACLOUDS_TOWER4CLOUDS_VM_TYPE",
-          "value": "${this.host.type.name}"
-        }, {
-          "eClass": "net.cloudml.core:Property",
           "name": "env:MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID",
           "value": "${this.provider.id}"
-        }, {
-          "eClass": "net.cloudml.core:Property",
-          "name": "env:MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE",
-          "value": "IaaS"
         }
       ]
     }
