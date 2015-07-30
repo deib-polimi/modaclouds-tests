@@ -7,6 +7,15 @@ MIC_DIST_BRANCH="modaclouds-integration"
 CPIM_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-cpim-library.git"
 CPIM_DIST_BRANCH="master"
 
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=8170" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=mic-frontend-mon" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=Mic" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=MIC" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=amazon" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> .bashrc_mic
+source ~/.bashrc_mic
+
 sudo apt-get update -y
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 # sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade

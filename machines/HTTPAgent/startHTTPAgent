@@ -1,4 +1,14 @@
 #!/bin/bash
+#$1=IP MP
+#$2=PROVIDER
+
+PROVIDER="amazon"
+if [ "$#" -gt 1 ]
+then
+    PROVIDER=$2
+fi
+
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=$PROVIDER" >> ~/.bashrc_httpagent
 
 bash ~/http-agent-helper/startTomcat.sh "$@"
 

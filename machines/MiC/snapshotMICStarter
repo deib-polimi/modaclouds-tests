@@ -1,6 +1,13 @@
 #!/bin/bash
 #$1=DB-IP
 #$2=MP-IP
+#$3=PROVIDER
+
+PROVIDER="amazon"
+if [ "$#" -gt 0 ]
+then
+    PROVIDER=$1
+fi
 
 cd ~/glassfish4/bin/
 sudo ./asadmin stop-domain domain1
@@ -12,6 +19,7 @@ bash ~/micwar_builder "$1"
 bash ~/updateGlassfish_script "$1" "$2"
 
 echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$2" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=$PROVIDER" >> .bashrc_mic
 
 source ~/.bashrc_mic
 
