@@ -20,13 +20,16 @@ public class InitDataCollectorServlet implements ServletContextListener {
 	
 	private static String MONITORING_PLATFORM_IP = "";
 	private static int MONITORING_PLATFORM_PORT = 8170;
+	private static String MONITORING_PLATFORM_PROVIDER = "amazon";
 	
 	public static final String MONITORING_PLATFORM_IP_PROPERTY = "MODACLOUDS_TOWER4CLOUDS_MANAGER_IP";
 	public static final String MONITORING_PLATFORM_PORT_PROPERTY = "MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT";
+	public static final String MONITORING_PLATFORM_PROVIDER_PROPERTY = "MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID";
 	
 	public static void loadFromEnrivonmentVariables() {
 		String mpIp = System.getenv(MONITORING_PLATFORM_IP_PROPERTY);
 		String mpPort = System.getenv(MONITORING_PLATFORM_PORT_PROPERTY);
+		String mpProvider = System.getenv(MONITORING_PLATFORM_PROVIDER_PROPERTY);
 		
 		if (mpIp != null)
 			MONITORING_PLATFORM_IP = mpIp;
@@ -34,11 +37,14 @@ public class InitDataCollectorServlet implements ServletContextListener {
 			try {
 				MONITORING_PLATFORM_PORT = Integer.parseInt(mpPort);
 			} catch (Exception e) { }
+		if (mpProvider != null)
+			MONITORING_PLATFORM_PROVIDER = mpProvider;
 	}
 	
 	public static void loadFromSystemProperties() {
 		String mpIp = System.getProperty(MONITORING_PLATFORM_IP_PROPERTY);
 		String mpPort = System.getProperty(MONITORING_PLATFORM_PORT_PROPERTY);
+		String mpProvider = System.getProperty(MONITORING_PLATFORM_PROVIDER_PROPERTY);
 		
 		if (mpIp != null)
 			MONITORING_PLATFORM_IP = mpIp;
@@ -46,6 +52,8 @@ public class InitDataCollectorServlet implements ServletContextListener {
 			try {
 				MONITORING_PLATFORM_PORT = Integer.parseInt(mpPort);
 			} catch (Exception e) { }
+		if (mpProvider != null)
+			MONITORING_PLATFORM_PROVIDER = mpProvider;
 	}
 	
 	static {
@@ -59,7 +67,7 @@ public class InitDataCollectorServlet implements ServletContextListener {
 		
 		applicationProperties.put(Property.ID, "http-agent-helper");
 		applicationProperties.put(Property.TYPE, "HTTPAgentHelper");
-		applicationProperties.put(Property.CLOUD_PROVIDER_ID, "amazon");
+		applicationProperties.put(Property.CLOUD_PROVIDER_ID, MONITORING_PLATFORM_PROVIDER);
 		applicationProperties.put(Property.CLOUD_PROVIDER_TYPE, "IaaS");
 		applicationProperties.put(Property.VM_ID, "HTTPAgentHelper");
 		applicationProperties.put(Property.VM_TYPE, "Frontend");
