@@ -35,9 +35,10 @@ sudo mv $TMP_FILE $FILE
 #sudo service haproxy restart
 
 rm /tmp/haproxy*
+rm /tmp/default.db
 
 cd ~/modaclouds-loadbalancer-controller
-nohup /bin/bash -c "source envHrapi/bin/activate; exec python api_1_0/pyprox.py" >> /tmp/hrapi.log 2>&1 &
+nohup /bin/bash -c "source envHrapi/bin/activate; exec python api_1_0/pyprox.py" > /tmp/hrapi.log 2>&1 &
 
 #JSON="{
 #  "gateway": "gateHTTP",

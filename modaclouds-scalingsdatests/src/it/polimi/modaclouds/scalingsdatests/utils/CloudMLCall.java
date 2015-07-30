@@ -56,11 +56,11 @@ public class CloudMLCall {
 		}
 		
 		boolean machineAlreadyPrepared = true;
-		boolean restartCloudML = false;
-		boolean useLocalCloudML = true;
+		boolean restartCloudML = true;
+		boolean useLocalCloudML = false;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
-		boolean forceDeploy = true;
+		boolean forceDeploy = false;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
 
@@ -105,7 +105,8 @@ public class CloudMLCall {
 			}
 
 			if (!machineAlreadyPrepared) {
-				impl.exec(mpl.getParameter("UPDATER"));
+//				impl.exec(mpl.getParameter("UPDATER"));
+				impl.exec("bash /home/ubuntu/updateSDA");
 			}
 			
 			if (!machineAlreadyPrepared || rebootMachine) {

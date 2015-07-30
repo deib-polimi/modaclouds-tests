@@ -871,7 +871,11 @@ public class Test {
 		if (port == null)
 			port = "8080";
 
-		String server = loadBalancer != null ? ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer) : this.app.getIps().get(0);
+		String server;
+		if (useOwnLoadBalancer)
+			server = loadBalancer;
+		else
+			server = loadBalancer != null ? ElasticLoadBalancing.getLoadBalancerDNS(loadBalancer) : this.app.getIps().get(0);
 
 		JMeterTest test = new JMeterTest(clients.getParameter("AMI"), clients.getInstancesRunning(), localPath, remotePath, clients.getParameter("JMETER_PATH"), data,
 				server,

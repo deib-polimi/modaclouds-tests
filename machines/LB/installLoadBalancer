@@ -51,5 +51,14 @@ rm -rf envHrapi
 virtualenv envHrapi
 /bin/bash -c "source envHrapi/bin/activate; exec pip install -r requirements.txt"
 
+echo "
+* soft nofile 100000
+* hard nofile 100000" | sudo tee -a /etc/security/limits.conf
+
+echo "
+fs.file-max = 100000" | sudo tee -a /etc/sysctl.conf
+
+sudo sh -c "ulimit -n 100000"
+
 source ~/.bashrc_lb
 cd
