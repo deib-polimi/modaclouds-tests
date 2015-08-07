@@ -440,7 +440,9 @@ public class Test {
 		String mplIp = impl.getIp();
 		int mplPort = Integer.parseInt(mpl.getParameter("MP_PORT"));
 
-		impl.exec(mpl.getParameter("UPDATER"));
+//		impl.exec(mpl.getParameter("UPDATER"));
+		Thread t = Ssh.execInBackground(mplIp, mpl, mpl.getParameter("UPDATER"));
+		t.join();
 		impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
