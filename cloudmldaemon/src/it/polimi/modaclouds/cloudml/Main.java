@@ -27,8 +27,6 @@ public class Main {
 	public static final String APP_TITLE = "\nCloudML Daemon\n";
 
 	static {
-		System.setProperty("jsse.enableSNIExtension", "false");
-		
 		// Optionally remove existing handlers attached to j.u.l root logger
 		SLF4JBridgeHandler.removeHandlersForRootLogger();  // (since SLF4J 1.6.5)
 

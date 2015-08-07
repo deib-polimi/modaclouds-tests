@@ -10,7 +10,7 @@
         {
           "eClass": "net.cloudml.core:Property",
           "name": "MaxVMs",
-          "value": "2"
+          "value": "5"
         }
       ]
     },
@@ -22,7 +22,7 @@
         {
           "eClass": "net.cloudml.core:Property",
           "name": "MaxVMs",
-          "value": "2"
+          "value": "5"
         },
         {
           "eClass": "net.cloudml.core:Property",

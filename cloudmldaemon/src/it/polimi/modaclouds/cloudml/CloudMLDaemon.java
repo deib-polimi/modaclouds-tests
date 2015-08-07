@@ -15,7 +15,11 @@ public class CloudMLDaemon {
 	
 	public static final int DEFAULT_CLOUDML_PORT = 9000;
 	
-	public static int port = -1;	
+	public static int port = -1;
+	
+	static {
+		System.setProperty("jsse.enableSNIExtension", "false");
+	}
 
 	public static void start() {
 		start(DEFAULT_CLOUDML_PORT);

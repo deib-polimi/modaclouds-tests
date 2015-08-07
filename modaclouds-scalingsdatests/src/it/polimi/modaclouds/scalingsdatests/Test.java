@@ -669,31 +669,6 @@ public class Test {
 		return getActualDeploymentModel(ipMpl, mpl, this.app, app.cloudMl, app.cloudMlLoadBalancer, loadBalancer, remotePathIfNecessary, useDatabase, database, useOwnLoadBalancer);
 	}
 	
-	public static void main(String[] args) throws Exception {
-//		String body = FileUtils.readFileToString(Configuration.getPathToFile(App.HTTPAGENT.cloudMl).toFile());
-//		logger.info(body);
-//		logger.info("#############################");
-//		logger.info(removeCommentedLines(body));
-//		logger.info("#############################");
-//		JSONObject jsonObject = new JSONObject(removeCommentedLines(body));
-//		logger.info(jsonObject.toString(0));
-		
-		String pattern = "(\"[^\"]+\")[ \t]*:[ \t]*";//"([\"][^\"]+[\"][ \t]*): ";
-		String subst = "$1:";
-		
-		String s = "\"questa è una prova\": [";
-		
-		logger.info(">\n\n{}\n{}\n", s, s.replaceAll(pattern, subst));
-		
-		s = "\"questa è una prova\": {";
-		
-		logger.info(">\n\n{}\n{}\n", s, s.replaceAll(pattern, subst));
-		
-		s = "\"questa è una prova\": \"";
-		
-		logger.info(">\n\n{}\n{}\n", s, s.replaceAll(pattern, subst));
-	}
-	
 	private static boolean isInString(String previousString) {
 		int count = 0;
 		int i = previousString.indexOf('"');

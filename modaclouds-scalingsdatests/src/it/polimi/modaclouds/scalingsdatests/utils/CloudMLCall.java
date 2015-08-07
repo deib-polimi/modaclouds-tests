@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
@@ -56,8 +57,8 @@ public class CloudMLCall {
 		}
 		
 		boolean machineAlreadyPrepared = true;
-		boolean restartCloudML = true;
-		boolean useLocalCloudML = false;
+		boolean restartCloudML = false;
+		boolean useLocalCloudML = true;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
 		boolean forceDeploy = false;
@@ -105,8 +106,9 @@ public class CloudMLCall {
 			}
 
 			if (!machineAlreadyPrepared) {
+				Thread t = Ssh.execInBackground(mplIp, mpl, mpl.getParameter("UPDATER"));
+				t.join();
 //				impl.exec(mpl.getParameter("UPDATER"));
-				impl.exec("bash /home/ubuntu/updateSDA");
 			}
 			
 			if (!machineAlreadyPrepared || rebootMachine) {
@@ -168,12 +170,10 @@ public class CloudMLCall {
 			cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, useExternalLoadBalancer).toFile());
 
 		getLogger().info("Starting the test...");
-		
-		cml.updateStatus();
 
 		cml.scale(usedApp.tierName, 1);
 		
-		cml.updateStatus();
+//		cml.scale(usedApp.tierName, 1);
 		
 //		cml.terminateAllInstances();
 
@@ -686,7 +686,7 @@ public class CloudMLCall {
 						List<String> usedProviders = instances.getUsedProviders();
 						if (usedProviders.size() > providers.size()) {
 							String provider = null;
-							for (int i = 0; provider == null && i < usedProviders.size(); ++i) {
+							for (int i = usedProviders.size() - 1; provider == null && i >= 0; --i) {
 								if (!providers.contains(usedProviders.get(i)))
 									provider = usedProviders.get(i);
 							}
@@ -913,13 +913,25 @@ public class CloudMLCall {
 						startInstances(ids, false);
 	
 						if (toBeCreated > 0) {
-							String id = instances.idPerName.get(instances.vm);
-							if (id == null && instances.running.size() > 0)
-								id = instances.running.get(0);
-							else if (id == null && instances.stopped.size() > 0)
-								id = instances.stopped.get(0);
+							List<String> providers = instances.getUsedProviders();
+							if (providers.size() == 0)
+								throw new RuntimeException("No provider found!");
+							String provider = providers.get(providers.size() - 1);
 							
-							String provider = instances.providerPerId.get(id);
+							String id = instances.idPerName.get(instances.vm);
+							if (!instances.providerPerId.get(id).equals(provider)) {
+								id = null;
+								for (int i = 0; id == null && i < instances.running.size(); ++i) {
+								id = instances.running.get(i);
+									if (!instances.providerPerId.get(id).equals(provider))
+										id = null;
+								}
+								for (int i = 0; id == null && i < instances.stopped.size(); ++i) {
+									id = instances.stopped.get(i);
+									if (!instances.providerPerId.get(id).equals(provider))
+										id = null;
+								}
+							}
 							
 							commandParam.put(Command.SCALE_OUT, String.format("%s;%d;%s;%s", instances.tier, toBeCreated, Command.SCALE_OUT.name, provider));
 							scaleOut(id, toBeCreated, false);
@@ -1065,14 +1077,40 @@ public class CloudMLCall {
 
 			return sb.toString();
 		}
-
-		public List<String> getUsedProviders() {
-			List<String> res = new ArrayList<String>();
-			for (String key : providerPerId.keySet()) {
-				String provider = providerPerId.get(key);
-				if (!res.contains(provider))
-					res.add(provider);
+		
+		private String getNameFromId(String id) {
+			for (String name : idPerName.keySet()) {
+				String value = idPerName.get(name);
+				if (value.equals(id))
+					return name;
 			}
+			return null;
+		}
+		
+		public List<String> getUsedProviders() {
+			Map<Integer, String> tmp = new TreeMap<Integer, String>();
+			
+			String baseProvider = providerPerId.get(idPerName.get(vm));
+			tmp.put(0, baseProvider);
+			
+			for (String id : providerPerId.keySet()) {
+				String provider = providerPerId.get(id);
+				if (!tmp.containsValue(provider)) {
+					String vm = getNameFromId(id);
+					int i = vm.indexOf("(no_");
+					if (i > -1) {
+						int j = vm.indexOf(")", i);
+						int count = Integer.parseInt(vm.substring(i + 4, j));
+						tmp.put(count, provider);
+					}
+				}
+			}
+			
+			List<String> res = new ArrayList<String>();
+			
+			for (int i : tmp.keySet())
+				res.add(tmp.get(i));
+			
 			return res;
 		}
 
