@@ -437,9 +437,14 @@ public class Test {
 			database.deleteFiles();
 		
 		if (useOwnLoadBalancer) {
-			logger.info("Starting the load balancer...");
+			logger.info("Updating and starting the load balancer...");
 			Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
 			VirtualMachine.deleteFiles(loadBalancer, lb);
+			
+			Ssh.exec(loadBalancer, lb, lb.getParameter("UPDATER"));
+			
+			try { Thread.sleep(10000); } catch (Exception e) { }
+			
 			Ssh.exec(loadBalancer, lb, lb.getParameter("STARTER"));
 		}
 
