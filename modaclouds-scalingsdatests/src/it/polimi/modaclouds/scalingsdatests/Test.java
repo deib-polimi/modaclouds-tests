@@ -53,6 +53,7 @@ public class Test {
 	private VirtualMachine app;
 	private VirtualMachine clients;
 	private VirtualMachine database;
+	private VirtualMachine lb;
 
 	private boolean useDatabase;
 	private boolean useCloudML;
@@ -265,6 +266,8 @@ public class Test {
 		this.useCloudML = useCloudML;
 		this.useSDA = useSDA;
 		this.useOwnLoadBalancer = useOwnLoadBalancer;
+		if (useOwnLoadBalancer)
+			lb = VirtualMachine.getVM("lb");
 
 		otherThreads = new ArrayList<Thread>();
 	}
@@ -273,7 +276,7 @@ public class Test {
 	public static final String LB_BASENAME = "ScalingSDATests";
 
 	private void createLoadBalancer() {
-		if (app.getInstancesNeeded() <= 1 && !useCloudML)
+		if ((app.getInstancesNeeded() <= 1 && !useCloudML) || useOwnLoadBalancer)
 			return;
 
 		if (loadBalancer != null)
@@ -286,7 +289,7 @@ public class Test {
 	}
 
 	private void destroyLoadBalancer() {
-		if (app.getInstancesNeeded() <= 1 && !useCloudML)
+		if ((app.getInstancesNeeded() <= 1 && !useCloudML) || useOwnLoadBalancer)
 			return;
 
 		if (loadBalancer == null)
@@ -432,6 +435,13 @@ public class Test {
 		clients.deleteFiles();
 		if (useDatabase)
 			database.deleteFiles();
+		
+		if (useOwnLoadBalancer) {
+			logger.info("Starting the load balancer...");
+			Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
+			VirtualMachine.deleteFiles(loadBalancer, lb);
+			Ssh.exec(loadBalancer, lb, lb.getParameter("STARTER"));
+		}
 
 		logger.info("Initializing the system...");
 
@@ -881,18 +891,21 @@ public class Test {
 
 		logger.info("Retrieving the files from the instances...");
 
-		if (!useCloudML)
+		if (!useCloudML) {
 			if (app.stopContainerMonitoringFile != null) {
 				int i = 1;
 				for (Instance iapp : this.app.getInstances())
 					exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
 			}
-		if (!useCloudML)
+			
 			this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
+		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
 		if (useDatabase)
 			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
+		if (useOwnLoadBalancer)
+			VirtualMachine.retrieveFiles(loadBalancer, lb, 1, localPath, "/home/" + lb.getParameter("SSH_USER"));
 
 		logger.info("Retrieving the data from the metrics...");
 
