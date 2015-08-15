@@ -37,9 +37,9 @@
       <destName>scalingsdatests.jar</destName>
     </file>
     <file>
-      <source>resources/configuration.properties</source>
+      <source>resources/configuration.json</source>
       <outputDirectory></outputDirectory>
-      <destName>configuration.properties</destName>
+      <destName>configuration.json</destName>
     </file>
     <file>
       <source>resources/credentials-empty.properties</source>

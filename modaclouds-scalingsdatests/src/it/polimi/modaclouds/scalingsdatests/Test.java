@@ -67,10 +67,6 @@ public class Test {
 	private MonitoringPlatform monitoringPlatform;
 	private CloudML cloudML;
 
-	static {
-		VirtualMachine.PRICE_MARGIN = 0.35;
-	}
-
 	public static enum App {
 		MIC(
 				"mic",

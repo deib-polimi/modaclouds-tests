@@ -1,0 +1,194 @@
+{
+    "providers": {
+        "Amazon": {
+            "region": "eu-west-1",
+            "security_group_name": "ScalingSDATests",
+            "credentials": "credentials.properties",
+            "price_margin": 0.35
+        },
+        "Flexiant": {
+            "region": null,
+            "security_group_name": "all",
+            "credentials": "credentialsFlexiant.properties",
+            "price_margin": 0.0
+        }
+    },
+    "machines": {
+        "client": {
+            "provider": "Amazon",
+            "keypair_name": "desantis-ireland",
+            "AMI": "ami-0a92d87d",
+            "size": "m3.large",
+            "instances": 2,
+            "disk": 8,
+            "OS": "Linux/UNIX",
+            "SSH_user": "ubuntu",
+            "SSH_pass": "ubuntu",
+            "remote_path": "/tmp/scalingsdatests",
+            "JMeter_path": "/home/ubuntu/apache-jmeter-2.12",
+            "retrieve_files": [
+                "/home/ubuntu/jmeter.log"
+            ],
+            "Java_parameters": "-Xms7g -Xmx7g",
+            "metrics": [
+                "CPUUtilization"
+            ],
+            "name": "JMeter"
+        },
+        "mic": {
+            "provider": "Amazon",
+            "keypair_name": "desantis-ireland",
+            "AMI": "ami-306b2a47",
+            "size": "m3.large",
+            "instances": 1,
+            "disk": 8,
+            "OS": "Linux/UNIX",
+            "SSH_user": "ubuntu",
+            "SSH_pass": "ubuntu",
+            "protocol": "http",
+            "port": 8080,
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/MiC/downloadEverything.sh",
+            "installer": "bash /home/ubuntu/downloadEverything.sh && bash /home/ubuntu/installEverything",
+            "updater": "bash /home/ubuntu/updateEverything",
+            "starter": "sudo bash /home/ubuntu/snapshotMICStarter %s %s %s && source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC",
+            "retrieve_files": [
+                "/tmp/imperial_dc.log",
+                "/home/ubuntu/nohup-glass.out",
+                "/home/ubuntu/glassfish4/glassfish/domains/domain1/logs/server.log"
+            ],
+            "add_to_load_balancer": "export AWS_ACCESS_KEY_ID=%s && export AWS_SECRET_ACCESS_KEY=%s && export AWS_DEFAULT_REGION=%s && bash /home/ubuntu/add_to_loadBalancer %s",
+            "del_from_load_balancer": "export AWS_ACCESS_KEY_ID=%s && export AWS_SECRET_ACCESS_KEY=%s && export AWS_DEFAULT_REGION=%s && bash /home/ubuntu/deregister_from_lb %s",
+            "metrics": [
+                "CPUUtilization"
+            ],
+            "name": "MiC"
+        },
+        "httpagent": {
+            "provider": "Amazon",
+            "keypair_name": "desantis-ireland",
+            "AMI": "ami-3848024f",
+            "size": "m3.large",
+            "instances": 1,
+            "disk": 8,
+            "OS": "Linux/UNIX",
+            "SSH_user": "ubuntu",
+            "SSH_pass": "ubuntu",
+            "protocol": "http",
+            "port": 8080,
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/HTTPAgent/downloadEverything.sh",
+            "installer": "bash /home/ubuntu/downloadEverything.sh && bash /home/ubuntu/installEverything",
+            "updater": "bash /home/ubuntu/updateEverything",
+            "starter": "sudo bash /home/ubuntu/startHTTPAgent %2$s %3$s && source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC",
+            "retrieve_files": [
+                "/tmp/imperial_dc.log",
+                "/home/ubuntu/logs/catalina.out",
+                "/home/ubuntu/logs/catalina.log",
+                "/home/ubuntu/logs/host-manager.log",
+                "/home/ubuntu/logs/localhost.log",
+                "/home/ubuntu/logs/localhost_access_log.txt",
+                "/home/ubuntu/logs/manager.log"
+            ],
+            "add_to_load_balancer": "export AWS_ACCESS_KEY_ID=%s && export AWS_SECRET_ACCESS_KEY=%s && export AWS_DEFAULT_REGION=%s && bash /home/ubuntu/add_to_loadBalancer %s",
+            "del_from_load_balancer": "export AWS_ACCESS_KEY_ID=%s && export AWS_SECRET_ACCESS_KEY=%s && export AWS_DEFAULT_REGION=%s && bash /home/ubuntu/deregister_from_lb %s",
+            "metrics": [
+                "CPUUtilization"
+            ],
+            "name": "HTTPAgent"
+        },
+        "database": {
+            "provider": "Amazon",
+            "keypair_name": "desantis-ireland",
+            "AMI": "ami-62289215",
+            "size": "m3.large",
+            "instances": 1,
+            "disk": 8,
+            "OS": "Linux/UNIX",
+            "SSH_user": "ubuntu",
+            "SSH_pass": "ubuntu",
+            "metrics": [
+                "CPUUtilization"
+            ],
+            "name": "DataBase"
+        },
+        "mpl": {
+            "provider": "Amazon",
+            "keypair_name": "desantis-ireland",
+            "AMI": "ami-6a48021d",
+            "size": "m3.xlarge",
+            "instances": 1,
+            "disk": 8,
+            "OS": "Linux/UNIX",
+            "SSH_user": "ubuntu",
+            "SSH_pass": "ubuntu",
+            "protocol": "http",
+            "port": 8080,
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/MPL/downloadEverything.sh",
+            "installer": "bash /home/ubuntu/downloadEverything.sh && bash /home/ubuntu/installEverything",
+            "updater": "bash /home/ubuntu/updatePlatform && bash /home/ubuntu/updateSDA",
+            "starter": "bash /home/ubuntu/snapshotMPStarter %s",
+            "starter_bg": "cd /home/ubuntu/data2stdout && nohup bash /home/ubuntu/data2stdout/tower4clouds-data2stdout 8001 > /home/ubuntu/logs/data2stdout.log 2>&1",
+            "retrieve_files": [
+                "/home/ubuntu/logs/cloudmldaemon.log",
+                "/home/ubuntu/CloudML-Shell.log",
+                "/home/ubuntu/logs/fuseki.log",
+                "/home/ubuntu/tower4clouds/manager/manager-server/target/manager-server-0.3-SNAPSHOT/mgr.log",
+                "/home/ubuntu/tower4clouds/data-analyzer/target/data-analyzer-0.3-SNAPSHOT/da.log",
+                "/home/ubuntu/tower4clouds/observers/rdf-history-db/rdf-history-db-main/target/rdf-history-db-main-0.3-SNAPSHOT/hdb.log",
+                "/home/ubuntu/logs/data2stdout.log",
+                "/home/ubuntu/sda.out",
+                "/home/ubuntu/cpu.out",
+                "/home/ubuntu/cpuSteal.out",
+                "/home/ubuntu/rt.out",
+                "/home/ubuntu/d.out",
+                "/home/ubuntu/wlforFirst.out",
+                "/home/ubuntu/wlforSecond.out",
+                "/home/ubuntu/wlforThird.out",
+                "/home/ubuntu/wlforFourth.out",
+                "/home/ubuntu/wlforFifth.out",
+                "/home/ubuntu/wl.out",
+                "/home/ubuntu/thresholds.out",
+                "/home/ubuntu/modaclouds-sda/SDAData.mat",
+                "/home/ubuntu/modaclouds-sda/Forecastingregister_-571442537.mat",
+                "/home/ubuntu/modaclouds-sda/ForecastingsaveAnswers_-571442537.mat",
+                "/home/ubuntu/modaclouds-sda/ForecastinganswerQuestions_-571442537.mat",
+                "/home/ubuntu/modaclouds-sda/ForecastinggetPage_1862725787.mat"
+            ],
+            "SDA_starter": "bash /home/ubuntu/startSDA %s",
+            "CloudML_starter": "bash /home/ubuntu/CloudMLDaemon -port %s",
+            "CloudML_stopper": "bash /home/ubuntu/CloudMLDaemon -stop -port %s",
+            "remote_path": "/tmp/scalingsdatests",
+            "CloudML_port": 9000,
+            "MP_port": 8170,
+            "metrics": [
+                "CPUUtilization"
+            ],
+            "name": "MPLSDA",
+            "dont_override_type": true
+        },
+        "lb": {
+            "provider": "Flexiant",
+            "keypair_name": "polimi-review-2014",
+            "AMI": "ami-6a48021d",
+            "size": "m3.large",
+            "instances": 1,
+            "disk": 8,
+            "OS": "Linux/UNIX",
+            "SSH_user": "ubuntu",
+            "SSH_pass": "ubuntu",
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/LB/downloadEverything.sh",
+            "installer": "bash /home/ubuntu/downloadEverything.sh && bash /home/ubuntu/installEverything",
+            "updater": "bash /home/ubuntu/updateLoadBalancer",
+            "starter": "bash /home/ubuntu/startLoadBalancer",
+            "stopper": "bash /home/ubuntu/stopLoadBalancer",
+            "retrieve_files": [
+                "/var/log/haproxy.log",
+                "/tmp/hrapi.log"
+            ],
+            "port": 8080,
+            "metrics": [
+                "CPUUtilization"
+            ],
+            "name": "LB"
+        }
+    }
+}
