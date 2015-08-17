@@ -56,9 +56,9 @@ public class CloudMLCall {
 			SLF4JBridgeHandler.install();
 		}
 		
-		boolean machineAlreadyPrepared = true;
-		boolean restartCloudML = false;
-		boolean useLocalCloudML = true;
+		boolean machineAlreadyPrepared = false;
+		boolean restartCloudML = true;
+		boolean useLocalCloudML = false;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
 		boolean forceDeploy = false;

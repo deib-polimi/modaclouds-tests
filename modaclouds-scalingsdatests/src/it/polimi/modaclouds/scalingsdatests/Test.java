@@ -399,6 +399,7 @@ public class Test {
 
 		running = false;
 		initialized = false;
+		localPath = null;
 	}
 
 	public void stopCloudMLInstances() {
@@ -950,7 +951,7 @@ public class Test {
 	}
 	
 	private void retrieveFiles(App app) throws Exception {
-		if (!running || !initialized || (!cloudMlInitialized && useCloudML) || localPath == null)
+		if (!running || !initialized || localPath == null)
 			return;
 
 		if (!useCloudML) {

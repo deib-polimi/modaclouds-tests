@@ -47,7 +47,7 @@
             "SSH_pass": "ubuntu",
             "protocol": "http",
             "port": 8080,
-            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/MiC/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh",
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh MiC",
             "installer": "bash /home/ubuntu/installEverything",
             "updater": "bash /home/ubuntu/updateEverything",
             "starter": "sudo bash /home/ubuntu/snapshotMICStarter %s %s %s && source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC",
@@ -75,10 +75,13 @@
             "SSH_pass": "ubuntu",
             "protocol": "http",
             "port": 8080,
-            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/HTTPAgent/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh",
-            "installer": "bash /home/ubuntu/installEverything",
-            "updater": "bash /home/ubuntu/updateEverything",
-            "starter": "sudo bash /home/ubuntu/startHTTPAgent %2$s %3$s && source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC",
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh HTTPAgent",
+            "installer": "echo uffa",
+            "updater": "echo uffa",
+            "starter": "echo uffa",
+            "orig_installer": "bash /home/ubuntu/installEverything",
+            "orig_updater": "bash /home/ubuntu/updateEverything",
+            "orig_starter": "sudo bash /home/ubuntu/startHTTPAgent %2$s %3$s && source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC",
             "retrieve_files": [
                 "/tmp/imperial_dc.log",
                 "/home/ubuntu/logs/catalina.out",
@@ -122,7 +125,7 @@
             "SSH_pass": "ubuntu",
             "protocol": "http",
             "port": 8080,
-            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/MPL/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh",
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh MPL",
             "installer": "bash /home/ubuntu/installEverything",
             "updater": "bash /home/ubuntu/updatePlatform && bash /home/ubuntu/updateSDA",
             "starter": "bash /home/ubuntu/snapshotMPStarter %s",
@@ -130,6 +133,7 @@
             "retrieve_files": [
                 "/home/ubuntu/logs/cloudmldaemon.log",
                 "/home/ubuntu/CloudML-Shell.log",
+                "/home/ubuntu/CloudML-WebSocket.log",
                 "/home/ubuntu/logs/fuseki.log",
                 "/home/ubuntu/tower4clouds/manager/manager-server/target/manager-server-0.3-SNAPSHOT/mgr.log",
                 "/home/ubuntu/tower4clouds/data-analyzer/target/data-analyzer-0.3-SNAPSHOT/da.log",
@@ -163,7 +167,7 @@
                 "CPUUtilization"
             ],
             "name": "MPLSDA",
-            "dont_override_type": true
+            "dont_override_type": false
         },
         "lb": {
             "provider": "Flexiant",
@@ -175,7 +179,7 @@
             "OS": "Linux/UNIX",
             "SSH_user": "ubuntu",
             "SSH_pass": "ubuntu",
-            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/LB/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh",
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh LB",
             "installer": "bash /home/ubuntu/installEverything",
             "updater": "bash /home/ubuntu/updateLoadBalancer",
             "starter": "bash /home/ubuntu/startLoadBalancer",
