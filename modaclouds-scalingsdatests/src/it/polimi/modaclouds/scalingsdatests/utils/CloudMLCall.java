@@ -106,9 +106,8 @@ public class CloudMLCall {
 			}
 
 			if (!machineAlreadyPrepared) {
-				Thread t = Ssh.execInBackground(mplIp, mpl, mpl.getParameter("UPDATER"));
-				t.join();
-//				impl.exec(mpl.getParameter("UPDATER"));
+				impl.exec(mpl.getParameter("DOWNLOADER"));
+				impl.exec(mpl.getParameter("UPDATER"));
 			}
 			
 			if (!machineAlreadyPrepared || rebootMachine) {
@@ -119,6 +118,8 @@ public class CloudMLCall {
 			if (!machineAlreadyPrepared || rebootMachine || restartCloudML) {
 				if (useExternalLoadBalancer) {
 					Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
+					Ssh.exec(loadBalancer, lb, lb.getParameter("DOWNLOADER"));
+					Ssh.exec(loadBalancer, lb, lb.getParameter("UPDATER"));
 					Ssh.exec(loadBalancer, lb, lb.getParameter("STARTER"));
 				}
 				
@@ -132,6 +133,8 @@ public class CloudMLCall {
 			if (restartCloudML) {
 				if (useExternalLoadBalancer) {
 					Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
+					Ssh.exec(loadBalancer, lb, lb.getParameter("DOWNLOADER"));
+					Ssh.exec(loadBalancer, lb, lb.getParameter("UPDATER"));
 					Ssh.exec(loadBalancer, lb, lb.getParameter("STARTER"));
 				}
 				

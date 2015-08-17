@@ -91,6 +91,8 @@
     <logger name="javax.websocket" level="WARN" />
 
     <logger name="org.cloudml.facade.util.WSClient" level="TRACE" />
+    
+    <logger name="net.schmizz" level="WARN" />
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />

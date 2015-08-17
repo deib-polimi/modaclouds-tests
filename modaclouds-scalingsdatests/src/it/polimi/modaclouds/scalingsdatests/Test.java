@@ -423,11 +423,18 @@ public class Test {
 		if (initialized)
 			throw new RuntimeException("The system is already initialized!");
 
-		logger.info("Deleting the files set for removal before the test...");
+		logger.info("Deleting the files set for removal before the test and upgrading the scripts...");
 
-		if (!useCloudML)
+		if (!useCloudML) {
 			app.deleteFiles();
+			for (Instance i : app.getInstances())
+				i.exec(app.getParameter("DOWNLOADER"));
+		}
+		
 		mpl.deleteFiles();
+		Instance impl = mpl.getInstances().get(0);
+		impl.exec(mpl.getParameter("DOWNLOADER"));
+		
 		clients.deleteFiles();
 		if (useDatabase)
 			database.deleteFiles();
@@ -436,6 +443,8 @@ public class Test {
 			logger.info("Updating and starting the load balancer...");
 			Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
 			VirtualMachine.deleteFiles(loadBalancer, lb);
+			
+			Ssh.exec(loadBalancer, lb, lb.getParameter("DOWNLOADER"));
 			
 			Ssh.exec(loadBalancer, lb, lb.getParameter("UPDATER"));
 			
@@ -446,14 +455,10 @@ public class Test {
 
 		logger.info("Initializing the system...");
 
-		Instance impl = mpl.getInstances().get(0);
-
 		String mplIp = impl.getIp();
 		int mplPort = Integer.parseInt(mpl.getParameter("MP_PORT"));
 
-//		impl.exec(mpl.getParameter("UPDATER"));
-		Thread t = Ssh.execInBackground(mplIp, mpl, mpl.getParameter("UPDATER"));
-		t.join();
+		impl.exec(mpl.getParameter("UPDATER"));
 		impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
