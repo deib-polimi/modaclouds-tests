@@ -219,6 +219,14 @@ public class Test {
 			logger.error("Error while performing the test.", e);
 			thrown = e;
 		}
+		
+		if (thrown != null) {
+			try {
+				t.retrieveFiles(app);
+			} catch (Exception e) {
+				logger.error("Error while trying to retrieve the files after an error.", e);
+			}
+		}
 
 		if (useCloudML) {
 			t.stopCloudMLInstances();
@@ -835,6 +843,30 @@ public class Test {
 
 		return p;
 	}
+	
+	private void printSystemStatus() {
+		if (!running || !initialized || (!cloudMlInitialized && useCloudML))
+			return;
+		
+		logger.info(mpl.toString());
+		for (Instance i : mpl.getInstances())
+			logger.info("- {}", i.getIp());
+		logger.info(clients.toString());
+		for (Instance i : clients.getInstances())
+			logger.info("- {}", i.getIp());
+		if (!useCloudML) {
+			logger.info(app.toString());
+			for (Instance i : app.getInstances())
+				logger.info("- {}", i.getIp());
+		}
+		if (useDatabase) {
+			logger.info(database.toString());
+			for (Instance i : database.getInstances())
+				logger.info("- {}", i.getIp());
+		}
+	}
+	
+	private String localPath;
 
 	public Path runTest(App app, String data, String method) throws Exception {
 		if (!running)
@@ -845,11 +877,13 @@ public class Test {
 
 		if (!cloudMlInitialized && useCloudML)
 			throw new RuntimeException("CloudML isn't initialized yet!");
+		
+		printSystemStatus();
 
 		Date date = new Date();
 		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s%6$s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), app.name, (useSDA ? "-" + method : "") + (useCloudML ? "-CloudML" : ""));
 
-		String localPath = "tests" + File.separator + now;
+		localPath = "tests" + File.separator + now;
 
 		File f = new File(localPath);
 		for (int i = 2; f.exists(); ++i)
@@ -897,21 +931,7 @@ public class Test {
 
 		logger.info("Retrieving the files from the instances...");
 
-		if (!useCloudML) {
-			if (app.stopContainerMonitoringFile != null) {
-				int i = 1;
-				for (Instance iapp : this.app.getInstances())
-					exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
-			}
-			
-			this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
-		}
-		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
-		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
-		if (useDatabase)
-			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
-		if (useOwnLoadBalancer)
-			VirtualMachine.retrieveFiles(loadBalancer, lb, 1, localPath, "/home/" + lb.getParameter("SSH_USER"));
+		retrieveFiles(app);
 
 		logger.info("Retrieving the data from the metrics...");
 
@@ -927,6 +947,27 @@ public class Test {
 		logger.info("Done!");
 
 		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
+	}
+	
+	private void retrieveFiles(App app) throws Exception {
+		if (!running || !initialized || (!cloudMlInitialized && useCloudML) || localPath == null)
+			return;
+
+		if (!useCloudML) {
+			if (app.stopContainerMonitoringFile != null) {
+				int i = 1;
+				for (Instance iapp : this.app.getInstances())
+					exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
+			}
+			
+			this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
+		}
+		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
+		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
+		if (useDatabase)
+			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
+		if (useOwnLoadBalancer)
+			VirtualMachine.retrieveFiles(loadBalancer, lb, 1, localPath, "/home/" + lb.getParameter("SSH_USER"));
 	}
 
 	private static int getSuggestedPeriod(Date date) {

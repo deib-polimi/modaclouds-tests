@@ -102,6 +102,11 @@
       <destName>cloudml.json</destName>
     </file>
     <file>
+      <source>resources/cloudml-LB.json</source>
+      <outputDirectory></outputDirectory>
+      <destName>cloudml-LB.json</destName>
+    </file>
+    <file>
       <source>resources/cloudmlrules.txt</source>
       <outputDirectory></outputDirectory>
       <destName>cloudmlrules.txt</destName>
