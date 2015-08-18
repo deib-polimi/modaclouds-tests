@@ -436,15 +436,17 @@ public class Test {
 
 		if (!useCloudML) {
 			app.deleteFiles();
-			for (Instance i : app.getInstances())
-				i.exec(app.getParameter("DOWNLOADER"));
+			app.execDownloader();
 		}
 		
 		mpl.deleteFiles();
 		Instance impl = mpl.getInstances().get(0);
-		impl.exec(mpl.getParameter("DOWNLOADER"));
+		impl.execDownloader();
 		
 		clients.deleteFiles();
+		clients.execDownloader();
+		clients.execUpdater();
+		
 		if (useDatabase)
 			database.deleteFiles();
 		
@@ -467,7 +469,7 @@ public class Test {
 		String mplIp = impl.getIp();
 		int mplPort = Integer.parseInt(mpl.getParameter("MP_PORT"));
 
-		impl.exec(mpl.getParameter("UPDATER"));
+		impl.execUpdater();
 		impl.exec(String.format(mpl.getParameter("STARTER"), mplIp));
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
@@ -506,7 +508,7 @@ public class Test {
 
 		if (!useCloudML)
 			for (Instance iapp : app.getInstances()) {
-				iapp.exec(app.getParameter("UPDATER"));
+				iapp.execUpdater();
 				iapp.exec(String.format(
 						app.getParameter("STARTER"),
 						useDatabase ? database.getIps().get(0) : "127.0.0.1",

@@ -12,10 +12,10 @@ echo "export JAVA_HOME=/usr/lib/jvm/default-java" >> ~/.bashrc_client
 
 sudo apt-get install unzip -q -y
 
-curl "http://mirror.nohup.it/apache//jmeter/binaries/apache-jmeter-2.13.zip" -o "apache-jmeter.zip"
-unzip apache-jmeter
+curl "http://mirror.nohup.it/apache//jmeter/binaries/apache-jmeter-2.13.zip" -O
+unzip apache-jmeter-2.13.zip
 
-curl "http://jmeter-plugins.org/downloads/file/JMeterPlugins-Standard-1.3.0.zip" -o "JMeterPlugins-Standard.zip"
-unzip JMeterPlugins-Standard
+curl "http://jmeter-plugins.org/downloads/file/JMeterPlugins-Standard-1.3.0.zip" -O -L
+unzip JMeterPlugins-Standard-1.3.0.zip -d JMeterPlugins-Standard-1.3.0
 
-cp JMeterPlugins-Standard/lib/ext/JMeterPlugins-Standard.jar apache-jmeter/lib/ext/
+cp JMeterPlugins-Standard-1.3.0/lib/ext/* apache-jmeter-2.13/lib/ext/
