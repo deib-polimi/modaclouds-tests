@@ -93,6 +93,8 @@
     <logger name="org.cloudml.facade.util.WSClient" level="TRACE" />
     
     <logger name="net.schmizz" level="WARN" />
+    
+    <logger name="net.schmizz.sshj.DefaultConfig" level="ERROR" />
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
