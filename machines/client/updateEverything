@@ -2,4 +2,4 @@
 
 cd
 
-#bash ~/updateJMeter
+bash ~/updateJMeter

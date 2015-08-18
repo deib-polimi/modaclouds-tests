@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$2" >> ~/glassfish4/glassfish/config/asenv.conf
 
 sudo nohup ~/glassfish4/bin/asadmin start-domain > ~/nohup-glass.out &
@@ -13,5 +15,3 @@ cd ~/glassfish4/bin
 
 ./asadmin get resources.jdbc-connection-pool.mic2glass_connection_pool
 ./asadmin get resources.jdbc-connection-pool.mic2glass_blobconnection.property
-
-

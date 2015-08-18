@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ~/.bashrc_httpagent
+
 cd ~/modaclouds-tests
 git pull
 cd http-agent-helper

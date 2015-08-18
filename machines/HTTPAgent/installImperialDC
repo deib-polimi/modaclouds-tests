@@ -53,4 +53,4 @@ mvn clean package assembly:single -DskipTests -U
 cp target/data-collector-*.jar ~/data-collector.jar
 
 cd
-source .bashrc_httpagent
+source ~/.bashrc_httpagent
