@@ -6,7 +6,7 @@ mvn clean install -DskipTests -U
 
 cd ~/mic-frontend
 git pull
-mvn clean package -U
+mvn clean package -DskipTests -U
 
 cp -R ~/mic-frontend/target/mic-frontend-* ~/
 rm -rf ~/mic-frontend-*.war

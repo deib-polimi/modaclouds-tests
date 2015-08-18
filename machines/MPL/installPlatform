@@ -43,7 +43,7 @@ cd
 sudo rm -rf tower4clouds
 git clone $T4C_DIST_LOCATION -b $T4C_DIST_BRANCH
 cd tower4clouds
-mvn clean package -U
+mvn clean package install -DskipTests -U
 
 sudo mkdir -p /vagrant
 sudo unlink /vagrant/graphite-conf
@@ -68,7 +68,7 @@ cd
 sudo rm -rf modaclouds-tests
 git clone $TESTS_DIST_LOCATION -b $TESTS_DIST_BRANCH
 cd modaclouds-tests/cloudmldaemon
-mvn clean package -U
+mvn clean package -DskipTests -U
 rm -rf ~/cloudmldaemon*
 cp target/cloudmldaemon*.tar.gz ~/cloudmldaemon.tar.gz
 cd

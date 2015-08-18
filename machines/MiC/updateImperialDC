@@ -2,7 +2,7 @@
 
 cd ~/modaclouds-data-collectors
 git pull
-mvn clean package assembly:single -U
+mvn clean package assembly:single -DskipTests -U
 
 cp target/data-collector-*.jar ~/data-collector.jar
 

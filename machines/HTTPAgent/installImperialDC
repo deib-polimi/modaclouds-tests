@@ -48,7 +48,7 @@ cd
 sudo rm -rf modaclouds-data-collectors
 git clone $DC_DIST_LOCATION -b $DC_DIST_BRANCH
 cd modaclouds-data-collectors
-mvn clean package assembly:single
+mvn clean package assembly:single -DskipTests -U
 
 cp target/data-collector-*.jar ~/data-collector.jar
 

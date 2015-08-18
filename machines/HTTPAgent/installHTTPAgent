@@ -36,7 +36,7 @@ cd
 sudo rm -rf modaclouds-tests
 git clone $TESTS_DIST_LOCATION -b $TESTS_DIST_BRANCH
 cd modaclouds-tests/http-agent-helper
-mvn clean package -U
+mvn clean package -DskipTests -U
 rm -rf ~/http-agent-helper*
 cp target/http-agent-helper*.tar.gz ~/http-agent-helper.tar.gz
 cd

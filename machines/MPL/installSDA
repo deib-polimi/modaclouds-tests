@@ -36,7 +36,9 @@ cd modaclouds-sda
 cd ~/modaclouds-sda
 git clone https://github.com/deib-polimi/Modaclouds-SDASync.git
 cd Modaclouds-SDASync
-mvn clean package assembly:assembly -U
+mv pom.xml pom-bak.xml
+cat pom-bak.xml | sed 's|<version>0.2.3</version>|<version>0.3-SNAPSHOT</version>|' > pom.xml
+mvn clean package assembly:assembly -DskipTests -U
 mv target/sdaSync*.jar ~/modaclouds-sda/lib/
 
 echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=localhost" >> ~/.bashrc_mpl

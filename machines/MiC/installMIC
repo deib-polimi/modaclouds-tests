@@ -36,13 +36,13 @@ cd
 sudo rm -rf modaclouds-cpim-library
 git clone $CPIM_DIST_LOCATION -b $CPIM_DIST_BRANCH
 cd modaclouds-cpim-library
-mvn clean install -DskipTests
+mvn clean install -DskipTests -U
 
 cd
 sudo rm -rf mic-frontend
 git clone $MIC_DIST_LOCATION -b $MIC_DIST_BRANCH
 cd mic-frontend
-mvn clean package
+mvn clean package -DskipTests -U
 
 cp -R ~/mic-frontend/target/mic-frontend-* ~/
 rm -rf ~/mic-frontend-*.war
