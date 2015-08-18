@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cd
+
+rm -rf apache-jmeter*
+curl "http://mirror.nohup.it/apache//jmeter/binaries/apache-jmeter-2.13.zip" -o "apache-jmeter.zip"
+unzip apache-jmeter
+
+rm -rf JMeterPlugins-Standard*
+curl "http://jmeter-plugins.org/downloads/file/JMeterPlugins-Standard-1.3.0.zip" -o "JMeterPlugins-Standard.zip"
+unzip JMeterPlugins-Standard
+
+cp JMeterPlugins-Standard/lib/ext/JMeterPlugins-Standard.jar apache-jmeter/lib/ext/

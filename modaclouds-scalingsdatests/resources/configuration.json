@@ -26,6 +26,9 @@
             "SSH_pass": "ubuntu",
             "remote_path": "/tmp/scalingsdatests",
             "JMeter_path": "/home/ubuntu/apache-jmeter-2.12",
+            "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh client",
+            "installer": "bash /home/ubuntu/installEverything",
+            "updater": "bash /home/ubuntu/updateEverything",
             "retrieve_files": [
                 "/home/ubuntu/jmeter.log"
             ],
@@ -127,7 +130,7 @@
             "port": 8080,
             "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh MPL",
             "installer": "bash /home/ubuntu/installEverything",
-            "updater": "bash /home/ubuntu/updatePlatform && bash /home/ubuntu/updateSDA",
+            "updater": "bash /home/ubuntu/updateEverything",
             "starter": "bash /home/ubuntu/snapshotMPStarter %s",
             "starter_bg": "cd /home/ubuntu/data2stdout && nohup bash /home/ubuntu/data2stdout/tower4clouds-data2stdout 8001 > /home/ubuntu/logs/data2stdout.log 2>&1",
             "retrieve_files": [
@@ -181,7 +184,7 @@
             "SSH_pass": "ubuntu",
             "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh LB",
             "installer": "bash /home/ubuntu/installEverything",
-            "updater": "bash /home/ubuntu/updateLoadBalancer",
+            "updater": "bash /home/ubuntu/updateEverything",
             "starter": "bash /home/ubuntu/startLoadBalancer",
             "stopper": "bash /home/ubuntu/stopLoadBalancer",
             "retrieve_files": [

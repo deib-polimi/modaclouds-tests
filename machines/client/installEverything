@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd
+
+rm .bashrc_client
+touch .bashrc_client
+
+if [ -z ${BASHRC_SET+x} ]
+then
+    echo "source .bashrc_client" >> ~/.bashrc
+    echo "export BASHRC_SET=true" >> ~/.bashrc
+fi
+
+bash ~/installJMeter
