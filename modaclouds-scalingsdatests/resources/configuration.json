@@ -79,12 +79,12 @@
             "protocol": "http",
             "port": 8080,
             "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh HTTPAgent",
-            "installer": "echo uffa",
-            "updater": "echo uffa",
-            "starter": "echo uffa",
-            "orig_installer": "bash /home/ubuntu/installEverything",
-            "orig_updater": "bash /home/ubuntu/updateEverything",
-            "orig_starter": "sudo bash /home/ubuntu/startHTTPAgent %2$s %3$s && source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC",
+            "fake_installer": "echo uffa",
+            "fake_updater": "echo uffa",
+            "fake_starter": "echo uffa",
+            "installer": "bash /home/ubuntu/installEverything",
+            "updater": "bash /home/ubuntu/updateEverything",
+            "starter": "sudo bash /home/ubuntu/startHTTPAgent %2$s %3$s && source /home/ubuntu/.bashrc && bash /home/ubuntu/startImperialDC",
             "retrieve_files": [
                 "/tmp/imperial_dc.log",
                 "/home/ubuntu/logs/catalina.out",
@@ -170,7 +170,7 @@
                 "CPUUtilization"
             ],
             "name": "MPLSDA",
-            "dont_override_type": false
+            "dont_override_type": true
         },
         "lb": {
             "provider": "Flexiant",

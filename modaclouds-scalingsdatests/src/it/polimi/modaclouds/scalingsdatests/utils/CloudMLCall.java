@@ -56,12 +56,12 @@ public class CloudMLCall {
 			SLF4JBridgeHandler.install();
 		}
 		
-		boolean machineAlreadyPrepared = false;
+		boolean machineAlreadyPrepared = true;
 		boolean restartCloudML = true;
 		boolean useLocalCloudML = false;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
-		boolean forceDeploy = false;
+		boolean forceDeploy = true;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
 
@@ -747,6 +747,15 @@ public class CloudMLCall {
 				
 				pcs.firePropertyChange("Connection", true, false);
 				signalClearWaiting();
+				
+				if (closeReason.getCloseCode().getCode() == 1006) {
+					getLogger().info("The connection was killed for timeout. Reconnecting...");
+					try {
+						open();
+					} catch (Exception e) {
+						getLogger().error("Error while reconnecting to the server.", e);
+					}
+				}
 			}
 			
 			@OnError
