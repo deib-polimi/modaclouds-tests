@@ -393,11 +393,13 @@ public class Test {
 
 		logger.info("Stopping all the machines...");
 
-		mpl.terminate();
-		if (!useCloudML)
+		if (!Boolean.parseBoolean(mpl.getParameter("LEAVE_INSTANCES_ON")))
+			mpl.terminate();
+		if (!useCloudML && !Boolean.parseBoolean(app.getParameter("LEAVE_INSTANCES_ON")))
 			app.terminate();
-		clients.terminate();
-		if (useDatabase)
+		if (!Boolean.parseBoolean(clients.getParameter("LEAVE_INSTANCES_ON")))
+			clients.terminate();
+		if (useDatabase && !Boolean.parseBoolean(database.getParameter("LEAVE_INSTANCES_ON")))
 			database.terminate();
 
 		logger.info("All the machines have been shutted down!");
@@ -411,6 +413,11 @@ public class Test {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 
+		if (Boolean.parseBoolean(app.getParameter("LEAVE_INSTANCES_ON"))) {
+			logger.info("Leaving the CLoudML instances on as requested...");
+			return;
+		}
+		
 		logger.info("Stopping CloudML instances...");
 
 		cloudML.terminateAllInstances();

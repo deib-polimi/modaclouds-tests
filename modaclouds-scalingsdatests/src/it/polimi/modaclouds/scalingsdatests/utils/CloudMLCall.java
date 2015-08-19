@@ -68,6 +68,7 @@ public class CloudMLCall {
 		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
 		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.medium", 1);
 		VirtualMachine lb = VirtualMachine.getVM("lb");
+		
 		String loadBalancer;
 		if (useExternalLoadBalancer)
 			loadBalancer = "109.231.126.56";

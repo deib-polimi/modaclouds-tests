@@ -170,7 +170,8 @@
                 "CPUUtilization"
             ],
             "name": "MPLSDA",
-            "dont_override_type": true
+            "dont_override_type": true,
+            "leave_instances_on": true
         },
         "lb": {
             "provider": "Flexiant",
