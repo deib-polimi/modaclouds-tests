@@ -821,6 +821,15 @@ public class CloudMLCall extends AbstractAction {
 				
 				pcs.firePropertyChange("Connection", true, false);
 				signalClearWaiting();
+				
+				if (closeReason.getCloseCode().getCode() == 1006) {
+					getLogger().info("The connection was killed for timeout. Reconnecting...");
+					try {
+						open();
+					} catch (Exception e) {
+						getLogger().error("Error while reconnecting to the server.", e);
+					}
+				}
 			}
 			
 			@OnError
