@@ -222,22 +222,27 @@ public class Test {
 		
 		if (thrown != null) {
 			try {
+				Date date = new Date();
+				String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s%6$s-broken", date, size, getPeakFromData(data) / clients, clients, app.name, (useSDA ? "-" + demandEstimator : "") + (useCloudML ? "-CloudML" : ""));
+				
+				t.localPath = "tests" + File.separator + now;
 				t.retrieveFiles(app);
 			} catch (Exception e) {
 				logger.error("Error while trying to retrieve the files after an error.", e);
 			}
 		}
 
-		if (useCloudML) {
-			t.stopCloudMLInstances();
-			t.terminateCloudMLDaemon();
-		}
-
-		if (loadBalancerIp == null)
-			t.destroyLoadBalancer();
-
-		if (!leaveInstancesOn)
+		if (!leaveInstancesOn) {
+			if (useCloudML) {
+				t.stopCloudMLInstances();
+				t.terminateCloudMLDaemon();
+			}
+			
+			if (loadBalancerIp == null)
+				t.destroyLoadBalancer();
+			
 			t.stopMachines();
+		}
 
 		if (useSDA)
 			Validator.perform(path, t.getCores(), firstInstancesToSkip, app, window);
