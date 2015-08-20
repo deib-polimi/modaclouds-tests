@@ -1,6 +1,5 @@
 package it.polimi.modaclouds.scalingsdatests.utils;
 
-import it.cloud.utils.rest.RestClient;
 import it.polimi.modaclouds.scalingsdatests.schemas.adaptationRuntime.ApplicationTier;
 import it.polimi.modaclouds.scalingsdatests.schemas.adaptationRuntime.Container;
 import it.polimi.modaclouds.scalingsdatests.schemas.adaptationRuntime.Containers;
@@ -13,18 +12,12 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.tower4clouds.rules.ObjectFactory;
 import it.polimi.tower4clouds.rules.Parameter;
 
-import java.io.StringWriter;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
-import org.restlet.data.Method;
-import org.restlet.data.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MonitoringPlatform {
 
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory
 			.getLogger(MonitoringPlatform.class);
 

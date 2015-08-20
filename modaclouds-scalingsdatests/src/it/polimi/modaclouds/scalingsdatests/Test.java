@@ -9,6 +9,7 @@ import it.cloud.amazon.elb.ElasticLoadBalancing.Listener;
 import it.cloud.utils.CloudException;
 import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
+import it.cloud.utils.Local;
 import it.cloud.utils.Ssh;
 import it.polimi.modaclouds.scalingsdatests.sdavalidator.Validator;
 import it.polimi.modaclouds.scalingsdatests.utils.CloudMLCall;
@@ -17,10 +18,7 @@ import it.polimi.modaclouds.scalingsdatests.utils.MonitoringPlatform;
 import it.polimi.tower4clouds.rules.MonitoringRule;
 import it.polimi.tower4clouds.rules.MonitoringRules;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -361,8 +359,12 @@ public class Test {
 
 		running = true;
 	}
-
+	
 	public void considerRunningMachines() {
+		considerRunningMachines(true);
+	}
+
+	public void considerRunningMachines(boolean rebootMachines) {
 		if (running)
 			throw new RuntimeException("The system is already running!");
 
@@ -377,12 +379,14 @@ public class Test {
 		if (useDatabase)
 			ec2.addRunningInstances(database);
 
-		mpl.reboot();
-		if (!useCloudML)
-			app.reboot();
-		clients.reboot();
-		if (useDatabase)
-			database.reboot();
+		if (rebootMachines) {
+			mpl.reboot();
+			if (!useCloudML)
+				app.reboot();
+			clients.reboot();
+			if (useDatabase)
+				database.reboot();
+		}
 
 		logger.info("Added running instances!");
 	}
@@ -499,14 +503,14 @@ public class Test {
 
 		int cores = getCores();
 
-		exec(String.format("bash %s %s %s %d %s %d %b",
-				loadModelFile,
-				impl.getIp(),
-				impl.getIp(),
-				cores,
-				demandEstimator,
-				window,
-				useSDA));
+		Local.exec(String.format("bash %s %s %s %d %s %d %b",
+					loadModelFile,
+					impl.getIp(),
+					impl.getIp(),
+					cores,
+					demandEstimator,
+					window,
+					useSDA));
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
 
@@ -539,24 +543,6 @@ public class Test {
 		logger.info("System initialized!");
 
 		initialized = true;
-	}
-
-	public static List<String> exec(String command) throws IOException {
-		List<String> res = new ArrayList<String>();
-		ProcessBuilder pb = new ProcessBuilder(command.split(" "));
-		pb.redirectErrorStream(true);
-
-		Process p = pb.start();
-		BufferedReader stream = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		String line = stream.readLine();
-		while (line != null) {
-			logger.trace(line);
-			res.add(line);
-			line = stream.readLine();
-		}
-		stream.close();
-
-		return res;
 	}
 
 	public static int getPeakFromData(String data) {
@@ -936,7 +922,7 @@ public class Test {
 		if (!useCloudML)
 			if (app.startContainerMonitoringFile != null)
 				for (Instance iapp : this.app.getInstances())
-					exec(String.format("bash " + Configuration.getPathToFile(app.startContainerMonitoringFile) + " %s", iapp.getIp()));
+					Local.exec(String.format("bash %s %s", Configuration.getPathToFile(app.startContainerMonitoringFile), iapp.getIp()));
 
 		logger.info("Test starting...");
 
@@ -972,7 +958,7 @@ public class Test {
 			if (app.stopContainerMonitoringFile != null) {
 				int i = 1;
 				for (Instance iapp : this.app.getInstances())
-					exec(String.format("bash " + Configuration.getPathToFile(app.stopContainerMonitoringFile) + " %s %s %s", iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
+					Local.exec(String.format("bash %s %s %s %s", Configuration.getPathToFile(app.stopContainerMonitoringFile), iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
 			}
 			
 			this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));

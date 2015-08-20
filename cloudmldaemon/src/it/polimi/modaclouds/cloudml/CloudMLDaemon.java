@@ -1,10 +1,9 @@
 package it.polimi.modaclouds.cloudml;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +51,7 @@ public class CloudMLDaemon {
 			int pid = -1;
 			String command = null;
 
-			List<String> res = exec("lsof -i :" + port);
+			List<String> res = exec(String.format("lsof -i :%d", port));
 
 			for (String s : res) {
 				String[] columns = s.split(" +");
@@ -64,7 +63,7 @@ public class CloudMLDaemon {
 
 			if (pid > -1 && command.equals("java")) {
 				logger.info("PID found: {}, killing the process...", pid);
-				exec("kill -9 " + pid);
+				exec(String.format("kill -9 %d", pid));
 			}
 		} catch (Exception e) {
 			logger.error("Error while stopping the process.", e);
@@ -72,23 +71,72 @@ public class CloudMLDaemon {
 
 		port = -1;
 	}
-
-	public static List<String> exec(String command) throws IOException {
-		List<String> res = new ArrayList<String>();
-		ProcessBuilder pb = new ProcessBuilder(command.split(" "));
+	
+	public static List<String> exec(String command) throws Exception {
+		final List<String> res = new ArrayList<String>();
+		
+		long init = System.currentTimeMillis();
+		
+		ProcessBuilder pb = new ProcessBuilder(new String[] { "bash", "-c", command });
 		pb.redirectErrorStream(true);
 
-		Process p = pb.start();
-		BufferedReader stream = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		String line = stream.readLine();
-		while (line != null) {
-			logger.trace(line);
-			res.add(line);
-			line = stream.readLine();
-		}
-		stream.close();
+		final Process p = pb.start();
+		
+		Thread in = new Thread() {
+			public void run() {
+				try (Scanner sc = new Scanner(p.getInputStream())) {
+					while (sc.hasNextLine()) {
+						String line = sc.nextLine();
+						logger.trace(line);
+						res.add(line);
+					}
+				}
+			}
+		};
+		in.start();
+		
+		Thread err = new Thread() {
+			public void run() {
+				try (Scanner sc = new Scanner(p.getErrorStream())) {
+					while (sc.hasNextLine()) {
+						String line = sc.nextLine();
+						logger.trace(line);
+						res.add(line);
+					}
+				}
+			}
+		};
+		err.start();
 
+		in.join();
+		err.join();
+		
+		res.add(String.format("exit-status: %d", p.waitFor()));
+		
+		long duration = System.currentTimeMillis() - init;
+		logger.trace("Executed `{}` on {} in {}", command, "localhost", durationToString(duration));
 		return res;
+	}
+	
+	public static String durationToString(long duration) {
+		StringBuilder sb = new StringBuilder();
+		{
+			int res = (int) TimeUnit.MILLISECONDS.toSeconds(duration);
+			if (res > 60 * 60) {
+				sb.append(res / (60 * 60));
+				sb.append(" h ");
+				res = res % (60 * 60);
+			}
+			if (res > 60) {
+				sb.append(res / 60);
+				sb.append(" m ");
+				res = res % 60;
+			}
+			sb.append(res);
+			sb.append(" s");
+		}
+
+		return sb.toString();
 	}
 
 }

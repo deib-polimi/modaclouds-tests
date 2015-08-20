@@ -1,18 +1,14 @@
 package it.polimi.modaclouds.scalingsdatests.sdavalidator;
 
+import it.cloud.utils.Local;
 import it.polimi.modaclouds.scalingsdatests.Test;
 import it.polimi.modaclouds.scalingsdatests.sdavalidator.util.FileHelper;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -48,7 +44,7 @@ public class Validator {
 			// TODO: use the sda window value
 			
 			logger.info("Launching the initializing script...");
-			exec(String.format(INIT_COMMAND, createModifiedBash(parent, app).toString()));
+			Local.exec(String.format(INIT_COMMAND, createModifiedBash(parent, app).toString()));
 			
 			logger.info("Launching the DemandValidator class...");
 			DemandValidator.perform(parent, app.methods, firstInstancesToSkip);
@@ -68,24 +64,6 @@ public class Validator {
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}
-	}
-	
-	public static List<String> exec(String command) throws IOException {
-		List<String> res = new ArrayList<String>();
-		ProcessBuilder pb = new ProcessBuilder(command.split(" "));
-		pb.redirectErrorStream(true);
-		
-		Process p = pb.start();
-		BufferedReader stream = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		String line = stream.readLine(); 
-		while (line != null) {
-			logger.trace(line);
-			res.add(line);
-			line = stream.readLine();
-		}
-		stream.close();
-	
-		return res;
 	}
 	
 	public static final String INIT_COMMAND = "bash %s";
