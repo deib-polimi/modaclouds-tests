@@ -2,12 +2,15 @@
 
 cd
 
+VERS="2.13"
+PLUGINVERS="1.2.1"
+
 rm -rf apache-jmeter*
-curl "http://mirror.nohup.it/apache//jmeter/binaries/apache-jmeter-2.13.tgz" -O
-tar -zxf apache-jmeter-2.13.tgz
+curl "http://mirror.nohup.it/apache//jmeter/binaries/apache-jmeter-$VERS.tgz" -O
+tar -zxf apache-jmeter-$VERS.tgz
 
 rm -rf JMeterPlugins-Standard*
-curl "http://jmeter-plugins.org/downloads/file/JMeterPlugins-Standard-1.3.0.zip" -O -L
-unzip -q JMeterPlugins-Standard-1.3.0.zip -d JMeterPlugins-Standard-1.3.0
+curl "http://jmeter-plugins.org/downloads/file/JMeterPlugins-Standard-$PLUGINVERS.zip" -O -L
+unzip -q JMeterPlugins-Standard-$PLUGINVERS.zip -d JMeterPlugins-Standard-$PLUGINVERS
 
-cp JMeterPlugins-Standard-1.3.0/lib/ext/JMeterPlugins-Standard.jar apache-jmeter-2.13/lib/ext/
+cp JMeterPlugins-Standard-$PLUGINVERS/lib/ext/JMeterPlugins-Standard.jar apache-jmeter-$VERS/lib/ext/
