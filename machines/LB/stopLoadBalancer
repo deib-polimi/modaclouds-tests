@@ -1,5 +1,5 @@
 #!/bin/bash
 
-killall -9 python
+sudo killall -9 python
 sudo service haproxy stop
-killall -9 haproxy
+sudo killall -9 haproxy

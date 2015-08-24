@@ -468,10 +468,11 @@ public class Test {
 		
 		if (useOwnLoadBalancer) {
 			logger.info("Updating and starting the load balancer...");
-			Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
-			VirtualMachine.deleteFiles(loadBalancer, lb);
 			
 			Ssh.exec(loadBalancer, lb, lb.getParameter("DOWNLOADER"));
+			
+			Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
+			VirtualMachine.deleteFiles(loadBalancer, lb);
 			
 			Ssh.exec(loadBalancer, lb, lb.getParameter("UPDATER"));
 			
