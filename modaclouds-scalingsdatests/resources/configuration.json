@@ -130,7 +130,7 @@
             "port": 8080,
             "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh MPL",
             "installer": "bash /home/ubuntu/installEverything",
-            "updater": "bash /home/ubuntu/updateEverything",
+            "updater": "bash /home/ubuntu/updateEverything && exit",
             "starter": "bash /home/ubuntu/snapshotMPStarter %s",
             "starter_bg": "cd /home/ubuntu/data2stdout && nohup bash /home/ubuntu/data2stdout/tower4clouds-data2stdout 8001 > /home/ubuntu/logs/data2stdout.log 2>&1",
             "retrieve_files": [
@@ -170,8 +170,8 @@
                 "CPUUtilization"
             ],
             "name": "MPLSDA",
-            "dont_override_type": true,
-            "leave_instances_on": true
+            "dont_override_type": false,
+            "leave_instances_on": false
         },
         "lb": {
             "provider": "Flexiant",

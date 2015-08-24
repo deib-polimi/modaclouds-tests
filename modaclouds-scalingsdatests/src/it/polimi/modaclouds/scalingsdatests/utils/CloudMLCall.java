@@ -43,6 +43,36 @@ public class CloudMLCall {
 	public static Logger getLogger() {
 		return logger;
 	}
+	
+	public static void mainAaa(String[] args) throws Exception {
+		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
+		
+		AmazonEC2 ec2 = new AmazonEC2();
+		
+		do {
+			ec2.addRunningInstances(mpl);
+			if (mpl.getInstances().size() == 0) {
+				getLogger().info("No machines found, retrying in 10 seconds...");
+				try {
+					Thread.sleep(10000);
+				} catch (Exception e) { }
+			}
+		} while (mpl.getInstances().size() == 0);
+		
+		Instance impl = mpl.getInstances().get(0);
+		impl.setName("MPLSDA");
+
+		impl.waitUntilRunning();
+		impl.waitUntilSshAvailable();
+		
+		impl.execDownloader();
+		
+		logger.info("#####################################");
+		impl.execUpdater();
+		logger.info("#####################################");
+		
+		logger.info("Finito tutto!");
+	}
 
 	public static void main(String[] args) throws Exception {
 		{
