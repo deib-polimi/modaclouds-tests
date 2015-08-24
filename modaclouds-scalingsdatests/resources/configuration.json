@@ -170,7 +170,7 @@
                 "CPUUtilization"
             ],
             "name": "MPLSDA",
-            "dont_override_type": false,
+            "dont_override_type": true,
             "leave_instances_on": false
         },
         "lb": {
