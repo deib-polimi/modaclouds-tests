@@ -3,12 +3,11 @@
 cd
 
 rm -rf apache-jmeter*
-curl "http://mirror.nohup.it/apache//jmeter/binaries/apache-jmeter-2.13.zip" -O
-unzip apache-jmeter-2.13.zip
-chmod +x apache-jmeter-2.13/bin/jmeter
+curl "http://mirror.nohup.it/apache//jmeter/binaries/apache-jmeter-2.13.tgz" -O
+tar -zxf apache-jmeter-2.13.tgz
 
 rm -rf JMeterPlugins-Standard*
 curl "http://jmeter-plugins.org/downloads/file/JMeterPlugins-Standard-1.3.0.zip" -O -L
-unzip JMeterPlugins-Standard-1.3.0.zip -d JMeterPlugins-Standard-1.3.0
+unzip -q JMeterPlugins-Standard-1.3.0.zip -d JMeterPlugins-Standard-1.3.0
 
-cp JMeterPlugins-Standard-1.3.0/lib/ext/* apache-jmeter-2.13/lib/ext/
+cp JMeterPlugins-Standard-1.3.0/lib/ext/JMeterPlugins-Standard.jar apache-jmeter-2.13/lib/ext/
