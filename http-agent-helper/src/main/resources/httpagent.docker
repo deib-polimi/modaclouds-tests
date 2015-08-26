@@ -11,14 +11,14 @@ RUN apt-get update -y
 #RUN DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 
 # Installing Open SSH and public key
-#RUN apt-get install -y openssh-server openssh-client
-#RUN mkdir $USERHOME/.ssh
-#COPY id_rsa $USERHOME/.ssh/id_rsa
-#COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub
-#RUN cat $USERHOME/.ssh/id_rsa.pub > $USERHOME/.ssh/authorized_keys
-#RUN chmod go-rwx $USERHOME/.ssh/id_rsa $USERHOME/.ssh/id_rsa.pub
-#RUN mkdir /var/run/sshd
-#EXPOSE 22
+RUN apt-get install -y openssh-server openssh-client
+RUN mkdir $USERHOME/.ssh
+COPY id_rsa $USERHOME/.ssh/id_rsa
+COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub
+RUN cat $USERHOME/.ssh/id_rsa.pub > $USERHOME/.ssh/authorized_keys
+RUN chmod go-rwx $USERHOME/.ssh/id_rsa $USERHOME/.ssh/id_rsa.pub
+RUN mkdir /var/run/sshd
+EXPOSE 22
 
 # Installing Apache2
 RUN sudo apt-get install -y apache2
@@ -55,5 +55,4 @@ RUN sed 's/%h %l %u %t &quot;%r&quot; %s %b/%h %l %u %t \&quot;%r\&quot; %s %b %
 RUN mv $CATALINA/conf/server-new.xml $CATALINA/conf/server.xml
 
 # Start servers
-#CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
-CMD sudo /usr/sbin/apache2ctl -D FOREGROUND
+CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
