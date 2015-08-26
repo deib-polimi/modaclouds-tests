@@ -86,9 +86,9 @@ public class CloudMLCall {
 			SLF4JBridgeHandler.install();
 		}
 		
-		boolean machineAlreadyPrepared = true;
-		boolean restartCloudML = true;
-		boolean useLocalCloudML = false;
+		boolean machineAlreadyPrepared = false;
+		boolean restartCloudML = false;
+		boolean useLocalCloudML = true;
 		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
 		boolean forceDeploy = true;
@@ -148,8 +148,8 @@ public class CloudMLCall {
 			
 			if (!machineAlreadyPrepared || rebootMachine || restartCloudML) {
 				if (useExternalLoadBalancer) {
-					Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
 					Ssh.exec(loadBalancer, lb, lb.getParameter("DOWNLOADER"));
+					Ssh.exec(loadBalancer, lb, lb.getParameter("STOPPER"));
 					Ssh.exec(loadBalancer, lb, lb.getParameter("UPDATER"));
 					Ssh.exec(loadBalancer, lb, lb.getParameter("STARTER"));
 				}

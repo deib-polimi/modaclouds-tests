@@ -15,6 +15,8 @@ then
     PROVIDER=$3
 fi
 
+source /etc/environment
+
 echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_IP=$1" >> ~/.bashrc_httpagent
 echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT=$PORT" >> ~/.bashrc_httpagent
 if [ -z ${MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID+x} ]
