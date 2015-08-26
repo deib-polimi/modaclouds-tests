@@ -210,7 +210,22 @@ MODEL_SDA="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_
   </monitoringRule>
 </monitoringRules>"
 
-echo "$MODEL" | curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitoring-rules -d @-
+COUNTER=0
+MAX_ATTEMPTS=5
+file="res.txt"
+while [  $COUNTER -lt $MAX_ATTEMPTS ]; do
+    echo "$MODEL" | curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitoring-rules -d @- > $file 2>&1
+    cat $file
+    if grep -q 'Failed to connect' $file
+    then
+        echo "Error while accessing the server! Trying again in 10 seconds..."
+        sleep 10
+    else
+        let COUNTER=$MAX_ATTEMPTS
+    fi
+    let COUNTER=COUNTER+1
+    rm $file
+done
 
 JSON_INIT="{
     \"format\": \"TOWER/JSON\",
