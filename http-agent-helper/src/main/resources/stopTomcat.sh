@@ -5,7 +5,7 @@ cd /home/ubuntu/modaclouds
 ID=`sudo docker ps | grep httpagent16 | awk '{print $1}'`
 
 sudo rm -rf /home/ubuntu/logs
-sudo docker cp $ID:/var/lib/tomcat7/logs /home/ubuntu/logs
+sudo docker cp $ID:/var/lib/tomcat7/logs/ /home/ubuntu/logs
 sudo chown -R ubuntu:ubuntu /home/ubuntu/logs
 
 cd /home/ubuntu/logs
