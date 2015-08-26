@@ -40,6 +40,22 @@ sleep $SLEEP_TIME
 export MODACLOUDS_HDB_DB_DATASET_PATH=/modaclouds/kb
 export MODACLOUDS_HDB_DB_ENDPOINT_PORT=$FUSEKI_PORT
 
+
+cd /home/ubuntu/data2stdout
+echo "Starting Observers"
+nohup bash tower4clouds-data2stdout 8173 > /home/ubuntu/cpu.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8174 > /home/ubuntu/cpuSteal.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8177 > /home/ubuntu/wl.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8178 > /home/ubuntu/rt.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8179 > /home/ubuntu/d.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8185 > /home/ubuntu/thresholds.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8180 > /home/ubuntu/wlforFirst.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8181 > /home/ubuntu/wlforSecond.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8182 > /home/ubuntu/wlforThird.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8183 > /home/ubuntu/wlforFourth.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8184 > /home/ubuntu/wlforFifth.out 2>&1 &
+nohup bash tower4clouds-data2stdout 8001 > /home/ubuntu/logs/data2stdout.log 2>&1 &
+
 cd ~/tower4clouds/scripts/
 echo "Starting Monitoring Platform"
 bash start-local-platform.sh $1

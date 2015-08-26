@@ -132,7 +132,6 @@
             "installer": "bash /home/ubuntu/installEverything",
             "updater": "bash /home/ubuntu/updateEverything && exit",
             "starter": "bash /home/ubuntu/snapshotMPStarter %s",
-            "starter_bg": "cd /home/ubuntu/data2stdout && nohup bash /home/ubuntu/data2stdout/tower4clouds-data2stdout 8001 > /home/ubuntu/logs/data2stdout.log 2>&1",
             "retrieve_files": [
                 "/home/ubuntu/logs/cloudmldaemon.log",
                 "/home/ubuntu/CloudML-Shell.log",

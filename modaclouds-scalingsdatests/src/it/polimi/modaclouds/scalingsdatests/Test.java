@@ -491,15 +491,6 @@ public class Test {
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
 
-		{
-			String starterBg = mpl.getParameter("STARTER_BG");
-			if (starterBg != null && starterBg.trim().length() > 0) {
-				Ssh.execInBackground(impl, starterBg);
-
-				try { Thread.sleep(10000); } catch (Exception e) { }
-			}
-		}
-
 		monitoringPlatform = new MonitoringPlatform(mplIp, mplPort);
 
 		int cores = getCores();
