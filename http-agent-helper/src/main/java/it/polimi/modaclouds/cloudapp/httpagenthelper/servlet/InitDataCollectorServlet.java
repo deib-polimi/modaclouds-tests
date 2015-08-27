@@ -69,7 +69,7 @@ public class InitDataCollectorServlet implements ServletContextListener {
 		applicationProperties.put(Property.TYPE, "HTTPAgentHelper");
 		applicationProperties.put(Property.CLOUD_PROVIDER_ID, MONITORING_PLATFORM_PROVIDER);
 		applicationProperties.put(Property.CLOUD_PROVIDER_TYPE, "IaaS");
-		applicationProperties.put(Property.VM_ID, "HTTPAgentHelper");
+		applicationProperties.put(Property.VM_ID, "HTTPAgentHelper1");
 		applicationProperties.put(Property.VM_TYPE, "Frontend");
 		
 		Registry.initialize(MONITORING_PLATFORM_IP, MONITORING_PLATFORM_PORT,

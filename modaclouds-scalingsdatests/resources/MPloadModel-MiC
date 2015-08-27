@@ -215,7 +215,7 @@ MODEL_SDA="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_
 </monitoringRules>"
 
 COUNTER=0
-MAX_ATTEMPTS=5
+MAX_ATTEMPTS=15
 file="res.txt"
 while [  $COUNTER -lt $MAX_ATTEMPTS ]; do
     echo "$MODEL" | curl -X POST -i -H "Content-type: application/xml" http://"$1":8170/v1/monitoring-rules -d @- > $file 2>&1
