@@ -44,6 +44,7 @@ tar zxf http-agent-helper.tar.gz
 mv http-agent-helper-* http-agent-helper
 
 cd
+rm -rf modaclouds
 tar zxf modaclouds.tar.gz
 cd ~/modaclouds
 mv httpagent.docker httpagent-orig.docker
