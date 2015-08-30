@@ -29,3 +29,5 @@ source ~/.bashrc_httpagent
 bash ~/http-agent-helper/startTomcat.sh
 
 cd
+
+bash startImperialDC

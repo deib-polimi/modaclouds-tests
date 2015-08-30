@@ -38,3 +38,5 @@ cd ~/glassfish4/bin/
 ./asadmin undeploy mic-frontend-mon
 ./asadmin deploy /home/ubuntu/mic-frontend-mon.war
 cd
+
+bash startImperialDC
