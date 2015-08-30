@@ -87,9 +87,9 @@ public class CloudMLCall {
 		}
 		
 		boolean machineAlreadyPrepared = false;
-		boolean restartCloudML = false;
+		boolean restartCloudML = true;
 		boolean useLocalCloudML = true;
-		boolean useExternalLoadBalancer = true;
+		boolean useExternalLoadBalancer = false;
 		boolean rebootMachine = false;
 		boolean forceDeploy = true;
 
@@ -169,8 +169,9 @@ public class CloudMLCall {
 					Ssh.exec(loadBalancer, lb, lb.getParameter("STARTER"));
 				}
 				
-				CloudMLDaemon.stop(cloudMLPort);
-				CloudMLDaemon.start(cloudMLPort);
+				// TODO: uncomment these
+//				CloudMLDaemon.stop(cloudMLPort);
+//				CloudMLDaemon.start(cloudMLPort);
 				Thread.sleep(10000);
 			}
 		}
