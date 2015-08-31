@@ -2,8 +2,8 @@ package it.polimi.modaclouds.scalingsdatests;
 
 import it.cloud.Configuration;
 import it.cloud.amazon.ec2.AmazonEC2;
+import it.cloud.amazon.ec2.Instance;
 import it.cloud.amazon.ec2.VirtualMachine;
-import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.cloud.amazon.elb.ElasticLoadBalancing;
 import it.cloud.amazon.elb.ElasticLoadBalancing.Listener;
 import it.cloud.utils.CloudException;
@@ -456,7 +456,7 @@ public class Test {
 		}
 		
 		mpl.deleteFiles();
-		Instance impl = mpl.getInstances().get(0);
+		Instance impl = (Instance)mpl.getInstances().get(0);
 		impl.execDownloader();
 		
 		clients.deleteFiles();
@@ -515,7 +515,7 @@ public class Test {
 		}
 
 		if (!useCloudML)
-			for (Instance iapp : app.getInstances()) {
+			for (it.cloud.Instance iapp : app.getInstances()) {
 				iapp.execUpdater();
 				iapp.exec(String.format(
 						app.getParameter("STARTER"),
@@ -575,7 +575,7 @@ public class Test {
 
 		logger.info("Initializing CloudML...");
 
-		Instance impl = mpl.getInstances().get(0);
+		Instance impl = (Instance)mpl.getInstances().get(0);
 		String mplIp = impl.getIp();
 		String cloudMLIp = mplIp;
 		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
@@ -842,19 +842,19 @@ public class Test {
 			return;
 		
 		logger.info(mpl.toString());
-		for (Instance i : mpl.getInstances())
+		for (it.cloud.Instance i : mpl.getInstances())
 			logger.info("- {}", i.getIp());
 		logger.info(clients.toString());
-		for (Instance i : clients.getInstances())
+		for (it.cloud.Instance i : clients.getInstances())
 			logger.info("- {}", i.getIp());
 		if (!useCloudML) {
 			logger.info(app.toString());
-			for (Instance i : app.getInstances())
+			for (it.cloud.Instance i : app.getInstances())
 				logger.info("- {}", i.getIp());
 		}
 		if (useDatabase) {
 			logger.info(database.toString());
-			for (Instance i : database.getInstances())
+			for (it.cloud.Instance i : database.getInstances())
 				logger.info("- {}", i.getIp());
 		}
 	}
@@ -913,7 +913,7 @@ public class Test {
 
 		if (!useCloudML)
 			if (app.startContainerMonitoringFile != null)
-				for (Instance iapp : this.app.getInstances())
+				for (it.cloud.Instance iapp : this.app.getInstances())
 					Local.exec(String.format("bash %s %s", Configuration.getPathToFile(app.startContainerMonitoringFile), iapp.getIp()));
 
 		logger.info("Test starting...");
@@ -949,7 +949,7 @@ public class Test {
 		if (!useCloudML) {
 			if (app.stopContainerMonitoringFile != null) {
 				int i = 1;
-				for (Instance iapp : this.app.getInstances())
+				for (it.cloud.Instance iapp : this.app.getInstances())
 					Local.exec(String.format("bash %s %s %s %s", Configuration.getPathToFile(app.stopContainerMonitoringFile), iapp.getIp(), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
 			}
 			

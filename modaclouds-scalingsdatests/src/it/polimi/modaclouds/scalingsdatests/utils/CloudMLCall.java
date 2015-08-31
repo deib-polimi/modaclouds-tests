@@ -1,8 +1,8 @@
 package it.polimi.modaclouds.scalingsdatests.utils;
 
 import it.cloud.amazon.ec2.AmazonEC2;
+import it.cloud.amazon.ec2.Instance;
 import it.cloud.amazon.ec2.VirtualMachine;
-import it.cloud.amazon.ec2.VirtualMachine.Instance;
 import it.cloud.utils.Ssh;
 import it.polimi.modaclouds.cloudml.CloudMLDaemon;
 import it.polimi.modaclouds.scalingsdatests.Test;
@@ -42,36 +42,6 @@ public class CloudMLCall {
 	
 	public static Logger getLogger() {
 		return logger;
-	}
-	
-	public static void mainAaa(String[] args) throws Exception {
-		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
-		
-		AmazonEC2 ec2 = new AmazonEC2();
-		
-		do {
-			ec2.addRunningInstances(mpl);
-			if (mpl.getInstances().size() == 0) {
-				getLogger().info("No machines found, retrying in 10 seconds...");
-				try {
-					Thread.sleep(10000);
-				} catch (Exception e) { }
-			}
-		} while (mpl.getInstances().size() == 0);
-		
-		Instance impl = mpl.getInstances().get(0);
-		impl.setName("MPLSDA");
-
-		impl.waitUntilRunning();
-		impl.waitUntilSshAvailable();
-		
-		impl.execDownloader();
-		
-		logger.info("#####################################");
-		impl.execUpdater();
-		logger.info("#####################################");
-		
-		logger.info("Finito tutto!");
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -120,7 +90,7 @@ public class CloudMLCall {
 				}
 			} while (mpl.getInstances().size() == 0);
 
-			Instance impl = mpl.getInstances().get(0);
+			Instance impl = (Instance)mpl.getInstances().get(0);
 			impl.setName("MPLSDA");
 
 			impl.waitUntilRunning();
