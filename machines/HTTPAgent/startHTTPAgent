@@ -30,4 +30,6 @@ bash ~/http-agent-helper/startTomcat.sh
 
 cd
 
+sleep 10
+
 bash startImperialDC
