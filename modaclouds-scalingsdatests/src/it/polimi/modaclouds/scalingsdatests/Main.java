@@ -71,12 +71,15 @@ public class Main {
 
 	@Parameter(names = "-window", description = "The size in seconds of the window of the monitoring rules")
 	private int window = Validator.DEFAULT_WINDOW;
+	
+	public static final double DEFAULT_HIGH_CPU = 0.6;
+	public static final double DEFAULT_LOW_CPU = 0.1;
 
 	@Parameter(names = "-highCpu", description = "The upper bound for the CPU utilization")
-	private double highCpu = 0.6;
+	private double highCpu = DEFAULT_HIGH_CPU;
 
 	@Parameter(names = "-lowCpu", description = "The lower bound for the CPU utilization")
-	private double lowCpu = 0.1;
+	private double lowCpu = DEFAULT_LOW_CPU;
 
 	@Parameter(names = "-cooldown", description = "The cooldown period that the monitoring rule will stay off once it's triggered")
 	private int cooldown = 600;

@@ -1,11 +1,11 @@
 <monitoringRules xmlns="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
-  <monitoringRule id="cpuUtilizationAboveRule" timeStep="180" timeWindow="180">
+  <monitoringRule id="cpuUtilizationAboveRule" timeStep="%6$d" timeWindow="%6$d">
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
     <collectedMetric metricName="CPUUtilization">
       <parameter name="samplingProbability">1</parameter>
-      <parameter name="samplingTime">180</parameter>
+      <parameter name="samplingTime">%6$d</parameter>
     </collectedMetric>
     <metricAggregation aggregateFunction="Average" groupingClass="CloudProvider"/>
     <condition>METRIC &gt;= %1$s</condition>
@@ -20,13 +20,13 @@
       </action>
     </actions>
   </monitoringRule>
-  <monitoringRule id="cpuUtilizationBelowRule" timeStep="180" timeWindow="180">
+  <monitoringRule id="cpuUtilizationBelowRule" timeStep="%6$d" timeWindow="%6$d">
     <monitoredTargets>
       <monitoredTarget class="VM" type="Frontend"/>
     </monitoredTargets>
     <collectedMetric metricName="CPUUtilization">
       <parameter name="samplingProbability">1</parameter>
-      <parameter name="samplingTime">180</parameter>
+      <parameter name="samplingTime">%6$d</parameter>
     </collectedMetric>
     <metricAggregation aggregateFunction="Average" groupingClass="CloudProvider"/>
     <condition>METRIC &lt;= %2$s</condition>

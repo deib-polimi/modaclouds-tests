@@ -639,11 +639,11 @@ public class Test {
 		if (aboveValue > 1.0)
 			aboveValue = 1.0;
 		if (aboveValue <= 0.0)
-			aboveValue = 0.6;
+			aboveValue = Main.DEFAULT_HIGH_CPU;
 		if (belowValue <= 0.0)
 			belowValue = 0.0;
 		if (belowValue >= 1.0)
-			belowValue = 0.1;
+			belowValue = Main.DEFAULT_LOW_CPU;
 
 		String cloudMLIp = mpl.getInstances().get(0).getIp();
 		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
