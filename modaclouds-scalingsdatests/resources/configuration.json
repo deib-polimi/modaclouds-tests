@@ -24,7 +24,7 @@
             "OS": "Linux/UNIX",
             "SSH_user": "ubuntu",
             "SSH_pass": "ubuntu",
-            "remote_path": "/tmp/scalingsdatests",
+            "remote_path": "/home/ubuntu/logs/scalingsdatests",
             "JMeter_path": "/home/ubuntu/apache-jmeter-2.13",
             "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh client",
             "installer": "bash /home/ubuntu/installEverything",
@@ -55,7 +55,7 @@
             "updater": "bash /home/ubuntu/updateEverything",
             "starter": "sudo bash /home/ubuntu/snapshotMICStarter %s %s %s",
             "retrieve_files": [
-                "/tmp/imperial_dc.log",
+                "/home/ubuntu/imperial_dc.log",
                 "/home/ubuntu/nohup-glass.out",
                 "/home/ubuntu/glassfish4/glassfish/domains/domain1/logs/server.log"
             ],
@@ -83,7 +83,7 @@
             "updater": "bash /home/ubuntu/updateEverything",
             "starter": "sudo bash /home/ubuntu/startHTTPAgent %2$s %3$s",
             "retrieve_files": [
-                "/tmp/imperial_dc.log",
+                "/home/ubuntu/imperial_dc.log",
                 "/home/ubuntu/logs/catalina.out",
                 "/home/ubuntu/logs/catalina.log",
                 "/home/ubuntu/logs/host-manager.log",
@@ -159,7 +159,7 @@
             "SDA_starter": "bash /home/ubuntu/startSDA %s",
             "CloudML_starter": "bash /home/ubuntu/CloudMLDaemon -port %s",
             "CloudML_stopper": "bash /home/ubuntu/CloudMLDaemon -stop -port %s",
-            "remote_path": "/tmp/scalingsdatests",
+            "remote_path": "/home/ubuntu/logs/scalingsdatests",
             "CloudML_port": 9000,
             "MP_port": 8170,
             "metrics": [

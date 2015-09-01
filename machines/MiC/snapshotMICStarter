@@ -39,6 +39,4 @@ cd ~/glassfish4/bin/
 ./asadmin deploy /home/ubuntu/mic-frontend-mon.war
 cd
 
-sleep 10
-
 bash startImperialDC

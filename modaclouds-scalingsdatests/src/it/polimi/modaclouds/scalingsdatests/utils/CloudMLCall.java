@@ -59,7 +59,7 @@ public class CloudMLCall {
 		boolean machineAlreadyPrepared = false;
 		boolean restartCloudML = true;
 		boolean useLocalCloudML = true;
-		boolean useExternalLoadBalancer = false;
+		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
 		boolean forceDeploy = true;
 

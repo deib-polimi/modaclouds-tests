@@ -2,5 +2,5 @@
 
 source /home/ubuntu/.bashrc
 
-nohup java -Djava.library.path=/home/ubuntu/hyperic-sigar-1.6.4/sigar-bin/lib/ -jar /home/ubuntu/data-collector.jar tower4clouds >> /tmp/imperial_dc.log 2>&1 &
+nohup java -Djava.library.path=/home/ubuntu/hyperic-sigar-1.6.4/sigar-bin/lib/ -jar /home/ubuntu/data-collector.jar tower4clouds >> /home/ubuntu/imperial_dc.log 2>&1 &
 disown
