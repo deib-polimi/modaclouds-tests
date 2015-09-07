@@ -12,7 +12,7 @@ public class CloudMLDaemon {
 	
 	private static final Logger logger = LoggerFactory.getLogger(CloudMLDaemon.class);
 	
-	public static final int DEFAULT_CLOUDML_PORT = 9000;
+	public static final int DEFAULT_CLOUDML_PORT = 9030;
 	
 	public static int port = -1;
 	

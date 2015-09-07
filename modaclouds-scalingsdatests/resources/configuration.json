@@ -160,7 +160,7 @@
             "CloudML_starter": "bash /home/ubuntu/CloudMLDaemon -port %s",
             "CloudML_stopper": "bash /home/ubuntu/CloudMLDaemon -stop -port %s",
             "remote_path": "/home/ubuntu/logs/scalingsdatests",
-            "CloudML_port": 9000,
+            "CloudML_port": 9030,
             "MP_port": 8170,
             "metrics": [
                 "CPUUtilization"

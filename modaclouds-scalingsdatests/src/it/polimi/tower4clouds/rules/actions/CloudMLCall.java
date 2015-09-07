@@ -61,7 +61,12 @@ public class CloudMLCall extends AbstractAction {
     public static final String COOLDOWN = "cooldown";
     
     public static final String DEFAULT_MANAGER_IP = "127.0.0.1";
-    public static final String DEFAULT_MANAGER_PORT = "8170";
+    
+    public static final String DEFAULT_CLOUDML_IP = "127.0.0.1";
+    public static final String DEFAULT_CLOUDML_PORT = "9030";
+    
+    public static final String DEFAULT_N = "1";
+    public static final String DEFAULT_COOLDOWN = "600";
 
     private final Set<String> requiredParameters;
 
@@ -70,13 +75,9 @@ public class CloudMLCall extends AbstractAction {
     public CloudMLCall() {
         requiredParameters = new HashSet<String>();
         connectedClients = new HashMap<String, CloudMLCall.CloudML>();
-
-        requiredParameters.add(IP);
-        requiredParameters.add(PORT);
+        
         requiredParameters.add(COMMAND);
         requiredParameters.add(TIER);
-        requiredParameters.add(N);
-        requiredParameters.add(COOLDOWN);
     }
 
     @Override
@@ -89,6 +90,16 @@ public class CloudMLCall extends AbstractAction {
         String id = parameters.get(TIER);
         String n = parameters.get(N);
         String cooldown = parameters.get(COOLDOWN);
+        
+        if (ip == null)
+        	ip = DEFAULT_CLOUDML_IP;
+        if (port == null)
+        	port = DEFAULT_CLOUDML_PORT;
+        if (n == null)
+        	n = DEFAULT_N;
+        if (cooldown == null)
+        	cooldown = DEFAULT_COOLDOWN;
+        
         int intCooldown = -1;
         try {
             intCooldown = Integer.parseInt(cooldown);
@@ -121,28 +132,20 @@ public class CloudMLCall extends AbstractAction {
                             + Command.getList()));
         else {
             String id = parameters.get(TIER);
-            String n = parameters.get(N);
 
             if (id == null)
                 problems.add(new Problem(rule.getId(),
                         EnumErrorType.INVALID_ACTION, TIER,
                         "The tier isn't valid for the given action"));
-
-            if (n == null)
-                problems.add(new Problem(rule.getId(),
-                        EnumErrorType.INVALID_ACTION, N,
-                        "The number of instances isn't valid for the given action"));
         }
 
         String ip = parameters.get(IP);
         String port = parameters.get(PORT);
 
         if (ip == null)
-            problems.add(new Problem(rule.getId(),
-                    EnumErrorType.INVALID_ACTION, IP, "The ip is null"));
+        	ip = DEFAULT_CLOUDML_IP;
         if (port == null)
-            problems.add(new Problem(rule.getId(),
-                    EnumErrorType.INVALID_ACTION, PORT, "The port is null"));
+        	port = DEFAULT_CLOUDML_PORT;
 
         if (ip != null && port != null && !isServerAvailable(ip, port))
             problems.add(new Problem(rule.getId(),
@@ -201,7 +204,7 @@ public class CloudMLCall extends AbstractAction {
         if (client == null)
             return false;
         
-        disableRule(DEFAULT_MANAGER_IP, DEFAULT_MANAGER_PORT, getRuleId(), cooldown);
+        disableRule(DEFAULT_MANAGER_IP, Integer.toString(getMmPort()), getRuleId(), cooldown);
 
         if (!c.blocking)
             client.send(command);
