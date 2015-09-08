@@ -18,7 +18,7 @@ public class Main {
 
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	@Parameter(names = { "-h", "--help" }, help = true)
+	@Parameter(names = { "-h", "--help", "-help" }, help = true)
 	private boolean help = false;
 
 	@Parameter(names = "-size", description = "The size that will be used for all the machines")

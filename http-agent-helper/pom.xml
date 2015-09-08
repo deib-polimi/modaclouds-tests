@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>it.polimi.tower4clouds</groupId>
 			<artifactId>java-app-dc</artifactId>
-			<version>0.2.3</version>
+			<version>0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -194,7 +194,7 @@
 					</aspectLibraries>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-assembly-plugin</artifactId>
