@@ -18,7 +18,7 @@ public class Main {
 
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	@Parameter(names = { "-h", "--help", "-help" }, help = true)
+	@Parameter(names = { "-h", "--help", "-help" }, help = true, description = "Shows this help")
 	private boolean help = false;
 
 	@Parameter(names = "-size", description = "The size that will be used for all the machines")
@@ -95,6 +95,18 @@ public class Main {
 	
 	@Parameter(names = "-useAutoscalingReasoner", description = "Use the AutoscalingReasoner")
 	private boolean useAutoscalingReasoner = false;
+	
+	@Parameter(names = "-pathToModel", description = "The path to the model for the AutoscalingReasoner")
+	private String pathToModel = null;
+	
+	@Parameter(names = "-sshHost", description = "The host where there's AMPL")
+	private String sshHost = null;
+	
+	@Parameter(names = "-sshUsername", description = "The username for the host where there's AMPL")
+	private String sshUsername = null;
+	
+	@Parameter(names = "-sshPassword", description = "The password for the user on the host where there's AMPL")
+	private String sshPassword = null;
 
 	public static final String APP_TITLE = "\nScaling SDA Test\n";
 
@@ -128,7 +140,7 @@ public class Main {
 			Test.App a = Test.App.getFromName(m.app);
 			Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
 
-			doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner);
+			doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner, m.pathToModel, m.sshHost, m.sshUsername, m.sshPassword);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>();
 
@@ -157,9 +169,9 @@ public class Main {
 					Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
 
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner));
+						threads.add(doTestInBackground(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner, m.pathToModel, m.sshHost, m.sshUsername, m.sshPassword));
 					else
-						doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner);
+						doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highCpu, m.lowCpu, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner, m.pathToModel, m.sshHost, m.sshUsername, m.sshPassword);
 				}
 
 				for (Thread t : threads)
@@ -178,11 +190,11 @@ public class Main {
 	}
 
 	public static void doTest(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner) {
+			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner, String pathToModel, String sshHost, String sshUsername, String sshPassword) {
 		logger.info("Preparing the system and running the test...");
 
 		try {
-			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator, window, useSDA, useCloudML, highCpu, lowCpu, cooldown, loadBalancerIp, useAutoscalingReasoner);
+			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator, window, useSDA, useCloudML, highCpu, lowCpu, cooldown, loadBalancerIp, useAutoscalingReasoner, pathToModel, sshHost, sshUsername, sshPassword);
 
 			if (duration == Test.ERROR_STATUS_NULL)
 				logger.error("There was the status == null problem...");
@@ -197,7 +209,7 @@ public class Main {
 	}
 
 	public static Thread doTestInBackground(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner) {
+			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner, String pathToModel, String sshHost, String sshUsername, String sshPassword) {
 		final String fsize = size;
 		final int fclients = clients;
 		final String fdata = data;
@@ -219,10 +231,14 @@ public class Main {
 		final int fcooldown = cooldown;
 		final String floadBalancerIp = loadBalancerIp;
 		final boolean fuseAutoscalingReasoner = useAutoscalingReasoner;
+		final String fpathToModel = pathToModel;
+		final String fsshHost = sshHost;
+		final String fsshUsername = sshUsername;
+		final String fsshPassword = sshPassword;
 
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fservers, fapp, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadModelFile, ffirstInstancesToSkip, fdemandEstimator, fwindow, fuseSDA, fuseCloudML, fhighCpu, flowCpu, fcooldown, floadBalancerIp, fuseAutoscalingReasoner);
+				doTest(fsize, fclients, fservers, fapp, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadModelFile, ffirstInstancesToSkip, fdemandEstimator, fwindow, fuseSDA, fuseCloudML, fhighCpu, flowCpu, fcooldown, floadBalancerIp, fuseAutoscalingReasoner, fpathToModel, fsshHost, fsshUsername, fsshPassword);
 			}
 		};
 

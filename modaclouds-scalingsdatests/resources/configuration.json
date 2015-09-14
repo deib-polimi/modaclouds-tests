@@ -116,7 +116,7 @@
         "mpl": {
             "provider": "Amazon",
             "keypair_name": "desantis-ireland",
-            "AMI": "ami-6a48021d",
+            "AMI": "ami-8fab89f8",
             "size": "m3.xlarge",
             "instances": 1,
             "disk": 8,
@@ -161,6 +161,7 @@
             "CloudML_starter": "bash /home/ubuntu/CloudMLDaemon -port %s",
             "CloudML_stopper": "bash /home/ubuntu/CloudMLDaemon -stop -port %s",
             "AR_starter": "bash /home/ubuntu/startAutoscalingReasoner %s %s %s %s %s %s %s %s",
+            "AR_port": 81790,
             "remote_path": "/home/ubuntu/logs/scalingsdatests",
             "CloudML_port": 9030,
             "MP_port": 8170,

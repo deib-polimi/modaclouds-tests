@@ -57,6 +57,7 @@ public class Test {
 	private boolean useCloudML;
 	private boolean useSDA;
 	private boolean useOwnLoadBalancer;
+	private boolean useAutoscalingReasoner;
 
 	private boolean running;
 	private boolean initialized;
@@ -155,7 +156,8 @@ public class Test {
 	public static final int MAX_ATTEMPTS = 5;
 
 	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner) throws Exception {
+			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner,
+			String pathToModel, String sshHost, String sshUsername, String sshPassword) throws Exception {
 		String baseJmx = app.getBaseJmxPath().toString();
 
 		if (baseJmx == null || !new File(baseJmx).exists())
@@ -170,7 +172,7 @@ public class Test {
 
 		long init = System.currentTimeMillis();
 
-		Test t = new Test(size, clients, servers, app.name, useDatabase, useSDA, useCloudML, loadBalancerIp != null);
+		Test t = new Test(size, clients, servers, app.name, useDatabase, useSDA, useCloudML, loadBalancerIp != null, useAutoscalingReasoner);
 
 		if (reuseInstances)
 			t.considerRunningMachines();
@@ -185,13 +187,13 @@ public class Test {
 		Exception thrown = null;
 
 		try {
-			t.initSystem(loadModelFile, demandEstimator, window);
+			t.initSystem(loadModelFile, demandEstimator, window, pathToModel, sshHost, sshUsername, sshPassword);
 
 			if (onlyStartMachines)
 				return -1;
 
 			boolean performTheTest = false;
-			if (useCloudML) {
+			if (useCloudML || useAutoscalingReasoner) {
 				String status;
 				int attempt = 0;
 				do {
@@ -201,7 +203,7 @@ public class Test {
 				} while ((status == null || status.equals("null")) && attempt < MAX_ATTEMPTS);
 
 				if (status != null && !status.equals("null")) {
-					if (!useAutoscalingReasoner)
+					if (useCloudML)
 						t.addCPUUtilizationMonitoringRules(app.cpuUtilizationRules, app.tierName, highCpu, lowCpu, window, cooldown);
 					performTheTest = true;
 				} else {
@@ -222,7 +224,7 @@ public class Test {
 		if (thrown != null) {
 			try {
 				Date date = new Date();
-				String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s%6$s-broken", date, size, getPeakFromData(data) / clients, clients, app.name, (useSDA ? "-" + demandEstimator : "") + (useCloudML ? "-CloudML" : ""));
+				String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s%6$s-broken", date, size, getPeakFromData(data) / clients, clients, app.name, (useSDA ? "-" + demandEstimator : "") + (useCloudML ? "-CloudML" : "") + (useAutoscalingReasoner ? "-AR" : ""));
 				
 				t.localPath = "tests" + File.separator + now;
 				t.retrieveFiles(app);
@@ -252,7 +254,7 @@ public class Test {
 		return System.currentTimeMillis() - init;
 	}
 
-	public Test(String size, int clients, int servers, String app, boolean useDatabase, boolean useSDA, boolean useCloudML, boolean useOwnLoadBalancer) throws CloudException {
+	public Test(String size, int clients, int servers, String app, boolean useDatabase, boolean useSDA, boolean useCloudML, boolean useOwnLoadBalancer, boolean useAutoscalingReasoner) throws CloudException {
 		if (clients <= 0)
 			throw new RuntimeException("You need at least 1 client!");
 
@@ -278,13 +280,15 @@ public class Test {
 			lb = VirtualMachine.getVM("lb");
 
 		otherThreads = new ArrayList<Thread>();
+		
+		this.useAutoscalingReasoner = useAutoscalingReasoner;
 	}
 
 	private String loadBalancer;
 	public static final String LB_BASENAME = "ScalingSDATests";
 
 	private void createLoadBalancer() {
-		if ((app.getInstancesNeeded() <= 1 && !useCloudML) || useOwnLoadBalancer)
+		if ((app.getInstancesNeeded() <= 1 && (!useCloudML || !useAutoscalingReasoner)) || useOwnLoadBalancer)
 			return;
 
 		if (loadBalancer != null)
@@ -297,7 +301,7 @@ public class Test {
 	}
 
 	private void destroyLoadBalancer() {
-		if ((app.getInstancesNeeded() <= 1 && !useCloudML) || useOwnLoadBalancer)
+		if ((app.getInstancesNeeded() <= 1 && (!useCloudML || !useAutoscalingReasoner)) || useOwnLoadBalancer)
 			return;
 
 		if (loadBalancer == null)
@@ -322,14 +326,14 @@ public class Test {
 
 		if (!startAsOnDemand) {
 			mpl.spotRequest();
-			if (!useCloudML)
+			if (!useCloudML && !useAutoscalingReasoner)
 				app.spotRequest();
 			clients.spotRequest();
 			if (useDatabase)
 				database.spotRequest();
 		} else {
 			mpl.onDemandRequest();
-			if (!useCloudML)
+			if (!useCloudML && !useAutoscalingReasoner)
 				app.onDemandRequest();
 			clients.onDemandRequest();
 			if (useDatabase)
@@ -337,21 +341,21 @@ public class Test {
 		}
 
 		mpl.waitUntilRunning();
-		if (!useCloudML)
+		if (!useCloudML && !useAutoscalingReasoner)
 			app.waitUntilRunning();
 		clients.waitUntilRunning();
 		if (useDatabase)
 			database.waitUntilRunning();
 
 		mpl.setNameToInstances(mpl.getParameter("NAME"));
-		if (!useCloudML)
+		if (!useCloudML && !useAutoscalingReasoner)
 			app.setNameToInstances(app.getParameter("NAME"));
 		clients.setNameToInstances(clients.getParameter("NAME"));
 		if (useDatabase)
 			database.setNameToInstances(database.getParameter("NAME"));
 
 		mpl.getInstances().get(0).waitUntilSshAvailable();
-		if (!useCloudML)
+		if (!useCloudML && !useAutoscalingReasoner)
 			app.getInstances().get(0).waitUntilSshAvailable();
 		if (useDatabase)
 			database.getInstances().get(0).waitUntilSshAvailable();
@@ -374,7 +378,7 @@ public class Test {
 		AmazonEC2 ec2 = new AmazonEC2();
 
 		ec2.addRunningInstances(mpl);
-		if (!useCloudML)
+		if (!useCloudML && !useAutoscalingReasoner)
 			ec2.addRunningInstances(app);
 		ec2.addRunningInstances(clients);
 		if (useDatabase)
@@ -382,7 +386,7 @@ public class Test {
 
 		if (rebootMachines) {
 			mpl.reboot();
-			if (!useCloudML)
+			if (!useCloudML && !useAutoscalingReasoner)
 				app.reboot();
 			clients.reboot();
 			if (useDatabase)
@@ -400,7 +404,7 @@ public class Test {
 
 		if (!Boolean.parseBoolean(mpl.getParameter("LEAVE_INSTANCES_ON")))
 			mpl.terminate();
-		if (!useCloudML && !Boolean.parseBoolean(app.getParameter("LEAVE_INSTANCES_ON")))
+		if (!useCloudML && !useAutoscalingReasoner && !Boolean.parseBoolean(app.getParameter("LEAVE_INSTANCES_ON")))
 			app.terminate();
 		if (!Boolean.parseBoolean(clients.getParameter("LEAVE_INSTANCES_ON")))
 			clients.terminate();
@@ -442,7 +446,7 @@ public class Test {
 
 	private List<Thread> otherThreads;
 
-	public void initSystem(String loadModelFile, String demandEstimator, int window) throws Exception {
+	public void initSystem(String loadModelFile, String demandEstimator, int window, String pathToModel, String sshHost, String sshUsername, String sshPassword) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 
@@ -451,7 +455,7 @@ public class Test {
 
 		logger.info("Deleting the files set for removal before the test and upgrading the scripts...");
 
-		if (!useCloudML) {
+		if (!useCloudML && !useAutoscalingReasoner) {
 			app.deleteFiles();
 			app.execDownloader();
 		}
@@ -515,7 +519,7 @@ public class Test {
 			try { Thread.sleep(10000); } catch (Exception e) { }
 		}
 
-		if (!useCloudML)
+		if (!useCloudML && !useAutoscalingReasoner)
 			for (it.cloud.Instance iapp : app.getInstances()) {
 				iapp.execUpdater();
 				iapp.exec(String.format(
@@ -532,6 +536,22 @@ public class Test {
 					try { Thread.sleep(10000); } catch (Exception e) { }
 				}
 			}
+		
+		if (useAutoscalingReasoner) {
+			String remotePathToModel = getActualFile(impl.getIp(), mpl, pathToModel, "autoscalingReasoner");
+			
+			impl.exec(String.format(mpl.getParameter("AR_STARTER"),
+					impl.getIp(),
+					mpl.getParameter("AR_PORT"),
+					remotePathToModel,
+					sshHost,
+					sshUsername,
+					sshPassword,
+					impl.getIp(),
+					mpl.getParameter("CLOUDML_PORT")));
+			
+			try { Thread.sleep(10000); } catch (Exception e) { }
+		}
 
 		logger.info("System initialized!");
 
@@ -735,6 +755,8 @@ public class Test {
 		}
 		return sb.toString();
 	}
+	
+	private static String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM",	new Date());
 
 	public static Path getActualDeploymentModel(String ipMpl, VirtualMachine mpl, VirtualMachine app, String cloudMl, String cloudMlLoadBalancer, String loadBalancer, boolean remotePathIfNecessary, boolean useDatabase, VirtualMachine database, boolean useOwnLoadBalancer) throws Exception {
 		String body = null;
@@ -746,9 +768,6 @@ public class Test {
 		body = removeCommentedLines(body);
 
 		JSONObject jsonObject = new JSONObject(body);
-
-		Date date = new Date();
-		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM",	date);
 
 		if (jsonObject.has("providers")) {
 			JSONArray array = jsonObject.getJSONArray("providers");
@@ -839,7 +858,7 @@ public class Test {
 	}
 	
 	private void printSystemStatus() {
-		if (!running || !initialized || (!cloudMlInitialized && useCloudML))
+		if (!running || !initialized || (!cloudMlInitialized && (useCloudML || useAutoscalingReasoner)))
 			return;
 		
 		logger.info(mpl.toString());
@@ -848,7 +867,7 @@ public class Test {
 		logger.info(clients.toString());
 		for (it.cloud.Instance i : clients.getInstances())
 			logger.info("- {}", i.getIp());
-		if (!useCloudML) {
+		if (!useCloudML && !useAutoscalingReasoner) {
 			logger.info(app.toString());
 			for (it.cloud.Instance i : app.getInstances())
 				logger.info("- {}", i.getIp());
@@ -869,7 +888,7 @@ public class Test {
 		if (!initialized)
 			throw new RuntimeException("The system isn't initialized yet!");
 
-		if (!cloudMlInitialized && useCloudML)
+		if (!cloudMlInitialized && (useCloudML || useAutoscalingReasoner))
 			throw new RuntimeException("CloudML isn't initialized yet!");
 		
 		printSystemStatus();
@@ -912,7 +931,7 @@ public class Test {
 			javaParameters = null;
 		JMeterTest.javaParameters = javaParameters;
 
-		if (!useCloudML)
+		if (!useCloudML && !useAutoscalingReasoner)
 			if (app.startContainerMonitoringFile != null)
 				for (it.cloud.Instance iapp : this.app.getInstances())
 					Local.exec(String.format("bash %s %s", Configuration.getPathToFile(app.startContainerMonitoringFile), iapp.getIp()));
@@ -931,7 +950,7 @@ public class Test {
 
 		int period = getSuggestedPeriod(date);
 
-		if (!useCloudML)
+		if (!useCloudML && !useAutoscalingReasoner)
 			this.app.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		mpl.retrieveMetrics(localPath, date, period, Statistic.Average, null);
 		clients.retrieveMetrics(localPath, date, period, Statistic.Average, null);
@@ -947,7 +966,7 @@ public class Test {
 		if (!running || !initialized || localPath == null)
 			return;
 
-		if (!useCloudML) {
+		if (!useCloudML && !useAutoscalingReasoner) {
 			if (app.stopContainerMonitoringFile != null) {
 				int i = 1;
 				for (it.cloud.Instance iapp : this.app.getInstances())
