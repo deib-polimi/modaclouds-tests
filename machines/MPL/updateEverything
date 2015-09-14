@@ -4,3 +4,4 @@ cd
 
 bash ~/updatePlatform
 bash ~/updateSDA
+bash ~/updateAutoscalingReasoner

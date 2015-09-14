@@ -1,0 +1,24 @@
+#!/bin/bash
+# $1=the IP of this machine
+# $2=the port
+# $3=the path to the model
+# $4=the SSH host where AMPL is on
+# $5=the username of the SSH host where AMPL is on
+# $6=the password of the SSH host where AMPL is on
+# $7=the IP of the CloudML daemon
+# $8=the port of the CloudML daemon
+
+echo "export MODACLOUDS_AR_OWN_IP=$1" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_LISTENER_PORT=$2" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_PATH_TO_MODEL=$3" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_SSH_HOST=$4" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_SSH_USER=$5" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_SSH_PASS=$6" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_CLOUDML_IP=$7" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_CLOUDML_PORT=$8" >> ~/.bashrc_mpl
+
+cd /home/ubuntu/autoscalingReasoner
+source ~/.bashrc_mpl
+bash modaclouds-autoscalingReasoner > /home/ubuntu/logs/autoscalingReasoner.out 2>&1 &
+
+cd

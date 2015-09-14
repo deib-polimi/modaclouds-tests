@@ -155,7 +155,7 @@ public class Test {
 	public static final int MAX_ATTEMPTS = 5;
 
 	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp) throws Exception {
+			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner) throws Exception {
 		String baseJmx = app.getBaseJmxPath().toString();
 
 		if (baseJmx == null || !new File(baseJmx).exists())
@@ -201,7 +201,8 @@ public class Test {
 				} while ((status == null || status.equals("null")) && attempt < MAX_ATTEMPTS);
 
 				if (status != null && !status.equals("null")) {
-					t.addCPUUtilizationMonitoringRules(app.cpuUtilizationRules, app.tierName, highCpu, lowCpu, window, cooldown);
+					if (!useAutoscalingReasoner)
+						t.addCPUUtilizationMonitoringRules(app.cpuUtilizationRules, app.tierName, highCpu, lowCpu, window, cooldown);
 					performTheTest = true;
 				} else {
 					logger.error("CloudML isn't working (the statuses are null).");

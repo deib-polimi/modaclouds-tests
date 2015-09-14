@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd
+
+sudo apt-get update -y
+# sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+# sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
+sudo apt-get install build-essential -y
+
+sudo apt-get install default-jre -q -y
+export JAVA_HOME=/usr/lib/jvm/default-java
+echo "export JAVA_HOME=/usr/lib/jvm/default-java" >> ~/.bashrc_mpl
+
+cd
+rm -rf modaclouds-autoscalingReasoner
+git clone https://github.com/deib-polimi/modaclouds-autoscalingReasoner.git
+cd modaclouds-autoscalingReasoner
+mvn clean package -DskipTests -U
+mv target/autoscalingReasoner*.zip ~/autoscalingReasoner.zip
+unzip autoscalingReasoner.zip
+rm autoscalingReasoner.zip
+mv recedingHorizonScaling4Cloud-* autoscalingReasoner
+
+echo "export MODACLOUDS_AR_OWN_IP=localhost" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_LISTENER_PORT=81790" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_SSH_HOST=localhost" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_CLOUDML_IP=localhost" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_CLOUDML_PORT=9030" >> ~/.bashrc_mpl
+
+source ~/.bashrc_mpl
+cd
