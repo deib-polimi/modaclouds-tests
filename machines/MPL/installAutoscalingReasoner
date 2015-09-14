@@ -13,7 +13,7 @@ echo "export JAVA_HOME=/usr/lib/jvm/default-java" >> ~/.bashrc_mpl
 
 cd
 rm -rf modaclouds-autoscalingReasoner
-git clone https://github.com/deib-polimi/modaclouds-autoscalingReasoner.git
+git clone https://github.com/deib-polimi/modaclouds-autoscalingReasoner.git -b cmpl
 cd modaclouds-autoscalingReasoner
 mvn clean package -DskipTests -U
 mv target/autoscalingReasoner*.tar.gz ~/autoscalingReasoner.tar.gz
