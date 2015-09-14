@@ -17,6 +17,7 @@ git clone https://github.com/deib-polimi/modaclouds-autoscalingReasoner.git -b c
 cd modaclouds-autoscalingReasoner
 mvn clean package -DskipTests -U
 mv target/autoscalingReasoner*.tar.gz ~/autoscalingReasoner.tar.gz
+cd
 tar zxf autoscalingReasoner.tar.gz
 rm autoscalingReasoner.tar.gz
 mv recedingHorizonScaling4Cloud-* autoscalingReasoner
