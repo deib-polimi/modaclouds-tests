@@ -8,9 +8,9 @@ cd modaclouds-autoscalingReasoner
 git pull
 mvn clean package -DskipTests -U
 mv target/sdaSync*.jar ~/modaclouds-sda/lib/
-mv target/autoscalingReasoner*.zip ~/autoscalingReasoner.zip
+mv target/autoscalingReasoner*.tar.gz ~/autoscalingReasoner.tar.gz
 cd
-unzip autoscalingReasoner.zip
-rm autoscalingReasoner.zip
+tar zxf autoscalingReasoner.tar.gz
+rm autoscalingReasoner.tar.gz
 mv recedingHorizonScaling4Cloud-* autoscalingReasoner
 

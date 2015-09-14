@@ -16,9 +16,9 @@ rm -rf modaclouds-autoscalingReasoner
 git clone https://github.com/deib-polimi/modaclouds-autoscalingReasoner.git
 cd modaclouds-autoscalingReasoner
 mvn clean package -DskipTests -U
-mv target/autoscalingReasoner*.zip ~/autoscalingReasoner.zip
-unzip autoscalingReasoner.zip
-rm autoscalingReasoner.zip
+mv target/autoscalingReasoner*.tar.gz ~/autoscalingReasoner.tar.gz
+tar zxf autoscalingReasoner.tar.gz
+rm autoscalingReasoner.tar.gz
 mv recedingHorizonScaling4Cloud-* autoscalingReasoner
 
 echo "export MODACLOUDS_AR_OWN_IP=localhost" >> ~/.bashrc_mpl
