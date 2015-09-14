@@ -525,7 +525,8 @@ public class Test {
 				iapp.exec(String.format(
 						app.getParameter("STARTER"),
 						useDatabase ? database.getIps().get(0) : "127.0.0.1",
-						mplIp
+						mplIp,
+						mpl.getParameter("MP_PORT")
 				));
 
 				try { Thread.sleep(10000); } catch (Exception e) { }
