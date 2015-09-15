@@ -15,8 +15,8 @@ echo "export MODACLOUDS_KNOWLEDGEBASE_DATASET_PATH=/modaclouds/kb" >> ~/.bashrc_
 source ~/.bashrc_mpl
 
 T4C_DIST_LOCATION="https://github.com/deib-polimi/tower4clouds.git"
-#T4C_DIST_BRANCH="develop"
-T4C_DIST_BRANCH="master"
+T4C_DIST_BRANCH="develop"
+#T4C_DIST_BRANCH="master"
 TESTS_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-tests.git"
 TESTS_DIST_BRANCH="master"
 
