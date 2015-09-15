@@ -3,33 +3,18 @@ MAINTAINER Marcos Almeida <marcos.almeida@softeam.fr>
 
 ENV SYNCDIR   /root/syncfolder
 ENV USERHOME  /root
-ENV TARGETDIR /var/www/html/sync
+ENV TARGETDIR /root/sync
 ENV CATALINA  /var/lib/tomcat7
 
 # Upgrade the repos and the system
 RUN apt-get update -y
 #RUN DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 
-# Installing Open SSH and public key
-#RUN apt-get install -y openssh-server openssh-client
-#RUN mkdir $USERHOME/.ssh
-#COPY id_rsa $USERHOME/.ssh/id_rsa
-#COPY id_rsa.pub $USERHOME/.ssh/id_rsa.pub
-#RUN cat $USERHOME/.ssh/id_rsa.pub > $USERHOME/.ssh/authorized_keys
-#RUN chmod go-rwx $USERHOME/.ssh/id_rsa $USERHOME/.ssh/id_rsa.pub
-#RUN mkdir /var/run/sshd
-#EXPOSE 22
-
-# Installing Apache2
-RUN sudo apt-get install -y apache2
-EXPOSE 80 443
-
 # Adding model fragment to server
-ENV APACHE_RUN_USER root
-ENV APACHE_RUN_GROUP root
 RUN apt-get install -y unzip
+RUN mkdir -p $TARGETDIR
 COPY model.zip $TARGETDIR/model.zip
-RUN unzip $TARGETDIR/model.zip -d $TARGETDIR
+RUN unzip -q $TARGETDIR/model.zip -d $TARGETDIR
 
 # Based on workaround from michcapper from : https://github.com/docker/docker/issues/6047
 RUN chmod 755 -R /var/www/ && mv $TARGETDIR/model /tmp/model && mv /tmp/model $TARGETDIR/model
@@ -54,6 +39,7 @@ COPY http-agent-helper.war $CATALINA/webapps/http-agent-helper.war
 RUN sed 's/%h %l %u %t &quot;%r&quot; %s %b/%h %l %u %t \&quot;%r\&quot; %s %b %D/' <$CATALINA/conf/server.xml >$CATALINA/conf/server-new.xml
 RUN mv $CATALINA/conf/server-new.xml $CATALINA/conf/server.xml
 
-# Start servers
-#CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
-CMD /usr/sbin/apache2ctl -D FOREGROUND
+RUN touch /root/fake.txt
+
+# Start fake command to make it stay on
+CMD tail -f /root/fake.txt
