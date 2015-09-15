@@ -9,9 +9,12 @@ import java.util.Map;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class InitDataCollectorServlet implements ServletContextListener {
 
-//	private static final Logger logger = LoggerFactory.getLogger(InitDataCollectorServlet.class);
+	private static final Logger logger = LoggerFactory.getLogger(InitDataCollectorServlet.class);
 
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0) {
@@ -71,6 +74,10 @@ public class InitDataCollectorServlet implements ServletContextListener {
 		applicationProperties.put(Property.CLOUD_PROVIDER_TYPE, "IaaS");
 		applicationProperties.put(Property.VM_ID, "HTTPAgentHelper1");
 		applicationProperties.put(Property.VM_TYPE, "Frontend");
+		
+		logger.debug("MONITORING_PLATFORM_IP = {}", MONITORING_PLATFORM_IP);
+		logger.debug("MONITORING_PLATFORM_PORT = {}", MONITORING_PLATFORM_PORT);
+		logger.debug("MONITORING_PLATFORM_PROVIDER = {}", MONITORING_PLATFORM_PROVIDER);
 		
 		Registry.initialize(MONITORING_PLATFORM_IP, MONITORING_PLATFORM_PORT,
 				applicationProperties, getClass().getPackage().getName());
