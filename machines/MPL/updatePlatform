@@ -2,6 +2,8 @@
 
 cd ~/tower4clouds
 git pull
+git checkout master
+git pull
 mvn clean package install -DskipTests -U
 
 sudo service fuseki stop
