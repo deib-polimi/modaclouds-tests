@@ -5,6 +5,7 @@ echo "export MODACLOUDS_MONITORING_DDA_ENDPOINT_IP=$1" >> ~/.bashrc_mpl
 echo "export MODACLOUDS_MATLAB_SDA_IP=$1" >> ~/.bashrc_mpl
 echo "export MODACLOUDS_JAVA_SDA_IP=$1" >> ~/.bashrc_mpl
 echo "export MODACLOUDS_WEKA_SDA_IP=$1" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_MATLAB_SDA_PORT=8176" >> ~/.bashrc_mpl
 
 cd /home/ubuntu/modaclouds-sda
 source ~/.bashrc_mpl
