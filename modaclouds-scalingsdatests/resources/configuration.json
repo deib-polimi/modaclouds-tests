@@ -136,7 +136,7 @@
                 "/home/ubuntu/logs/fuseki.log",
                 "/home/ubuntu/tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT/mgr.log",
                 "/home/ubuntu/tower4clouds/data-analyzer/target/data-analyzer-0.4-SNAPSHOT/da.log",
-                "/home/ubuntu/tower4clouds/observers/rdf-history-db/rdf-history-db-main/target/rdf-history-db-main-0.0.4-SNAPSHOT/hdb.log",
+                "/home/ubuntu/tower4clouds/observers/rdf-history-db/rdf-history-db-main/target/rdf-history-db-main-0.4-SNAPSHOT/hdb.log",
                 "/home/ubuntu/logs/data2stdout.log",
                 "/home/ubuntu/sda.out",
                 "/home/ubuntu/cpu.out",
