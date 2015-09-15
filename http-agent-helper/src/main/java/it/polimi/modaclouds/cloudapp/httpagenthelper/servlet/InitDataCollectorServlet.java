@@ -18,7 +18,7 @@ public class InitDataCollectorServlet implements ServletContextListener {
 //		AppDataCollectorFactory.getInstance().stopSyncingWithKB();
 	}
 	
-	private static String MONITORING_PLATFORM_IP = "";
+	private static String MONITORING_PLATFORM_IP = "localhost";
 	private static int MONITORING_PLATFORM_PORT = 8170;
 	private static String MONITORING_PLATFORM_PROVIDER = "amazon";
 	
