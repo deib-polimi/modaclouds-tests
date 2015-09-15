@@ -56,4 +56,4 @@ RUN mv $CATALINA/conf/server-new.xml $CATALINA/conf/server.xml
 
 # Start servers
 #CMD /usr/sbin/sshd ; sudo /usr/sbin/apache2ctl -D FOREGROUND
-sudo /usr/sbin/apache2ctl -D FOREGROUND
+CMD /usr/sbin/apache2ctl -D FOREGROUND
