@@ -67,6 +67,18 @@ public class CloudMLCall extends AbstractAction {
     
     public static final String DEFAULT_N = "1";
     public static final String DEFAULT_COOLDOWN = "600";
+    
+    @Override
+	protected Map<String, String> getMyDefaultParameterValues() {
+		Map<String, String> res = new HashMap<String, String>();
+		
+		res.put(IP, DEFAULT_CLOUDML_IP);
+		res.put(PORT, DEFAULT_CLOUDML_PORT);
+		res.put(N, DEFAULT_N);
+		res.put(COOLDOWN, DEFAULT_COOLDOWN);
+		
+		return res;
+	}
 
     private final Set<String> requiredParameters;
 

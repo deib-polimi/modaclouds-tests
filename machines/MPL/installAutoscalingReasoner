@@ -24,7 +24,7 @@ rm autoscalingReasoner.tar.gz
 mv recedingHorizonScaling4Cloud-* autoscalingReasoner
 
 echo "export MODACLOUDS_AR_OWN_IP=localhost" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_LISTENER_PORT=81790" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_AR_LISTENER_PORT=81790" >> ~/.bashrc_\pl
 echo "export MODACLOUDS_AR_SSH_HOST=localhost" >> ~/.bashrc_mpl
 echo "export MODACLOUDS_AR_CLOUDML_IP=localhost" >> ~/.bashrc_mpl
 echo "export MODACLOUDS_AR_CLOUDML_PORT=9030" >> ~/.bashrc_mpl

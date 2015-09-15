@@ -3,8 +3,8 @@
 cd ~/modaclouds-sda/Modaclouds-SDASync
 mv pom-bak.xml pom.xml
 git pull
-mv pom.xml pom-bak.xml
-cat pom-bak.xml | sed 's|<version>0.3</version>|<version>0.4-SNAPSHOT</version>|' > pom.xml
+#mv pom.xml pom-bak.xml
+#cat pom-bak.xml | sed 's|<version>0.3.1</version>|<version>0.4-SNAPSHOT</version>|' > pom.xml
 mvn clean package assembly:assembly -DskipTests -U
 mv target/sdaSync*.jar ~/modaclouds-sda/lib/
 

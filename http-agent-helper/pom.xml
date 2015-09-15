@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>it.polimi.tower4clouds</groupId>
 			<artifactId>java-app-dc</artifactId>
-			<version>0.3</version>
+			<version>0.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
