@@ -17,7 +17,7 @@ COPY model.zip $TARGETDIR/model.zip
 RUN unzip -q $TARGETDIR/model.zip -d $TARGETDIR
 
 # Based on workaround from michcapper from : https://github.com/docker/docker/issues/6047
-RUN chmod 755 -R /var/www/ && mv $TARGETDIR/model /tmp/model && mv /tmp/model $TARGETDIR/model
+RUN chmod 755 -R $TARGETDIR && mv $TARGETDIR/model /tmp/model && mv /tmp/model $TARGETDIR/model
 
 # Installing Tomcat7 and the application
 RUN apt-get -y install tomcat7 default-jre
