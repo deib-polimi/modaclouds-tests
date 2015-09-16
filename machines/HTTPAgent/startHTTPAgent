@@ -30,6 +30,6 @@ bash ~/stopHTTPAgent
 
 bash ~/http-agent-helper/startTomcat.sh
 
-cd
+bash ~/startImperialDC
 
-bash startImperialDC
+cd
