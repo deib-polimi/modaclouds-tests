@@ -26,6 +26,8 @@ fi
 
 source ~/.bashrc_httpagent
 
+bash stopHTTPAgent
+
 bash ~/http-agent-helper/startTomcat.sh
 
 cd
