@@ -507,7 +507,7 @@ public class Test {
 					cores,
 					demandEstimator,
 					window,
-					useSDA));
+					useAutoscalingReasoner ? false : useSDA));
 
 		try { Thread.sleep(10000); } catch (Exception e) { }
 
