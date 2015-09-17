@@ -895,7 +895,7 @@ public class Test {
 		printSystemStatus();
 
 		Date date = new Date();
-		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s%6$s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), app.name, (useSDA ? "-" + method : "") + (useCloudML ? "-CloudML" : ""));
+		String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s%6$s", date, clients.getSize(), getPeakFromData(data) / clients.getInstancesRunning(), clients.getInstancesRunning(), app.name, (useSDA ? "-" + method : "") + (useCloudML ? "-CloudML" : "") + (useAutoscalingReasoner ? "-AR" : ""));
 
 		localPath = "tests" + File.separator + now;
 
