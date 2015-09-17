@@ -24,7 +24,7 @@
             "OS": "Linux/UNIX",
             "SSH_user": "ubuntu",
             "SSH_pass": "ubuntu",
-            "remote_path": "/home/ubuntu/logs/scalingsdatests",
+            "remote_path": "/tmp/scalingsdatests",
             "JMeter_path": "/home/ubuntu/apache-jmeter-2.13",
             "downloader": "cd ~ && curl -O https://raw.githubusercontent.com/deib-polimi/modaclouds-tests/master/machines/downloadEverything.sh && bash /home/ubuntu/downloadEverything.sh client",
             "installer": "bash /home/ubuntu/installEverything",
@@ -162,7 +162,7 @@
             "CloudML_stopper": "bash /home/ubuntu/CloudMLDaemon -stop -port %s",
             "AR_starter": "bash /home/ubuntu/startAutoscalingReasoner %s %s %s %s %s %s %s %s",
             "AR_port": 81790,
-            "remote_path": "/home/ubuntu/logs/scalingsdatests",
+            "remote_path": "/tmp/scalingsdatests",
             "CloudML_port": 9030,
             "MP_port": 8170,
             "metrics": [

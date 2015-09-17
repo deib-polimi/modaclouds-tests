@@ -199,13 +199,13 @@
     {
       "eClass": "net.cloudml.core:NodeInstance",
       "name": "%10$sInstance%1$s",
-      "type": "vms[%10$s@Flexiant]",
+      "type": "vms[%10$s@Amazon]",
       "providedExecutionPlatformInstances": [
         {
           "eClass": "net.cloudml.core:ProvidedExecutionPlatformInstance",
           "name": "%10$sTier",
           "owner": "vmInstances[%10$sInstance%1$s]",
-          "type": "vms[%10$s@Flexiant]/providedExecutionPlatforms[%10$sTIERFlexiant]"
+          "type": "vms[%10$s@Amazon]/providedExecutionPlatforms[%10$sTIERAmazon]"
         }
       ]
     }

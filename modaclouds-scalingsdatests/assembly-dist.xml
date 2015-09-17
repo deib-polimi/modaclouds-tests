@@ -111,6 +111,11 @@
       <outputDirectory></outputDirectory>
       <destName>cloudmlrules.txt</destName>
     </file>
+    <file>
+      <source>resources/httpAgentInitialModel.xml</source>
+      <outputDirectory></outputDirectory>
+      <destName>httpAgentInitialModel.xml</destName>
+    </file>
   </files>
 
   <fileSets>

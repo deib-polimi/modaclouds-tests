@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<containers speedNorm="1200.0" timestepDuration="5" optimizationWindowsLenght="5">
+    <container id="capacity4.0Container" capacity="4.0" nCore="2" processingRate="3600.0" vmType="m1.large" maxReserved="0" reservedCost="384.0" onDemandCost="0.126">
+        <applicationTier initialNumberOfVMs="1" id="Front End_CPU_Processor">
+            <responseTimeThreshold hour="0" value="0.005641667"/>
+            <responseTimeThreshold hour="1" value="0.0056416667"/>
+            <responseTimeThreshold hour="2" value="0.0056416667"/>
+            <responseTimeThreshold hour="3" value="0.005641667"/>
+            <responseTimeThreshold hour="4" value="0.005641667"/>
+            <responseTimeThreshold hour="5" value="0.0056416667"/>
+            <responseTimeThreshold hour="6" value="0.0056416667"/>
+            <responseTimeThreshold hour="7" value="0.0056416667"/>
+            <responseTimeThreshold hour="8" value="0.0056416667"/>
+            <responseTimeThreshold hour="9" value="0.0056416667"/>
+            <responseTimeThreshold hour="10" value="0.005641667"/>
+            <responseTimeThreshold hour="11" value="0.0056416667"/>
+            <responseTimeThreshold hour="12" value="0.0056416667"/>
+            <responseTimeThreshold hour="13" value="0.0056416667"/>
+            <responseTimeThreshold hour="14" value="0.0056416667"/>
+            <responseTimeThreshold hour="15" value="0.0056416667"/>
+            <responseTimeThreshold hour="16" value="0.0056416667"/>
+            <responseTimeThreshold hour="17" value="0.0056416667"/>
+            <responseTimeThreshold hour="18" value="0.0056416667"/>
+            <responseTimeThreshold hour="19" value="0.0056416667"/>
+            <responseTimeThreshold hour="20" value="0.0056416667"/>
+            <responseTimeThreshold hour="21" value="0.0056416667"/>
+            <responseTimeThreshold hour="22" value="0.0056416667"/>
+            <responseTimeThreshold hour="23" value="0.0056416667"/>
+            <Functionality id="_sPjOMNhwEeSGjb1hTo3-zQ"/>
+        </applicationTier>
+    </container>
+</containers>
