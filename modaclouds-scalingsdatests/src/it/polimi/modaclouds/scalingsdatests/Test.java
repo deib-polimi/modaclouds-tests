@@ -500,16 +500,18 @@ public class Test {
 
 		int cores = getCores();
 
-		Local.exec(String.format("bash %s %s %s %d %s %d %b",
-					loadModelFile,
-					impl.getIp(),
-					impl.getIp(),
-					cores,
-					demandEstimator,
-					window,
-					useAutoscalingReasoner ? false : useSDA));
-
-		try { Thread.sleep(10000); } catch (Exception e) { }
+		if (!useAutoscalingReasoner) {
+			Local.exec(String.format("bash %s %s %s %d %s %d %b",
+						loadModelFile,
+						impl.getIp(),
+						impl.getIp(),
+						cores,
+						demandEstimator,
+						window,
+						useSDA));
+			
+			try { Thread.sleep(10000); } catch (Exception e) { }
+		}
 
 		if (useSDA) {
 			otherThreads.add(Ssh.execInBackground(impl, String.format(
@@ -552,6 +554,8 @@ public class Test {
 					mpl.getParameter("CLOUDML_PORT")));
 			
 			try { Thread.sleep(10000); } catch (Exception e) { }
+			
+			attachAllTheObservers();
 		}
 
 		logger.info("System initialized!");
@@ -677,9 +681,25 @@ public class Test {
 						doubleFormatter.format(aboveValue), doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
 
 		monitoringPlatform.installRules(rules);
-		monitoringPlatform.attachObserver("FrontendCPUUtilization", cloudMLIp, "8001");
-		monitoringPlatform.attachObserver("AvarageEffectiveResponseTime", cloudMLIp, "8001");
-		monitoringPlatform.attachObserver("Workload", cloudMLIp, "8001");
+		
+		attachAllTheObservers();
+	}
+	
+	public void attachAllTheObservers() throws Exception {
+		String mmIp = mpl.getInstances().get(0).getIp();
+		
+		monitoringPlatform.attachObserver("FrontendCPUUtilization", mmIp, "8001");
+		monitoringPlatform.attachObserver("AvarageEffectiveResponseTime", mmIp, "8001");
+		monitoringPlatform.attachObserver("Workload", mmIp, "8001");
+		
+		if (useSDA) {
+			monitoringPlatform.attachObserver("EstimatedDemand", mmIp, "8001");
+			monitoringPlatform.attachObserver("ForecastedWorkload1", mmIp, "8001");
+			monitoringPlatform.attachObserver("ForecastedWorkload2", mmIp, "8001");
+			monitoringPlatform.attachObserver("ForecastedWorkload3", mmIp, "8001");
+			monitoringPlatform.attachObserver("ForecastedWorkload4", mmIp, "8001");
+			monitoringPlatform.attachObserver("ForecastedWorkload5", mmIp, "8001");
+		}
 	}
 
 	public static String getActualFile(String ip, VirtualMachine vm, String filePath, String folder) throws Exception {
