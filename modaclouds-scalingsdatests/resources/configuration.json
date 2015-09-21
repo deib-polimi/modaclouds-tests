@@ -160,7 +160,7 @@
             "SDA_starter": "bash /home/ubuntu/startSDA %s",
             "CloudML_starter": "bash /home/ubuntu/CloudMLDaemon -port %s",
             "CloudML_stopper": "bash /home/ubuntu/CloudMLDaemon -stop -port %s",
-            "AR_starter": "bash /home/ubuntu/startAutoscalingReasoner %s %s %s %s %s %s %s %s",
+            "AR_starter": "bash /home/ubuntu/startAutoscalingReasoner %s %s %s %s %s %s %s %s %s",
             "AR_port": 81790,
             "remote_path": "/tmp/scalingsdatests",
             "CloudML_port": 9030,
