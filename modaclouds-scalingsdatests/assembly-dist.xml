@@ -116,6 +116,11 @@
       <outputDirectory></outputDirectory>
       <destName>httpAgentInitialModel.xml</destName>
     </file>
+    <file>
+      <source>resources/MICInitialModel.xml</source>
+      <outputDirectory></outputDirectory>
+      <destName>MICInitialModel.xml</destName>
+    </file>
   </files>
 
   <fileSets>

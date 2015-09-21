@@ -78,7 +78,8 @@ public class Test {
 				"MIC",
 				"cloudml.json",
 				"cloudml-LB.json",
-				"cloudmlrules.txt"),
+				"cloudmlrules.txt",
+				"MICInitialModel.xml"),
 		HTTPAGENT(
 				"httpagent",
 				"MPloadModel-HTTPAgent",
@@ -90,8 +91,8 @@ public class Test {
 				"HTTPAgent",
 				"cloudml.json",
 				"cloudml-LB.json",
-				"cloudmlrules.txt"
-				);
+				"cloudmlrules.txt",
+				"httpAgentInitialModel.xml");
 
 		public String name;
 		public String fileModel;
@@ -104,8 +105,9 @@ public class Test {
 		public String cloudMl;
 		public String cloudMlLoadBalancer;
 		public String cpuUtilizationRules;
+		public String pathToModel;
 
-		private App(String name, String fileModel, String baseJmx, String startContainerMonitoringFile, String stopContainerMonitoringFile, String grepMethodResult, String[] methods, String tierName, String cloudMl, String cloudMlLoadBalancer, String cpuUtilizationRules) {
+		private App(String name, String fileModel, String baseJmx, String startContainerMonitoringFile, String stopContainerMonitoringFile, String grepMethodResult, String[] methods, String tierName, String cloudMl, String cloudMlLoadBalancer, String cpuUtilizationRules, String pathToModel) {
 			this.name = name;
 			this.fileModel = fileModel;
 			this.baseJmx = baseJmx;
@@ -117,6 +119,7 @@ public class Test {
 			this.cloudMl = cloudMl;
 			this.cloudMlLoadBalancer = cloudMlLoadBalancer;
 			this.cpuUtilizationRules = cpuUtilizationRules;
+			this.pathToModel = pathToModel;
 		}
 
 		public Path getBaseJmxPath() {
@@ -128,8 +131,10 @@ public class Test {
 				if (a.name.equalsIgnoreCase(name))
 					return a;
 
-			return DEFAULT_APP;
+			return DEFAULT;
 		}
+		
+		public static App DEFAULT = HTTPAGENT;
 	}
 
 	public static enum DemandEstimator {
@@ -146,18 +151,18 @@ public class Test {
 				if (d.name.equalsIgnoreCase(name))
 					return d;
 
-			return DEFAULT_DEMAND_ESTIMATOR;
+			return DEFAULT;
 		}
+		
+		public static DemandEstimator DEFAULT = ERPS;
 	}
 
-	public static final App DEFAULT_APP = App.MIC;
-	public static final DemandEstimator DEFAULT_DEMAND_ESTIMATOR = DemandEstimator.ERPS;
 	public static final long ERROR_STATUS_NULL = -1234;
 	public static final int MAX_ATTEMPTS = 5;
 
 	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
 			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner,
-			String pathToModel, String sshHost, String sshUsername, String sshPassword) throws Exception {
+			String sshHost, String sshUsername, String sshPassword) throws Exception {
 		String baseJmx = app.getBaseJmxPath().toString();
 
 		if (baseJmx == null || !new File(baseJmx).exists())
@@ -187,7 +192,7 @@ public class Test {
 		Exception thrown = null;
 
 		try {
-			t.initSystem(loadModelFile, demandEstimator, window, pathToModel, sshHost, sshUsername, sshPassword);
+			t.initSystem(loadModelFile, demandEstimator, window, app.pathToModel, sshHost, sshUsername, sshPassword);
 
 			if (onlyStartMachines)
 				return -1;
@@ -551,11 +556,10 @@ public class Test {
 					sshUsername,
 					sshPassword,
 					impl.getIp(),
-					mpl.getParameter("CLOUDML_PORT")));
+					mpl.getParameter("CLOUDML_PORT"),
+					mpl.getParameter("OBSERVER_PORT")));
 			
 			try { Thread.sleep(10000); } catch (Exception e) { }
-			
-			attachAllTheObservers();
 		}
 
 		logger.info("System initialized!");
@@ -687,18 +691,21 @@ public class Test {
 	
 	public void attachAllTheObservers() throws Exception {
 		String mmIp = mpl.getInstances().get(0).getIp();
+		String port = mpl.getParameter("OBSERVER_PORT");
+		if (port == null || port.length() == 0)
+			port = "8001";
 		
-		monitoringPlatform.attachObserver("FrontendCPUUtilization", mmIp, "8001");
-		monitoringPlatform.attachObserver("AvarageEffectiveResponseTime", mmIp, "8001");
-		monitoringPlatform.attachObserver("Workload", mmIp, "8001");
+		monitoringPlatform.attachObserver("FrontendCPUUtilization", mmIp, port);
+		monitoringPlatform.attachObserver("AvarageEffectiveResponseTime", mmIp, port);
+		monitoringPlatform.attachObserver("Workload", mmIp, port);
 		
 		if (useSDA) {
-			monitoringPlatform.attachObserver("EstimatedDemand", mmIp, "8001");
-			monitoringPlatform.attachObserver("ForecastedWorkload1", mmIp, "8001");
-			monitoringPlatform.attachObserver("ForecastedWorkload2", mmIp, "8001");
-			monitoringPlatform.attachObserver("ForecastedWorkload3", mmIp, "8001");
-			monitoringPlatform.attachObserver("ForecastedWorkload4", mmIp, "8001");
-			monitoringPlatform.attachObserver("ForecastedWorkload5", mmIp, "8001");
+			monitoringPlatform.attachObserver("EstimatedDemand", mmIp, port);
+			monitoringPlatform.attachObserver("ForecastedWorkload1", mmIp, port);
+			monitoringPlatform.attachObserver("ForecastedWorkload2", mmIp, port);
+			monitoringPlatform.attachObserver("ForecastedWorkload3", mmIp, port);
+			monitoringPlatform.attachObserver("ForecastedWorkload4", mmIp, port);
+			monitoringPlatform.attachObserver("ForecastedWorkload5", mmIp, port);
 		}
 	}
 

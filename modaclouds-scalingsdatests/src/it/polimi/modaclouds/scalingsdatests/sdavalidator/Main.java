@@ -22,7 +22,7 @@ public class Main {
 	private int firstInstancesToSkip = Validator.FIRST_INSTANCES_TO_SKIP;
 
 	@Parameter(names = "-app", description = "The name of the app that is going to be used for the test")
-	private String app = it.polimi.modaclouds.scalingsdatests.Test.DEFAULT_APP.name;
+	private String app = it.polimi.modaclouds.scalingsdatests.Test.App.DEFAULT.name;
 
 	@Parameter(names = "-window", description = "The size in seconds of the window of the monitoring rules")
 	private int window = 300;

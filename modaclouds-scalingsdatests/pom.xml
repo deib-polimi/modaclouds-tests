@@ -7,7 +7,7 @@
 		<version>0.1</version>
 	</parent>
 	<artifactId>scalingsdatests</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.6</version>
 	<name>MODAClouds - Scaling SDA Tests</name>
 
 	<properties>

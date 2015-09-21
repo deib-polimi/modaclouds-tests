@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<containers speedNorm="1200.0" timestepDuration="10" optimizationWindowsLenght="5">
+    <container id="capacity6.5Container" capacity="6.5" nCore="2" processingRate="300.0" vmType="m3.large" maxReserved="0" reservedCost="0.0" onDemandCost="0.150">
+        <applicationTier id="MIC">
+            <responseTimeThreshold hour="0" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="1" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="2" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="3" value="4.152226193342357874"/>
+            <responseTimeThreshold hour="4" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="5" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="6" value="4.15226191014051437"/>
+            <responseTimeThreshold hour="7" value="4.1522226193342357874"/>
+            <responseTimeThreshold hour="8" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="9" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="10" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="11" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="12" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="13" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="14" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="15" value="4.152226193342357874"/>
+            <responseTimeThreshold hour="16" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="17" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="18" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="19" value="4.152226193342357874"/>
+            <responseTimeThreshold hour="20" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="21" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="22" value="4.152226191014051437"/>
+            <responseTimeThreshold hour="23" value="4.152226191014051437"/>
+            <functionality id="register"/>
+            <functionality id="saveAnswers"/>
+            <functionality id="answerQuestions"/>
+        </applicationTier>
+    </container>
+</containers>
