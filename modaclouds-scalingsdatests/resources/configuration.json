@@ -161,7 +161,7 @@
             "CloudML_starter": "bash /home/ubuntu/CloudMLDaemon -port %s",
             "CloudML_stopper": "bash /home/ubuntu/CloudMLDaemon -stop -port %s",
             "AR_starter": "bash /home/ubuntu/startAutoscalingReasoner %s %s %s %s %s %s %s %s %s",
-            "AR_port": 81790,
+            "AR_port": 6789,
             "remote_path": "/tmp/scalingsdatests",
             "CloudML_port": 9030,
             "MP_port": 8170,
