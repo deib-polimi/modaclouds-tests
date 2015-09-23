@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<containers speedNorm="1200.0" timestepDuration="5" optimizationWindowsLenght="5">
+<containers xmlns="http://www.modaclouds.eu/xsd/2015/9/s4c_ops" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" speedNorm="1200.0" timestepDuration="5" optimizationWindowsLenght="5" xsi:schemaLocation="http://www.modaclouds.eu/xsd/2015/9/s4c_ops https://raw.githubusercontent.com/deib-polimi/modaclouds-qos-models/master/metamodels/s4cextension/s4c_ops.xsd">
     <container id="capacity4.0Container" capacity="4.0" nCore="2" processingRate="3600.0" vmType="m1.large" maxReserved="0" reservedCost="384.0" onDemandCost="0.126">
-        <applicationTier initialNumberOfVMs="1" id="HTTPAgentHelper">
+        <applicationTier id="HTTPAgentHelper">
             <responseTimeThreshold hour="0" value="0.005641667"/>
             <responseTimeThreshold hour="1" value="0.0056416667"/>
             <responseTimeThreshold hour="2" value="0.0056416667"/>

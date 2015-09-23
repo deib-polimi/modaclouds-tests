@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<containers speedNorm="1200.0" timestepDuration="10" optimizationWindowsLenght="5">
+<containers xmlns="http://www.modaclouds.eu/xsd/2015/9/s4c_ops" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" speedNorm="1200.0" timestepDuration="5" optimizationWindowsLenght="5" xsi:schemaLocation="http://www.modaclouds.eu/xsd/2015/9/s4c_ops https://raw.githubusercontent.com/deib-polimi/modaclouds-qos-models/master/metamodels/s4cextension/s4c_ops.xsd">
     <container id="capacity6.5Container" capacity="6.5" nCore="2" processingRate="300.0" vmType="m3.large" maxReserved="0" reservedCost="0.0" onDemandCost="0.150">
         <applicationTier id="MIC">
             <responseTimeThreshold hour="0" value="4.152226191014051437"/>
