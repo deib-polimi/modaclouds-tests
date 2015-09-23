@@ -2,4 +2,6 @@
 
 cd
 
+rm -rf ~/.m2/repository
+
 bash ~/updateJMeter
