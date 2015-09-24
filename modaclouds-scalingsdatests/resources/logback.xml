@@ -38,8 +38,9 @@
             <OnMatch>DENY</OnMatch>
         </filter>
         <target>System.out</target>
+        <withJansi>true</withJansi>
         <encoder>
-            <pattern>%d{HH:mm:ss} [ScalingSDATest] %m%n
+            <pattern>%d{HH:mm:ss} [%highlight(ScalingSDATest)] %m%n
             </pattern>
         </encoder>
     </appender>
@@ -55,8 +56,9 @@
             <OnMatch>NEUTRAL</OnMatch>
         </filter>
         <target>System.err</target>
+        <withJansi>true</withJansi>
         <encoder>
-            <pattern>%d{HH:mm:ss} [ScalingSDATest] %m%n%caller{5}
+            <pattern>%d{HH:mm:ss} [%highlight(ScalingSDATest)] %m%n%caller{5}
             </pattern>
         </encoder>
     </appender>
