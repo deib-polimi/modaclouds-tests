@@ -26,9 +26,9 @@
             <responseTimeThreshold hour="21" value="4.152226191014051437"/>
             <responseTimeThreshold hour="22" value="4.152226191014051437"/>
             <responseTimeThreshold hour="23" value="4.152226191014051437"/>
-            <functionality id="register"/>
-            <functionality id="saveAnswers"/>
-            <functionality id="answerQuestions"/>
+            <functionality id="register" demand="0.03" />
+            <functionality id="saveAnswers" demand="0.03" />
+            <functionality id="answerQuestions" demand="0.03" />
         </applicationTier>
     </container>
 </containers>
