@@ -2,8 +2,6 @@
 
 cd
 
-rm -rf ~/.m2/repository
-
 bash ~/updatePlatform
 bash ~/updateSDA
 bash ~/updateAutoscalingReasoner

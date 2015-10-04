@@ -2,7 +2,5 @@
 
 cd
 
-rm -rf ~/.m2/repository
-
 bash ~/updateHTTPAgent
 bash ~/updateImperialDC
