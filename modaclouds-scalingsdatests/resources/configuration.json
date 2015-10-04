@@ -116,7 +116,7 @@
         "mpl": {
             "provider": "Amazon",
             "keypair_name": "desantis-ireland",
-            "AMI": "ami-8fab89f8",
+            "AMI": "ami-c5e1d5b2",
             "size": "m3.xlarge",
             "instances": 1,
             "disk": 8,
