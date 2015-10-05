@@ -293,7 +293,7 @@ public class Test {
 	public static final String LB_BASENAME = "ScalingSDATests";
 
 	private void createLoadBalancer() {
-		if (app.getInstancesNeeded() <= 1 || useOwnLoadBalancer)
+		if ((app.getInstancesNeeded() <= 1 && !useCloudML && !useAutoscalingReasoner) || useOwnLoadBalancer)
 			return;
 
 		if (loadBalancer != null)
@@ -306,7 +306,7 @@ public class Test {
 	}
 
 	private void destroyLoadBalancer() {
-		if (app.getInstancesNeeded() <= 1 || useOwnLoadBalancer)
+		if ((app.getInstancesNeeded() <= 1 && !useCloudML && !useAutoscalingReasoner) || useOwnLoadBalancer)
 			return;
 
 		if (loadBalancer == null)
