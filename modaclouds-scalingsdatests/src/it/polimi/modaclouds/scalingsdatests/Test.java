@@ -41,8 +41,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.cloudwatch.model.Statistic;
-
 public class Test {
 
 	private static final Logger logger = LoggerFactory.getLogger(Test.class);
@@ -239,7 +237,7 @@ public class Test {
 		}
 
 		if (!leaveInstancesOn) {
-			if (useCloudML) {
+			if (useCloudML || useAutoscalingReasoner) {
 				t.stopCloudMLInstances();
 				t.terminateCloudMLDaemon();
 			}
@@ -433,7 +431,7 @@ public class Test {
 		}
 		
 		logger.info("Stopping CloudML instances...");
-
+		
 		cloudML.terminateAllInstances();
 	}
 
@@ -976,14 +974,14 @@ public class Test {
 
 		logger.info("Retrieving the data from the metrics...");
 
-		int period = getSuggestedPeriod(date);
-
 		if (!useCloudML && !useAutoscalingReasoner)
-			this.app.retrieveMetrics(localPath, date, period, Statistic.Average, null);
-		mpl.retrieveMetrics(localPath, date, period, Statistic.Average, null);
-		clients.retrieveMetrics(localPath, date, period, Statistic.Average, null);
+			this.app.retrieveMetrics(localPath, date);
+		else
+			VirtualMachine.retrieveMetrics(localPath, date, this.app, cloudML.getRunningInstances(app.name).toArray(new String[0]));
+		mpl.retrieveMetrics(localPath, date);
+		clients.retrieveMetrics(localPath, date);
 		if (useDatabase)
-			database.retrieveMetrics(localPath, date, period, Statistic.Average, null);
+			database.retrieveMetrics(localPath, date);
 
 		logger.info("Done!");
 
@@ -1009,21 +1007,6 @@ public class Test {
 			database.retrieveFiles(localPath, "/home/" + database.getParameter("SSH_USER"));
 		if (useOwnLoadBalancer)
 			VirtualMachine.retrieveFiles(loadBalancer, lb, 1, localPath, "/home/" + lb.getParameter("SSH_USER"));
-	}
-
-	private static int getSuggestedPeriod(Date date) {
-		Date now = new Date();
-		double diff = now.getTime() - date.getTime();
-		diff /= 1000 * 60;
-		final int maxData = 1440;
-
-		double res = diff / maxData;
-		res = Math.ceil(res);
-
-		if (res < 1)
-			res = 1;
-
-		return (int)res * 60;
 	}
 
 	public static int getCores(String resourceName) {

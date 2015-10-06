@@ -351,6 +351,14 @@ public class CloudMLCall {
 				stopInstances(instances.running, true);
 			}
 		}
+		
+		public List<String> getRunningInstances(String tierName) {
+			Instances i = instancesPerTier.get(tierName);
+			if (i == null)
+				return new ArrayList<String>();
+			else
+				return i.running;
+		}
 	
 		private void startInstances(List<String> instances, boolean blocking) {
 			if (instances.size() == 0)
