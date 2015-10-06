@@ -102,10 +102,10 @@ public class Test {
 		public String tierName;
 		public String cloudMl;
 		public String cloudMlLoadBalancer;
-		public String cpuUtilizationRules;
+		public String cloudMlRules;
 		public String pathToModel;
 
-		private App(String name, String fileModel, String baseJmx, String startContainerMonitoringFile, String stopContainerMonitoringFile, String grepMethodResult, String[] methods, String tierName, String cloudMl, String cloudMlLoadBalancer, String cpuUtilizationRules, String pathToModel) {
+		private App(String name, String fileModel, String baseJmx, String startContainerMonitoringFile, String stopContainerMonitoringFile, String grepMethodResult, String[] methods, String tierName, String cloudMl, String cloudMlLoadBalancer, String cloudMlRules, String pathToModel) {
 			this.name = name;
 			this.fileModel = fileModel;
 			this.baseJmx = baseJmx;
@@ -116,7 +116,7 @@ public class Test {
 			this.tierName = tierName;
 			this.cloudMl = cloudMl;
 			this.cloudMlLoadBalancer = cloudMlLoadBalancer;
-			this.cpuUtilizationRules = cpuUtilizationRules;
+			this.cloudMlRules = cloudMlRules;
 			this.pathToModel = pathToModel;
 		}
 
@@ -159,7 +159,7 @@ public class Test {
 	public static final int MAX_ATTEMPTS = 5;
 
 	public static long performTest(String size, int clients, int servers, App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, double highCpu, double lowCpu, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner,
+			boolean useSDA, boolean useCloudML, String highMetric, String lowMetric, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner,
 			String sshHost, String sshUsername, String sshPassword) throws Exception {
 		String baseJmx = app.getBaseJmxPath().toString();
 
@@ -207,7 +207,7 @@ public class Test {
 
 				if (status != null && !status.equals("null")) {
 					if (useCloudML)
-						t.addCPUUtilizationMonitoringRules(app.cpuUtilizationRules, app.tierName, highCpu, lowCpu, window, cooldown);
+						t.addCloudMLRules(app.cloudMlRules, app.tierName, highMetric, lowMetric, window, cooldown);
 					performTheTest = true;
 				} else {
 					logger.error("CloudML isn't working (the statuses are null).");
@@ -662,25 +662,50 @@ public class Test {
 		return myFormatter;
 	}
 
-	public void addCPUUtilizationMonitoringRules(String file, String tierName, double aboveValue,
-			double belowValue, int window, int cooldown) throws Exception {
-		if (aboveValue > 1.0)
-			aboveValue = 1.0;
-		if (aboveValue <= 0.0)
-			aboveValue = Main.DEFAULT_HIGH_CPU;
-		if (belowValue <= 0.0)
-			belowValue = 0.0;
-		if (belowValue >= 1.0)
-			belowValue = Main.DEFAULT_LOW_CPU;
-
+	public void addCloudMLRules(String file, String tierName, String highMetric,
+			String lowMetric, int window, int cooldown) throws Exception {
+		
 		String cloudMLIp = mpl.getInstances().get(0).getIp();
 		int cloudMLPort = Integer.parseInt(mpl.getParameter("CLOUDML_PORT"));
 
 		MonitoringRules rules = new MonitoringRules();
-		rules.getMonitoringRules()
+		
+		String metric = null;
+		double value = 0.0;
+		
+		if (highMetric != null)
+			try {
+				String[] ss = highMetric.split(":");
+				if (ss.length == 2) {
+					metric = ss[0];
+					value = Double.parseDouble(ss[1]);
+				} else {
+					metric = "CPUUtilization";
+					value = Double.parseDouble(highMetric);
+				}
+				
+				rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						file,
-						doubleFormatter.format(aboveValue), doubleFormatter.format(belowValue), cloudMLIp, cloudMLPort, tierName, window, cooldown));
+						metric, "&gt;=", doubleFormatter.format(value), cloudMLIp, cloudMLPort, tierName, window, cooldown));
+			} catch (Exception e) { }
+		
+		if (lowMetric != null)
+			try {
+				String[] ss = lowMetric.split(":");
+				if (ss.length == 2) {
+					metric = ss[0];
+					value = Double.parseDouble(ss[1]);
+				} else {
+					metric = "CPUUtilization";
+					value = Double.parseDouble(lowMetric);
+				}
+				
+				rules.getMonitoringRules()
+				.addAll(getMonitoringRulesFromFile(
+						file,
+						metric, "&lt;=", doubleFormatter.format(value), cloudMLIp, cloudMLPort, tierName, window, cooldown));
+			} catch (Exception e) { }
 
 		monitoringPlatform.installRules(rules);
 		
