@@ -76,7 +76,6 @@
   "vms": [
     {
       "eClass": "net.cloudml.core:VM",
-      "imageId": "%3$s/%2$s",
       "is64os": true,
       "location": "%3$s",
       "providerSpecificTypeName": "%9$s",

@@ -20,6 +20,6 @@ echo "export MODACLOUDS_AR_CLOUDML_PORT=$8" >> ~/.bashrc_mpl
 
 cd /home/ubuntu/autoscalingReasoner
 source ~/.bashrc_mpl
-bash modaclouds-autoscalingReasoner -observerPort $9 > /home/ubuntu/logs/autoscalingReasoner.out 2>&1 &
+bash modaclouds-autoscalingReasoner -observerPort $9 > /home/ubuntu/logs/autoscalingReasoner.log 2>&1 &
 
 cd
