@@ -163,11 +163,11 @@ public class Test {
 			String sshHost, String sshUsername, String sshPassword) throws Exception {
 		String baseJmx = app.getBaseJmxPath().toString();
 
-		if (baseJmx == null || !new File(baseJmx).exists())
+		if (baseJmx == null || !Configuration.getPathToFile(baseJmx).toFile().exists())
 			throw new RuntimeException("The provided base JMX file (" + baseJmx.toString() + ") doesn't exist!");
-		if (data == null || !new File(data).exists())
+		if (data == null || !Configuration.getPathToFile(data).toFile().exists())
 			throw new RuntimeException("The provided data file (" + data + ") doesn't exist!");
-		if (loadModelFile != null && !new File(loadModelFile).exists())
+		if (loadModelFile != null && !Configuration.getPathToFile(loadModelFile).toFile().exists())
 			loadModelFile = null;
 
 		if (window <= 0)
