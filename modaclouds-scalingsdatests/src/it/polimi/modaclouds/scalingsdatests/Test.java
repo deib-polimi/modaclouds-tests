@@ -672,39 +672,57 @@ public class Test {
 		
 		String metric = null;
 		double value = 0.0;
+		String metricClass = null;
+		String metricType = null;
 		
 		if (highMetric != null)
 			try {
 				String[] ss = highMetric.split(":");
-				if (ss.length == 2) {
-					metric = ss[0];
-					value = Double.parseDouble(ss[1]);
-				} else {
+				if (ss.length == 1) {
 					metric = "CPUUtilization";
 					value = Double.parseDouble(highMetric);
+				} else {
+					metric = ss[0];
+					value = Double.parseDouble(ss[1]);
+					if (ss.length > 2) {
+						metricClass = ss[2];
+						metricType = ss[3];
+					} else {
+						metricClass = "VM";
+						metricType = "Frontend";
+					}
 				}
 				
 				rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						file,
-						metric, "&gt;=", doubleFormatter.format(value), cloudMLIp, cloudMLPort, tierName, window, cooldown));
+						metric, "&gt;=", doubleFormatter.format(value), cloudMLIp, cloudMLPort, tierName, window, cooldown,
+						RandomStringUtils.randomNumeric(3), metricClass, metricType));
 			} catch (Exception e) { }
 		
 		if (lowMetric != null)
 			try {
 				String[] ss = lowMetric.split(":");
-				if (ss.length == 2) {
-					metric = ss[0];
-					value = Double.parseDouble(ss[1]);
-				} else {
+				if (ss.length == 1) {
 					metric = "CPUUtilization";
 					value = Double.parseDouble(lowMetric);
+				} else {
+					metric = ss[0];
+					value = Double.parseDouble(ss[1]);
+					if (ss.length > 2) {
+						metricClass = ss[2];
+						metricType = ss[3];
+					} else {
+						metricClass = "VM";
+						metricType = "Frontend";
+					}
 				}
 				
 				rules.getMonitoringRules()
 				.addAll(getMonitoringRulesFromFile(
 						file,
-						metric, "&lt;=", doubleFormatter.format(value), cloudMLIp, cloudMLPort, tierName, window, cooldown));
+						metric, "&lt;=", doubleFormatter.format(value), cloudMLIp, cloudMLPort, tierName, window, cooldown,
+						RandomStringUtils.randomNumeric(3), metricClass, metricType));
 			} catch (Exception e) { }
 
 		monitoringPlatform.installRules(rules);

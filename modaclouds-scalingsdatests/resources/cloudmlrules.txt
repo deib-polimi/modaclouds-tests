@@ -1,7 +1,7 @@
 <monitoringRules xmlns="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
-  <monitoringRule id="cpuUtilizationAboveRule" timeStep="%7$d" timeWindow="%7$d">
+  <monitoringRule id="cloudMlRule%9$s" timeStep="%7$d" timeWindow="%7$d">
     <monitoredTargets>
-      <monitoredTarget class="VM" type="Frontend"/>
+      <monitoredTarget class="%10$s" type="%11$s"/>
     </monitoredTargets>
     <collectedMetric metricName="%1$s">
       <parameter name="samplingProbability">1</parameter>

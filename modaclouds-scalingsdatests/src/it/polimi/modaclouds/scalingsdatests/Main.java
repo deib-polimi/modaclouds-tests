@@ -72,10 +72,10 @@ public class Main {
 	@Parameter(names = "-window", description = "The size in seconds of the window of the monitoring rules")
 	private int window = Validator.DEFAULT_WINDOW;
 
-	@Parameter(names = "-highMetric", description = "The upper bound for a metric, in the format <metric>:<value>")
+	@Parameter(names = "-highMetric", description = "The upper bound for a metric, in the format <metric>:<value>:<metricClass>:<metricType>")
 	private String highMetric = null;
 
-	@Parameter(names = "-lowMetric", description = "The lower bound for a metric, in the format <metric>:<value>")
+	@Parameter(names = "-lowMetric", description = "The lower bound for a metric, in the format <metric>:<value>:<metricClass>:<metricType>")
 	private String lowMetric = null;
 
 	@Parameter(names = "-cooldown", description = "The cooldown period that the monitoring rule will stay off once it's triggered")
