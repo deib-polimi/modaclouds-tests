@@ -47,56 +47,6 @@
       <destName>credentials.properties</destName>
     </file>
     <file>
-      <source>resources/jmeterTestTemplate-MiC.jmx</source>
-      <outputDirectory></outputDirectory>
-      <destName>jmeterTestTemplate-MiC.jmx</destName>
-    </file>
-    <file>
-      <source>resources/jmeterTestTemplate-HTTPAgent.jmx</source>
-      <outputDirectory></outputDirectory>
-      <destName>jmeterTestTemplate-HTTPAgent.jmx</destName>
-    </file>
-    <file>
-      <source>resources/MPloadModel-MiC</source>
-      <outputDirectory></outputDirectory>
-      <destName>MPloadModel-MiC</destName>
-    </file>
-    <file>
-      <source>resources/MPloadModel-HTTPAgent</source>
-      <outputDirectory></outputDirectory>
-      <destName>MPloadModel-HTTPAgent</destName>
-    </file>
-    <file>
-      <source>resources/tests.txt</source>
-      <outputDirectory></outputDirectory>
-      <destName>tests.txt</destName>
-    </file>
-    <file>
-      <source>resources/grep_methodResult-MiC</source>
-      <outputDirectory></outputDirectory>
-      <destName>grep_methodResult-MiC</destName>
-    </file>
-    <file>
-      <source>resources/grep_methodResult-HTTPAgent</source>
-      <outputDirectory></outputDirectory>
-      <destName>grep_methodResult-HTTPAgent</destName>
-    </file>
-    <file>
-      <source>resources/startContainerMonitoring-MiC.sh</source>
-      <outputDirectory></outputDirectory>
-      <destName>startContainerMonitoring-MiC.sh</destName>
-    </file>
-    <file>
-      <source>resources/stopContainerMonitoring-MiC.sh</source>
-      <outputDirectory></outputDirectory>
-      <destName>stopContainerMonitoring-MiC.sh</destName>
-    </file>
-    <file>
-      <source>resources/stopContainerMonitoring-HTTPAgent.sh</source>
-      <outputDirectory></outputDirectory>
-      <destName>stopContainerMonitoring-HTTPAgent.sh</destName>
-    </file>
-    <file>
       <source>resources/cloudml.json</source>
       <outputDirectory></outputDirectory>
       <destName>cloudml.json</destName>
@@ -105,11 +55,6 @@
       <source>resources/cloudml-LB.json</source>
       <outputDirectory></outputDirectory>
       <destName>cloudml-LB.json</destName>
-    </file>
-    <file>
-      <source>resources/cloudmlrules.txt</source>
-      <outputDirectory></outputDirectory>
-      <destName>cloudmlrules.txt</destName>
     </file>
     <file>
       <source>resources/httpAgentInitialModel.xml</source>

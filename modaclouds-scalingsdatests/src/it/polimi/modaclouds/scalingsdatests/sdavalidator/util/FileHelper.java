@@ -36,6 +36,10 @@ public abstract class FileHelper {
 			logger.error("Error while rewrite the file JSON as a CSV.", e);
 		}
 	}
+	
+	public static void main(String[] args) throws Exception {
+		jsonToCsv(Paths.get("/Users/ft/Lavoro/tmp/run/0710150157-m3.large-500x2-httpagent-ERPS-AR-broken/mpl1/home/ubuntu/logs/data2stdout.log"), Paths.get("/Users/ft/Lavoro/tmp/run/0710150157-m3.large-500x2-httpagent-ERPS-AR-broken/mpl1/home/ubuntu/logs/data2stdout.csv"), Datum.Type.TOWER_JSON);
+	}
 
 	public static void jsonToCsv(Path file, Path newFile, Datum.Type origDataType) {
 		if (origDataType == Type.CSV)

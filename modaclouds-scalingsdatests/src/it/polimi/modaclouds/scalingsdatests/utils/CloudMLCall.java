@@ -11,8 +11,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +62,7 @@ public class CloudMLCall {
 		boolean machineAlreadyPrepared = false;
 		boolean restartCloudML = true;
 		boolean useLocalCloudML = true;
-		boolean useExternalLoadBalancer = true;
+		boolean useExternalLoadBalancer = false;
 		boolean rebootMachine = false;
 		boolean forceDeploy = true;
 
@@ -175,8 +178,10 @@ public class CloudMLCall {
 			cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, useExternalLoadBalancer).toFile());
 
 		getLogger().info("Starting the test...");
+		
+		cml.updateStatus();
 
-		cml.scale(usedApp.tierName, 1);
+//		cml.scale(usedApp.tierName, 1);
 		
 //		cml.scale(usedApp.tierName, 1);
 		
@@ -243,6 +248,9 @@ public class CloudMLCall {
 			if ((end - init) >= timeout)
 				signalCompleted(cmd, "Timeout");
 		}
+		
+		public final static String OUTPUT = "cloudMl-%s%d.csv"; 
+		private File output;
 	
 		public CloudML(String ip, int port) throws Exception {
 			String serverURI = String.format("ws://%s:%d", ip, port);
@@ -256,6 +264,16 @@ public class CloudMLCall {
 			} catch (Exception e) {
 				throw new Exception("CloudML server not found at the given URI (" + serverURI + ").", e);
 			}
+			
+			output = Paths.get(String.format(OUTPUT, ip.equals("localhost") || ip.equals("127.0.0.1") ? "" : ip + "-", port)).toFile();
+			if (!output.exists())
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, false))) {
+					out.println("Timestamp,Command,Argument,Running");
+					out.flush();
+				} catch (Exception e) {
+					output = null;
+					getLogger().error("Error while creating the file.", e);
+				}
 		}
 	
 		private void pushDeploymentModel(File orig) {
@@ -284,6 +302,12 @@ public class CloudMLCall {
 	
 		public void deploy(File orig) {
 			pushDeploymentModel(orig);
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,-,0\n", System.currentTimeMillis(), Command.DEPLOY.name);
+					out.flush();
+				} catch (Exception e) { }
 	
 			wsClient.sendBlocking(Command.DEPLOY.command, -1, Command.DEPLOY);
 		}
@@ -294,6 +318,12 @@ public class CloudMLCall {
 				return;
 			}
 			getLogger().info("Scaling out {} instances.", times);
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s,%d\n", System.currentTimeMillis(), Command.SCALE_OUT.name, String.format("%s:%d", vmId, times), countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.toString(times)), Command.SCALE_OUT);
@@ -307,6 +337,12 @@ public class CloudMLCall {
 	
 		private void updateStatus(boolean blocking) {
 			getLogger().info("Asking for the deployment model...");
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,-,%d\n", System.currentTimeMillis(), Command.GET_STATUS.name, countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
@@ -338,6 +374,12 @@ public class CloudMLCall {
 					toSend.append(instance);
 				}
 			}
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s,%d\n", System.currentTimeMillis(), Command.STOP_INSTANCE.name, toSend.toString().replaceAll(",", ";"), countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend.toString()), Command.STOP_INSTANCE);
@@ -350,6 +392,15 @@ public class CloudMLCall {
 				Instances instances = instancesPerTier.get(tier);
 				stopInstances(instances.running, true);
 			}
+		}
+		
+		public int countRunningInstances() {
+			int count = 0;
+			for (String tier : instancesPerTier.keySet()) {
+				Instances instances = instancesPerTier.get(tier);
+				count += instances.running.size();
+			}
+			return count;
 		}
 		
 		public List<String> getRunningInstancesIds(String tierName) {
@@ -385,6 +436,12 @@ public class CloudMLCall {
 					toSend.append(instance);
 				}
 			}
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s,%d\n", System.currentTimeMillis(), Command.START_INSTANCE.name, toSend.toString().replaceAll(",", ";"), countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.START_INSTANCE.command, toSend.toString()), Command.START_INSTANCE);
@@ -565,6 +622,12 @@ public class CloudMLCall {
 						inst.running.add(id);
 	
 					signalCompleted(Command.START_INSTANCE);
+					
+					if (output != null)
+						try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+							out.printf("%d,%s/RET,%s,%d\n", System.currentTimeMillis(), Command.START_INSTANCE.name, id, countRunningInstances());
+							out.flush();
+						} catch (Exception e) { }
 				} else if (newValue.indexOf("STOPPED") >= 0) {
 					if (inst.running.contains(id))
 						inst.running.remove(id);
@@ -572,6 +635,12 @@ public class CloudMLCall {
 						inst.stopped.add(id);
 	
 					signalCompleted(Command.STOP_INSTANCE);
+					
+					if (output != null)
+						try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+							out.printf("%d,%s/RET,%s,%d\n", System.currentTimeMillis(), Command.STOP_INSTANCE.name, id, countRunningInstances());
+							out.flush();
+						} catch (Exception e) { }
 				}
 	
 				return true;
@@ -837,6 +906,12 @@ public class CloudMLCall {
 		}
 	
 		private boolean burst(String id, String provider, boolean blocking) {
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s:%s,%d\n", System.currentTimeMillis(), Command.BURST.name, id, provider, countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
+			
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.BURST.command, id, provider), Command.BURST);
 			else
@@ -886,16 +961,41 @@ public class CloudMLCall {
 	
 			if (evt.getPropertyName().equals(Command.SCALE_OUT.name)) {
 				signalCompleted(Command.SCALE_OUT);
+				if (output != null)
+					try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+						out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.SCALE_OUT.name, countRunningInstances());
+						out.flush();
+					} catch (Exception e) { }
+				
 				if (somebodyWaiting(Command.SCALE))
 					signalCompleted(Command.SCALE);
 			} else if (evt.getPropertyName().equals(Command.BURST.name)) {
 				signalCompleted(Command.BURST);
+				if (output != null)
+					try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+						out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.BURST.name, countRunningInstances());
+						out.flush();
+					} catch (Exception e) { }
+				
 				if (somebodyWaiting(Command.SCALE))
 					signalCompleted(Command.SCALE);
 			} else if (evt.getPropertyName().equals(Command.GET_STATUS.name)) {
+				if (output != null)
+					try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+						out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.GET_STATUS.name, countRunningInstances());
+						out.flush();
+					} catch (Exception e) { }
+				
 				signalCompleted(Command.GET_STATUS);
-				if (somebodyWaiting(Command.DEPLOY))
+				if (somebodyWaiting(Command.DEPLOY)) {
 					signalCompleted(Command.DEPLOY);
+					
+					if (output != null)
+						try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+							out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.DEPLOY.name, countRunningInstances());
+							out.flush();
+						} catch (Exception e) { }
+				}
 	
 				String params = commandParam.remove(Command.GET_STATUS);
 				if (params == null)

@@ -26,8 +26,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -61,35 +64,24 @@ public class CloudMLCall extends AbstractAction {
     public static final String COOLDOWN = "cooldown";
     
     public static final String DEFAULT_MANAGER_IP = "127.0.0.1";
-    
-    public static final String DEFAULT_CLOUDML_IP = "127.0.0.1";
-    public static final String DEFAULT_CLOUDML_PORT = "9030";
-    
-    public static final String DEFAULT_N = "1";
-    public static final String DEFAULT_COOLDOWN = "600";
-    
-    @Override
-	protected Map<String, String> getMyDefaultParameterValues() {
-		Map<String, String> res = new HashMap<String, String>();
-		
-		res.put(IP, DEFAULT_CLOUDML_IP);
-		res.put(PORT, DEFAULT_CLOUDML_PORT);
-		res.put(N, DEFAULT_N);
-		res.put(COOLDOWN, DEFAULT_COOLDOWN);
-		
-		return res;
-	}
 
     private final Set<String> requiredParameters;
+    private final Map<String, String> defaultParameterValues;
 
     private Map<String, CloudMLCall.CloudML> connectedClients;
     
     public CloudMLCall() {
         requiredParameters = new HashSet<String>();
+        defaultParameterValues = new HashMap<String, String>();
         connectedClients = new HashMap<String, CloudMLCall.CloudML>();
         
         requiredParameters.add(COMMAND);
         requiredParameters.add(TIER);
+        
+        defaultParameterValues.put(IP, "127.0.0.1");
+        defaultParameterValues.put(PORT, "9030");
+        defaultParameterValues.put(N, "1");
+        defaultParameterValues.put(COOLDOWN, "600");
     }
 
     @Override
@@ -102,15 +94,6 @@ public class CloudMLCall extends AbstractAction {
         String id = parameters.get(TIER);
         String n = parameters.get(N);
         String cooldown = parameters.get(COOLDOWN);
-        
-        if (ip == null)
-        	ip = DEFAULT_CLOUDML_IP;
-        if (port == null)
-        	port = DEFAULT_CLOUDML_PORT;
-        if (n == null)
-        	n = DEFAULT_N;
-        if (cooldown == null)
-        	cooldown = DEFAULT_COOLDOWN;
         
         int intCooldown = -1;
         try {
@@ -129,6 +112,11 @@ public class CloudMLCall extends AbstractAction {
     protected Set<String> getMyRequiredPars() {
         return requiredParameters;
     }
+    
+    @Override
+	protected Map<String, String> getMyDefaultParameterValues() {
+		return defaultParameterValues;
+	}
 
     @Override
     protected Collection<? extends Problem> validate(MonitoringRule rule,
@@ -153,11 +141,6 @@ public class CloudMLCall extends AbstractAction {
 
         String ip = parameters.get(IP);
         String port = parameters.get(PORT);
-
-        if (ip == null)
-        	ip = DEFAULT_CLOUDML_IP;
-        if (port == null)
-        	port = DEFAULT_CLOUDML_PORT;
 
         if (ip != null && port != null && !isServerAvailable(ip, port))
             problems.add(new Problem(rule.getId(),
@@ -330,6 +313,9 @@ public class CloudMLCall extends AbstractAction {
 			if ((end - init) >= timeout)
 				signalCompleted(cmd, "Timeout");
 		}
+		
+		public final static String OUTPUT = "cloudMl-%s%d.csv"; 
+		private File output;
 	
 		public CloudML(String ip, int port) throws Exception {
 			String serverURI = String.format("ws://%s:%d", ip, port);
@@ -343,6 +329,16 @@ public class CloudMLCall extends AbstractAction {
 			} catch (Exception e) {
 				throw new Exception("CloudML server not found at the given URI (" + serverURI + ").", e);
 			}
+			
+			output = Paths.get(String.format(OUTPUT, ip.equals("localhost") || ip.equals("127.0.0.1") ? "" : ip + "-", port)).toFile();
+			if (!output.exists())
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, false))) {
+					out.println("Timestamp,Command,Argument,Running");
+					out.flush();
+				} catch (Exception e) {
+					output = null;
+					getLogger().error("Error while creating the file.", e);
+				}
 		}
 	
 		private void pushDeploymentModel(File orig) {
@@ -371,6 +367,12 @@ public class CloudMLCall extends AbstractAction {
 	
 		public void deploy(File orig) {
 			pushDeploymentModel(orig);
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,-,0\n", System.currentTimeMillis(), Command.DEPLOY.name);
+					out.flush();
+				} catch (Exception e) { }
 	
 			wsClient.sendBlocking(Command.DEPLOY.command, -1, Command.DEPLOY);
 		}
@@ -381,6 +383,12 @@ public class CloudMLCall extends AbstractAction {
 				return;
 			}
 			getLogger().info("Scaling out {} instances.", times);
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s,%d\n", System.currentTimeMillis(), Command.SCALE_OUT.name, String.format("%s:%d", vmId, times), countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.SCALE_OUT.command, vmId, Integer.toString(times)), Command.SCALE_OUT);
@@ -394,6 +402,12 @@ public class CloudMLCall extends AbstractAction {
 	
 		private void updateStatus(boolean blocking) {
 			getLogger().info("Asking for the deployment model...");
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,-,%d\n", System.currentTimeMillis(), Command.GET_STATUS.name, countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(Command.GET_STATUS.command, Command.GET_STATUS);
@@ -425,6 +439,12 @@ public class CloudMLCall extends AbstractAction {
 					toSend.append(instance);
 				}
 			}
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s,%d\n", System.currentTimeMillis(), Command.STOP_INSTANCE.name, toSend.toString().replaceAll(",", ";"), countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.STOP_INSTANCE.command, toSend.toString()), Command.STOP_INSTANCE);
@@ -436,6 +456,33 @@ public class CloudMLCall extends AbstractAction {
 			for (String tier : instancesPerTier.keySet()) {
 				Instances instances = instancesPerTier.get(tier);
 				stopInstances(instances.running, true);
+			}
+		}
+		
+		public int countRunningInstances() {
+			int count = 0;
+			for (String tier : instancesPerTier.keySet()) {
+				Instances instances = instancesPerTier.get(tier);
+				count += instances.running.size();
+			}
+			return count;
+		}
+		
+		public List<String> getRunningInstancesIds(String tierName) {
+			Instances i = instancesPerTier.get(tierName);
+			List<String> res = new ArrayList<String>();
+			
+			if (i == null) {
+				return res;
+			} else {
+				for (String s : i.running) {
+					String[] ss = s.split("/");
+					if (ss.length == 2)
+						res.add(ss[1]);
+					else
+						res.add(s);
+				}
+				return res;
 			}
 		}
 	
@@ -454,6 +501,12 @@ public class CloudMLCall extends AbstractAction {
 					toSend.append(instance);
 				}
 			}
+			
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s,%d\n", System.currentTimeMillis(), Command.START_INSTANCE.name, toSend.toString().replaceAll(",", ";"), countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
 	
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.START_INSTANCE.command, toSend.toString()), Command.START_INSTANCE);
@@ -634,6 +687,12 @@ public class CloudMLCall extends AbstractAction {
 						inst.running.add(id);
 	
 					signalCompleted(Command.START_INSTANCE);
+					
+					if (output != null)
+						try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+							out.printf("%d,%s/RET,%s,%d\n", System.currentTimeMillis(), Command.START_INSTANCE.name, id, countRunningInstances());
+							out.flush();
+						} catch (Exception e) { }
 				} else if (newValue.indexOf("STOPPED") >= 0) {
 					if (inst.running.contains(id))
 						inst.running.remove(id);
@@ -641,6 +700,12 @@ public class CloudMLCall extends AbstractAction {
 						inst.stopped.add(id);
 	
 					signalCompleted(Command.STOP_INSTANCE);
+					
+					if (output != null)
+						try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+							out.printf("%d,%s/RET,%s,%d\n", System.currentTimeMillis(), Command.STOP_INSTANCE.name, id, countRunningInstances());
+							out.flush();
+						} catch (Exception e) { }
 				}
 	
 				return true;
@@ -906,6 +971,12 @@ public class CloudMLCall extends AbstractAction {
 		}
 	
 		private boolean burst(String id, String provider, boolean blocking) {
+			if (output != null)
+				try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+					out.printf("%d,%s/ASK,%s:%s,%d\n", System.currentTimeMillis(), Command.BURST.name, id, provider, countRunningInstances());
+					out.flush();
+				} catch (Exception e) { }
+			
 			if (blocking)
 				wsClient.sendBlocking(String.format(Command.BURST.command, id, provider), Command.BURST);
 			else
@@ -955,16 +1026,41 @@ public class CloudMLCall extends AbstractAction {
 	
 			if (evt.getPropertyName().equals(Command.SCALE_OUT.name)) {
 				signalCompleted(Command.SCALE_OUT);
+				if (output != null)
+					try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+						out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.SCALE_OUT.name, countRunningInstances());
+						out.flush();
+					} catch (Exception e) { }
+				
 				if (somebodyWaiting(Command.SCALE))
 					signalCompleted(Command.SCALE);
 			} else if (evt.getPropertyName().equals(Command.BURST.name)) {
 				signalCompleted(Command.BURST);
+				if (output != null)
+					try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+						out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.BURST.name, countRunningInstances());
+						out.flush();
+					} catch (Exception e) { }
+				
 				if (somebodyWaiting(Command.SCALE))
 					signalCompleted(Command.SCALE);
 			} else if (evt.getPropertyName().equals(Command.GET_STATUS.name)) {
+				if (output != null)
+					try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+						out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.GET_STATUS.name, countRunningInstances());
+						out.flush();
+					} catch (Exception e) { }
+				
 				signalCompleted(Command.GET_STATUS);
-				if (somebodyWaiting(Command.DEPLOY))
+				if (somebodyWaiting(Command.DEPLOY)) {
 					signalCompleted(Command.DEPLOY);
+					
+					if (output != null)
+						try (PrintWriter out = new PrintWriter(new FileOutputStream(output, true))) {
+							out.printf("%d,%s/RET,-,%d\n", System.currentTimeMillis(), Command.DEPLOY.name, countRunningInstances());
+							out.flush();
+						} catch (Exception e) { }
+				}
 	
 				String params = commandParam.remove(Command.GET_STATUS);
 				if (params == null)
