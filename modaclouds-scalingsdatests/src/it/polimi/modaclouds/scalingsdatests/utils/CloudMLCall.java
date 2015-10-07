@@ -64,7 +64,7 @@ public class CloudMLCall {
 		boolean forceDeploy = true;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
-
+		
 		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
 		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.medium", 1);
 		VirtualMachine lb = VirtualMachine.getVM("lb");
@@ -352,12 +352,22 @@ public class CloudMLCall {
 			}
 		}
 		
-		public List<String> getRunningInstances(String tierName) {
+		public List<String> getRunningInstancesIds(String tierName) {
 			Instances i = instancesPerTier.get(tierName);
-			if (i == null)
-				return new ArrayList<String>();
-			else
-				return i.running;
+			List<String> res = new ArrayList<String>();
+			
+			if (i == null) {
+				return res;
+			} else {
+				for (String s : i.running) {
+					String[] ss = s.split("/");
+					if (ss.length == 2)
+						res.add(ss[1]);
+					else
+						res.add(s);
+				}
+				return res;
+			}
 		}
 	
 		private void startInstances(List<String> instances, boolean blocking) {

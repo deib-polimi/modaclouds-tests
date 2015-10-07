@@ -1020,7 +1020,7 @@ public class Test {
 		if (!useCloudML && !useAutoscalingReasoner)
 			this.app.retrieveMetrics(localPath, date);
 		else
-			VirtualMachine.retrieveMetrics(localPath, date, this.app, cloudML.getRunningInstances(app.name).toArray(new String[0]));
+			VirtualMachine.retrieveMetrics(cloudML.getRunningInstancesIds(app.name), this.app, localPath, date);
 		mpl.retrieveMetrics(localPath, date);
 		clients.retrieveMetrics(localPath, date);
 		if (useDatabase)
@@ -1043,6 +1043,13 @@ public class Test {
 			}
 			
 			this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
+		} else {
+			List<String> ids = cloudML.getRunningInstancesIds(app.name);
+			
+			for (int i = 1; i < ids.size(); ++i)
+				Local.exec(String.format("bash %s %s %s %s", Configuration.getPathToFile(app.stopContainerMonitoringFile), Instance.getIp(ids.get(i)), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
+			
+			VirtualMachine.retrieveFiles(ids, this.app, localPath, "/home/" + this.app.getParameter("SSH_USER"));
 		}
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
