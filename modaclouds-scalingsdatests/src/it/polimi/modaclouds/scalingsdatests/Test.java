@@ -11,10 +11,10 @@ import it.cloud.utils.JMeterTest;
 import it.cloud.utils.JMeterTest.RunInstance;
 import it.cloud.utils.Local;
 import it.cloud.utils.Ssh;
-import it.polimi.modaclouds.scalingsdatests.sdavalidator.Validator;
 import it.polimi.modaclouds.scalingsdatests.utils.CloudMLCall;
 import it.polimi.modaclouds.scalingsdatests.utils.CloudMLCall.CloudML;
 import it.polimi.modaclouds.scalingsdatests.utils.MonitoringPlatform;
+import it.polimi.modaclouds.scalingsdatests.validator.sda.Validator;
 import it.polimi.tower4clouds.rules.MonitoringRule;
 import it.polimi.tower4clouds.rules.MonitoringRules;
 

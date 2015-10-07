@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.scalingsdatests.sdavalidator.util;
+package it.polimi.modaclouds.scalingsdatests.validator.util;
 
 public class Workload {
 

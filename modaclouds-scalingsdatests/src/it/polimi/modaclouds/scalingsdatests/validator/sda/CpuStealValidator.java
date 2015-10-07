@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.scalingsdatests.sdavalidator;
+package it.polimi.modaclouds.scalingsdatests.validator.sda;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

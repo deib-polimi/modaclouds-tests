@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.scalingsdatests.sdavalidator;
+package it.polimi.modaclouds.scalingsdatests.validator.sda;
 
 import it.polimi.modaclouds.scalingsdatests.Test;
 

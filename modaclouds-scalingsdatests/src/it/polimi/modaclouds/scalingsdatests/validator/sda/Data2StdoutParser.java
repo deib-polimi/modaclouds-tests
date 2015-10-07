@@ -1,7 +1,7 @@
-package it.polimi.modaclouds.scalingsdatests.sdavalidator;
+package it.polimi.modaclouds.scalingsdatests.validator.sda;
 
-import it.polimi.modaclouds.scalingsdatests.sdavalidator.util.Datum;
-import it.polimi.modaclouds.scalingsdatests.sdavalidator.util.Datum.Type;
+import it.polimi.modaclouds.scalingsdatests.validator.util.Datum;
+import it.polimi.modaclouds.scalingsdatests.validator.util.Datum.Type;
 
 import java.io.IOException;
 import java.io.PrintWriter;

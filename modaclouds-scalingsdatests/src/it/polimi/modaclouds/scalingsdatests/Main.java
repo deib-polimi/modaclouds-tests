@@ -1,7 +1,7 @@
 package it.polimi.modaclouds.scalingsdatests;
 
 import it.cloud.Configuration;
-import it.polimi.modaclouds.scalingsdatests.sdavalidator.Validator;
+import it.polimi.modaclouds.scalingsdatests.validator.sda.Validator;
 
 import java.util.ArrayList;
 import java.util.Scanner;

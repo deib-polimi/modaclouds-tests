@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.scalingsdatests.sdavalidator.util;
+package it.polimi.modaclouds.scalingsdatests.validator.util;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -390,7 +390,7 @@ public class GenericChart<E> extends JPanel {
 					marker.setLabelAnchor(RectangleAnchor.BOTTOM_LEFT);
 //					marker.setLabelOffset(new RectangleInsets(10.0, 10.0, 3.0, 3.0));
 					
-					if (!m.label.equals("")) {
+					if (!m.label.equals("") && dataset.getSeriesIndex(m.label) != -1) {
 						Paint p = renderer.lookupSeriesPaint(dataset.getSeriesIndex(m.label));
 						if (p != null)
 							marker.setPaint(p);
@@ -503,6 +503,36 @@ public class GenericChart<E> extends JPanel {
 		
 		useScatterInsteadOfLine = true;
 		addZeros = false;
+		
+		return graph;
+	}
+	
+	public static GenericChart<XYSeriesCollection> createGraphFromData(List<Datum> data, Marker... markers) throws NumberFormatException, IOException {
+		GenericChart<XYSeriesCollection> graph = new GenericChart<XYSeriesCollection>("t", "Value");
+		graph.dataset = new XYSeriesCollection();
+		graph.defaultRange = true;
+		graph.labelsVisible = false;
+		graph.pointsVisible = false;
+		
+		graph.title = "Data";
+//		graph.imageWidth = 2000;
+//		graph.imageHeight = 1200;
+		
+//		useScatterInsteadOfLine = true;
+		addZeros = false;
+		
+		if (data != null) {
+			for (Datum d : data)
+				graph.add(d.resourceId + ":" + d.metric, d.timestamp, d.value);
+
+			for (Marker m : markers)
+				graph.addMarker(m.position, m.label);
+		} else {
+			graph.add("none", 0, 0);
+		}
+		
+		graph.updateGraph();
+		graph.updateImage();
 		
 		return graph;
 	}

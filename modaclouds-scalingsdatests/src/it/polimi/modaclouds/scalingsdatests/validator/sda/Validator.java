@@ -1,8 +1,8 @@
-package it.polimi.modaclouds.scalingsdatests.sdavalidator;
+package it.polimi.modaclouds.scalingsdatests.validator.sda;
 
 import it.cloud.utils.Local;
 import it.polimi.modaclouds.scalingsdatests.Test;
-import it.polimi.modaclouds.scalingsdatests.sdavalidator.util.FileHelper;
+import it.polimi.modaclouds.scalingsdatests.validator.util.FileHelper;
 
 import java.io.File;
 import java.net.URL;

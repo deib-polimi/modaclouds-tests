@@ -156,6 +156,8 @@
                 "/home/ubuntu/modaclouds-sda/ForecastinganswerQuestions_-571442537.mat",
                 "/home/ubuntu/modaclouds-sda/ForecastinggetPage_1862725787.mat",
                 "/home/ubuntu/logs/autoscalingReasoner.log",
+                "/home/ubuntu/autoscalingReasoner/cloudMl-*.csv",
+                "/home/ubuntu/tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT/cloudMl-*.csv"
             ],
             "SDA_starter": "bash /home/ubuntu/startSDA %s",
             "CloudML_starter": "bash /home/ubuntu/CloudMLDaemon -port %s",

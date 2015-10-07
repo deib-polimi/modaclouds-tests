@@ -1,7 +1,7 @@
-package it.polimi.modaclouds.scalingsdatests.sdavalidator;
+package it.polimi.modaclouds.scalingsdatests.validator.sda;
 
 import it.polimi.modaclouds.scalingsdatests.Test;
-import it.polimi.modaclouds.scalingsdatests.sdavalidator.util.Datum;
+import it.polimi.modaclouds.scalingsdatests.validator.util.Datum;
 
 import java.io.PrintWriter;
 import java.nio.file.Path;
