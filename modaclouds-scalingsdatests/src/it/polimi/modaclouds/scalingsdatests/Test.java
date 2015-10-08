@@ -188,7 +188,7 @@ public class Test {
 		Exception thrown = null;
 
 		try {
-			t.initSystem(loadModelFile, demandEstimator, window, app.pathToModel, sshHost, sshUsername, sshPassword, alreadyUpdated);
+			t.initSystem(loadModelFile, demandEstimator, window, alreadyUpdated);
 
 			if (onlyStartMachines)
 				return -1;
@@ -206,6 +206,8 @@ public class Test {
 				if (status != null && !status.equals("null")) {
 					if (useCloudML)
 						t.addCloudMLRules(app.cloudMlRules, app.tierName, highMetric, lowMetric, window, cooldown);
+					if (useAutoscalingReasoner)
+						t.startAutoscalingReasoner(app.pathToModel, sshHost, sshUsername, sshPassword);
 					performTheTest = true;
 				} else {
 					logger.error("CloudML isn't working (the statuses are null).");
@@ -427,7 +429,7 @@ public class Test {
 
 	private List<Thread> otherThreads;
 
-	public void initSystem(String loadModelFile, String demandEstimator, int window, String pathToModel, String sshHost, String sshUsername, String sshPassword, boolean alreadyUpdated) throws Exception {
+	public void initSystem(String loadModelFile, String demandEstimator, int window, boolean alreadyUpdated) throws Exception {
 		if (!running)
 			throw new RuntimeException("The system isn't running yet!");
 
@@ -522,27 +524,38 @@ public class Test {
 					try { Thread.sleep(10000); } catch (Exception e) { }
 				}
 			}
-		
-		if (useAutoscalingReasoner) {
-			String remotePathToModel = getActualFile(impl.getIp(), mpl, pathToModel, "autoscalingReasoner");
-			
-			impl.exec(String.format(mpl.getParameter("AR_STARTER"),
-					impl.getIp(),
-					mpl.getParameter("AR_PORT"),
-					remotePathToModel,
-					sshHost,
-					sshUsername,
-					sshPassword,
-					impl.getIp(),
-					mpl.getParameter("CLOUDML_PORT"),
-					mpl.getParameter("OBSERVER_PORT")));
-			
-			try { Thread.sleep(10000); } catch (Exception e) { }
-		}
 
 		logger.info("System initialized!");
 
 		initialized = true;
+	}
+	
+	public void startAutoscalingReasoner(String pathToModel, String sshHost, String sshUsername, String sshPassword) throws Exception {
+		if (!running)
+			throw new RuntimeException("The system isn't running yet!");
+
+		if (!initialized)
+			throw new RuntimeException("The system isn't initialized yet!");
+		
+		if (!cloudMlInitialized)
+			throw new RuntimeException("CloudML isn't initialized yet!");
+		
+		Instance impl = (Instance) mpl.getInstances().get(0);
+		
+		String remotePathToModel = getActualFile(impl.getIp(), mpl, pathToModel, "autoscalingReasoner");
+		
+		impl.exec(String.format(mpl.getParameter("AR_STARTER"),
+				impl.getIp(),
+				mpl.getParameter("AR_PORT"),
+				remotePathToModel,
+				sshHost,
+				sshUsername,
+				sshPassword,
+				impl.getIp(),
+				mpl.getParameter("CLOUDML_PORT"),
+				mpl.getParameter("OBSERVER_PORT")));
+		
+		try { Thread.sleep(10000); } catch (Exception e) { }
 	}
 
 	public static int getPeakFromData(String data) {
