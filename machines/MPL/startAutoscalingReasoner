@@ -9,14 +9,16 @@
 # $8=the port of the CloudML daemon
 # $9=the port of the observer
 
-echo "export MODACLOUDS_AR_OWN_IP=$1" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_LISTENER_PORT=$2" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_PATH_TO_MODEL=$3" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_SSH_HOST=$4" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_SSH_USER=$5" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_SSH_PASS=$6" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_CLOUDML_IP=$7" >> ~/.bashrc_mpl
-echo "export MODACLOUDS_AR_CLOUDML_PORT=$8" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_SPACE4CLOUDS_OPS_ENDPOINT_IP=$1" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_ENDPOINT_IP=$1" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_TOWER4CLOUDS_MANAGER_ENDPOINT_PORT=8170" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_SPACE4CLOUDS_OPS_ENDPOINT_PORT=$2" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_SPACE4CLOUDS_OPS_MODEL=$3" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_SPACE4CLOUDS_OPS_SSH_USER=$4" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_SPACE4CLOUDS_OPS_SSH_HOST=$5" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_SPACE4CLOUDS_OPS_SSH_PASS=$6" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_MODELS_AT_RUNTIME_ENDPOINT_IP=$7" >> ~/.bashrc_mpl
+echo "export MODACLOUDS_MODELS_AT_RUNTIME_ENDPOINT_PORT=$8" >> ~/.bashrc_mpl
 
 cd /home/ubuntu/autoscalingReasoner
 source ~/.bashrc_mpl
