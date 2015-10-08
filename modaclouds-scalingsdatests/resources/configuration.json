@@ -36,7 +36,8 @@
             "metrics": [
                 "CPUUtilization"
             ],
-            "name": "JMeter"
+            "name": "JMeter",
+            "already_updated": false
         },
         "mic": {
             "provider": "Amazon",
@@ -64,7 +65,8 @@
             "metrics": [
                 "CPUUtilization"
             ],
-            "name": "MiC"
+            "name": "MiC",
+            "already_updated": false
         },
         "httpagent": {
             "provider": "Amazon",
@@ -96,22 +98,8 @@
             "metrics": [
                 "CPUUtilization"
             ],
-            "name": "HTTPAgent"
-        },
-        "database": {
-            "provider": "Amazon",
-            "keypair_name": "desantis-ireland",
-            "AMI": "ami-62289215",
-            "size": "m3.large",
-            "instances": 1,
-            "disk": 8,
-            "OS": "Linux/UNIX",
-            "SSH_user": "ubuntu",
-            "SSH_pass": "ubuntu",
-            "metrics": [
-                "CPUUtilization"
-            ],
-            "name": "DataBase"
+            "name": "HTTPAgent",
+            "already_updated": false
         },
         "mpl": {
             "provider": "Amazon",
@@ -173,7 +161,8 @@
             ],
             "name": "MPLSDA",
             "dont_override_type": true,
-            "leave_instances_on": false
+            "leave_instances_on": false,
+            "already_updated": false
         },
         "lb": {
             "provider": "Flexiant",
@@ -198,7 +187,8 @@
             "metrics": [
                 "CPUUtilization"
             ],
-            "name": "LB"
+            "name": "LB",
+            "already_updated": false
         }
     }
 }

@@ -175,7 +175,7 @@ public class CloudMLCall {
 		getLogger().info("Deploy the system...");
 
 		if (restartCloudML || !machineAlreadyPrepared || rebootMachine || forceDeploy)
-			cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, false, null, useExternalLoadBalancer).toFile());
+			cml.deploy(Test.getActualDeploymentModel(cloudMLIp, mpl, app, usedApp.cloudMl, usedApp.cloudMlLoadBalancer, loadBalancer, true, useExternalLoadBalancer).toFile());
 
 		getLogger().info("Starting the test...");
 		

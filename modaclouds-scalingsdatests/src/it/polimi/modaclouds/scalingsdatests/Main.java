@@ -36,14 +36,14 @@ public class Main {
 	@Parameter(names = "-batch", description = "Go in batch mode, reading a file describing a number of tests as parameter")
 	private String batch = null;
 
-	@Parameter(names = "-useDatabase", description = "Either if we need to use an external database or not")
-	private boolean useDatabase = false;
-
 	@Parameter(names = "-useOnDemand", description = "Use OnDemand instances instead of OnSpot")
 	private boolean useOnDemand = false;
 
 	@Parameter(names = "-reuseInstances", description = "Reuse running instances")
 	private boolean reuseInstances = false;
+	
+	@Parameter(names = "-alreadyUpdated", description = "Don't update the machines on start")
+	private boolean alreadyUpdated = false;
 
 	@Parameter(names = "-leaveInstancesOn", description = "Leave the instances running")
 	private boolean leaveInstancesOn = false;
@@ -117,6 +117,7 @@ public class Main {
 //		args = "-clients 1 -size m3.large -data tests.txt -useOnDemand".split(" ");
 //		args = "-clients 2 -size m3.large -data /Users/ft/Lavoro/tmp/tests/ramp2h.txt -app httpagent -demandEstimator ERPS".split(" ");
 //		args = "-clients 2 -size m3.large -data /Users/ft/Lavoro/tmp/tests/ramp3h.txt -app httpagent -window 180 -useSDA -useOnDemand -reuseInstances -demandEstimator ERPS".split(" ");
+		args = "-clients 2 -size m3.large -data /Users/ft/Lavoro/tmp/tests/ramp3h.txt -app httpagent -window 180 -useSDA -useOnDemand -reuseInstances -demandEstimator ERPS -background".split(" ");
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
@@ -132,10 +133,7 @@ public class Main {
 			logger.error("You need to provide a data or batch file!");
 			System.exit(-1);
 		} else if (m.batch == null) {
-			Test.App a = Test.App.getFromName(m.app);
-			Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
-
-			doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highMetric, m.lowMetric, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner, m.sshHost, m.sshUsername, m.sshPassword);
+			doTest(m);
 		} else {
 			ArrayList<Thread> threads = new ArrayList<Thread>();
 
@@ -160,13 +158,10 @@ public class Main {
 						continue;
 					}
 
-					Test.App a = Test.App.getFromName(m.app);
-					Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
-
 					if (m.background)
-						threads.add(doTestInBackground(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highMetric, m.lowMetric, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner, m.sshHost, m.sshUsername, m.sshPassword));
+						threads.add(doTestInBackground(m));
 					else
-						doTest(m.size, m.clients, m.servers, a, m.data, m.useDatabase, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highMetric, m.lowMetric, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner, m.sshHost, m.sshUsername, m.sshPassword);
+						doTest(m);
 				}
 
 				for (Thread t : threads)
@@ -183,13 +178,20 @@ public class Main {
 		System.exit(0);
 
 	}
+	
+	public static void doTest(Main m) {
+		Test.App a = Test.App.getFromName(m.app);
+		Test.DemandEstimator d = Test.DemandEstimator.getFromName(m.demandEstimator);
+		
+		doTest(m.size, m.clients, m.servers, a, m.data, m.useOnDemand, m.reuseInstances, m.leaveInstancesOn, m.onlyStartMachines, m.loadModelFile != null ? m.loadModelFile : a.fileModel, m.firstInstancesToSkip, d.name, m.window, m.useSDA, m.useCloudML, m.highMetric, m.lowMetric, m.cooldown, m.loadBalancerIp, m.useAutoscalingReasoner, m.sshHost, m.sshUsername, m.sshPassword, m.alreadyUpdated);
+	}
 
-	public static void doTest(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, String highMetric, String lowMetric, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner, String sshHost, String sshUsername, String sshPassword) {
+	public static void doTest(String size, int clients, int servers, Test.App app, String data, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
+			boolean useSDA, boolean useCloudML, String highMetric, String lowMetric, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner, String sshHost, String sshUsername, String sshPassword, boolean alreadyUpdated) {
 		logger.info("Preparing the system and running the test...");
 
 		try {
-			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), useDatabase, startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator, window, useSDA, useCloudML, highMetric, lowMetric, cooldown, loadBalancerIp, useAutoscalingReasoner, sshHost, sshUsername, sshPassword);
+			long duration = Test.performTest(size, clients, servers, app, Configuration.getPathToFile(data).toString(), startAsOnDemand, reuseInstances, leaveInstancesOn, onlyStartMachines, loadModelFile != null ? Configuration.getPathToFile(loadModelFile).toString() : null, firstInstancesToSkip, demandEstimator, window, useSDA, useCloudML, highMetric, lowMetric, cooldown, loadBalancerIp, useAutoscalingReasoner, sshHost, sshUsername, sshPassword, alreadyUpdated);
 
 			if (duration == Test.ERROR_STATUS_NULL)
 				logger.error("There was the status == null problem...");
@@ -202,37 +204,13 @@ public class Main {
 		}
 
 	}
-
-	public static Thread doTestInBackground(String size, int clients, int servers, Test.App app, String data, boolean useDatabase, boolean startAsOnDemand, boolean reuseInstances, boolean leaveInstancesOn, boolean onlyStartMachines, String loadModelFile, int firstInstancesToSkip, String demandEstimator, int window,
-			boolean useSDA, boolean useCloudML, String highMetric, String lowMetric, int cooldown, String loadBalancerIp, boolean useAutoscalingReasoner, String sshHost, String sshUsername, String sshPassword) {
-		final String fsize = size;
-		final int fclients = clients;
-		final String fdata = data;
-		final boolean fuseDatabase = useDatabase;
-		final boolean fstartAsOnDemand = startAsOnDemand;
-		final boolean freuseInstances = reuseInstances;
-		final boolean fleaveInstancesOn = leaveInstancesOn;
-		final boolean fonlyStartMachines = onlyStartMachines;
-		final int fservers = servers;
-		final String floadModelFile = loadModelFile;
-		final int ffirstInstancesToSkip = firstInstancesToSkip;
-		final Test.App fapp = app;
-		final String fdemandEstimator = demandEstimator;
-		final int fwindow = window;
-		final boolean fuseSDA = useSDA;
-		final boolean fuseCloudML = useCloudML;
-		final String fhighMetric = highMetric;
-		final String flowMetric = lowMetric;
-		final int fcooldown = cooldown;
-		final String floadBalancerIp = loadBalancerIp;
-		final boolean fuseAutoscalingReasoner = useAutoscalingReasoner;
-		final String fsshHost = sshHost;
-		final String fsshUsername = sshUsername;
-		final String fsshPassword = sshPassword;
-
+	
+	public static Thread doTestInBackground(Main m) {
+		final Main fm = m;
+		
 		Thread t = new Thread() {
 			public void run() {
-				doTest(fsize, fclients, fservers, fapp, fdata, fuseDatabase, fstartAsOnDemand, freuseInstances, fleaveInstancesOn, fonlyStartMachines, floadModelFile, ffirstInstancesToSkip, fdemandEstimator, fwindow, fuseSDA, fuseCloudML, fhighMetric, flowMetric, fcooldown, floadBalancerIp, fuseAutoscalingReasoner, fsshHost, fsshUsername, fsshPassword);
+				doTest(fm);
 			}
 		};
 
