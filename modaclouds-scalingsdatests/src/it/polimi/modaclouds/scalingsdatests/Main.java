@@ -117,7 +117,6 @@ public class Main {
 //		args = "-clients 1 -size m3.large -data tests.txt -useOnDemand".split(" ");
 //		args = "-clients 2 -size m3.large -data /Users/ft/Lavoro/tmp/tests/ramp2h.txt -app httpagent -demandEstimator ERPS".split(" ");
 //		args = "-clients 2 -size m3.large -data /Users/ft/Lavoro/tmp/tests/ramp3h.txt -app httpagent -window 180 -useSDA -useOnDemand -reuseInstances -demandEstimator ERPS".split(" ");
-		args = "-clients 2 -size m3.large -data /Users/ft/Lavoro/tmp/tests/ramp3h.txt -app httpagent -window 180 -useSDA -useOnDemand -reuseInstances -demandEstimator ERPS -background".split(" ");
 		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
