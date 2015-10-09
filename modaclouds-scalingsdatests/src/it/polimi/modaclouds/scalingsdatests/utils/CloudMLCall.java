@@ -192,14 +192,14 @@ public class CloudMLCall {
 	
 	private static CloudMLCall instance = null;
 	
-	private Map<String, CloudMLCall.CloudML> connectedClients;
+	private Map<String, CloudMLCall.CloudML> connectedClients = new HashMap<String, CloudMLCall.CloudML>();;
 	
 	public static CloudML getCloudML(String ip, int port) throws Exception {
 		if (instance == null)
 			instance = new CloudMLCall();
 		
 		String serverURI = String.format("ws://%s:%d", ip, port);
-
+		
         CloudML client = instance.connectedClients.get(serverURI);
 
         if (client == null) {
