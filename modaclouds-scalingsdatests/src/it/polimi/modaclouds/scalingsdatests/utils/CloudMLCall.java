@@ -203,15 +203,10 @@ public class CloudMLCall {
         CloudML client = instance.connectedClients.get(serverURI);
 
         if (client == null) {
-            try {
-                client = instance.new CloudML(ip, port);
-            } catch (Exception e) {
-                getLogger().error("Error while using the web socket.", e);
-                return null;
-            }
+	        client = instance.new CloudML(ip, port);
+	        instance.connectedClients.put(serverURI, client);
         }
-        if (client != null)
-        	instance.connectedClients.put(serverURI, client);
+        
         return client;
 	}
 	
