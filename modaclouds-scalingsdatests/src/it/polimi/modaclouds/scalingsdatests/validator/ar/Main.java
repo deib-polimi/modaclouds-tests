@@ -31,7 +31,7 @@ public class Main {
 	public static final String APP_TITLE = "\nAR Validator\n";
 
 	public static void main(String[] args) {
-//		args = "-parent /Users/ft/Lavoro/tmp/scalingsdatests-0.1/tests/0910151214-m3.large-500x2-httpagent-ERPS-AR-broken/mpl1/home/ubuntu -window 10 -createFromSingleLog -rtMaximum 1500".split(" ");
+//		args = "-parent /Users/ft/Lavoro/tmp/scalingsdatests-0.1/tests/0910151214-m3.large-500x2-httpagent-ERPS-AR-broken/mpl1/home/ubuntu -window 10 -createFromSingleLog -rtMaximum 1500 -rtMarker 560".split(" ");
 //		args = "-parent /Users/ft/Desktop/tmp/trash/0610151235-m3.large-500x2-httpagent-CloudML-CPU/mpl1/home/ubuntu -window 180".split(" ");
 
 		Main m = new Main();

@@ -21,7 +21,7 @@ public class Validator {
 	private static final Logger logger = LoggerFactory.getLogger(Validator.class);
 
 	public static final String DATA_FILE = "data2stdout.log";
-	public static final String CLOUDML_FILE = "cloudMl-9030.csv";
+	public static final String CLOUDML_FILE = "cloudMl-*.csv";
 	
 	public static final int DEFAULT_WINDOW = 10;
 
@@ -54,18 +54,31 @@ public class Validator {
 				workloadPerS.add(new Datum(d.resourceId, d.metric, d.value/window, d.timestamp));
 			
 			List<Datum> cpu = Datum.getAllData(Paths.get(parent.toString(), "cpu.out"), true).get(Datum.MIXED);
+			
 			List<Datum> rt = Datum.getAllData(Paths.get(parent.toString(), "rt.out"), true).get(Datum.MIXED);
+			List<Datum> rt5min = new ArrayList<Datum>();
+			int i = 0;
+			double sum = 0.0;
+			for (Datum d : rt) {
+				sum += d.value;
+				++i;
+				if (i >= 30) {
+					rt5min.add(new Datum(d.resourceId, d.metric + "_5Min", sum/i, d.timestamp));
+					i = 0;
+					sum = 0.0;
+				}
+			}
 			
 			Path p;
 			if (createFromSingleLog)
-				p = getFileInFolder(Paths.get(parent.getParent().toString(), "autoscalingReasoner"), "cloudMl-*.csv");
+				p = getFileInFolder(Paths.get(parent.getParent().toString(), "autoscalingReasoner"), CLOUDML_FILE);
 			else
-				p = getFileInFolder(Paths.get(parent.toString(), "autoscalingReasoner"), "cloudMl-*.csv");
+				p = getFileInFolder(Paths.get(parent.toString(), "autoscalingReasoner"), CLOUDML_FILE);
 			if (p == null) {
 				if (createFromSingleLog)
-					p = getFileInFolder(Paths.get(parent.getParent().toString(), "tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT"), "cloudMl-*.csv");
+					p = getFileInFolder(Paths.get(parent.getParent().toString(), "tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT"), CLOUDML_FILE);
 				else
-					p = getFileInFolder(Paths.get(parent.toString(), "tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT"), "cloudMl-*.csv");
+					p = getFileInFolder(Paths.get(parent.toString(), "tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT"), CLOUDML_FILE);
 			}
 			
 			List<Datum> machines = null;
@@ -88,6 +101,10 @@ public class Validator {
 			GenericChart.createGraphFromData(workloadPerS, Double.MAX_VALUE, minTimestamp).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "wlPerS.png");
 			GenericChart.createGraphFromData(cpu, 1.0, minTimestamp, new GenericChart.Marker(cpuMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "cpu.png");
 			GenericChart.createGraphFromData(rt, rtMaximum, minTimestamp, new GenericChart.Marker(rtMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "rt.png");
+			
+			rt5min.addAll(rt);
+			
+			GenericChart.createGraphFromData(rt5min, rtMaximum, minTimestamp, new GenericChart.Marker(rtMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "rt5min.png");
 			
 			GenericChart.createGraphFromData(machines, Double.MAX_VALUE, minTimestamp).save2png(parent.toString(), "machines.png");
 			
