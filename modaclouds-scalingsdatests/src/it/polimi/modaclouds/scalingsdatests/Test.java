@@ -248,8 +248,10 @@ public class Test {
 			t.stopMachines();
 		}
 
-		if (useSDA)
+		if (useSDA && !useAutoscalingReasoner)
 			Validator.perform(path, t.getCores(), firstInstancesToSkip, app, window);
+		if (useAutoscalingReasoner)
+			it.polimi.modaclouds.scalingsdatests.validator.ar.Validator.perform(path, 10, true, 0.5, 1500, 10000);
 
 		if (thrown != null)
 			throw thrown;
@@ -935,7 +937,7 @@ public class Test {
 				logger.info("- {}", i.getIp());
 		} else {
 			logger.info(app.toString());
-			for (String id : cloudML.getRunningInstancesIds(app.toString()))
+			for (String id : cloudML.getRunningInstancesIds(app.getParameter("NAME")))
 				logger.info("- {}", Instance.getIp(id));
 		}
 	}
@@ -1012,7 +1014,7 @@ public class Test {
 		if (!useCloudML && !useAutoscalingReasoner)
 			this.app.retrieveMetrics(localPath, date);
 		else
-			VirtualMachine.retrieveMetrics(cloudML.getRunningInstancesIds(app.name), this.app, localPath, date);
+			VirtualMachine.retrieveMetrics(cloudML.getRunningInstancesIds(app.tierName), this.app, localPath, date);
 		mpl.retrieveMetrics(localPath, date);
 		clients.retrieveMetrics(localPath, date);
 		logger.info("Done!");
@@ -1033,7 +1035,7 @@ public class Test {
 			
 			this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
 		} else {
-			List<String> ids = cloudML.getRunningInstancesIds(app.name);
+			List<String> ids = cloudML.getRunningInstancesIds(app.tierName);
 			
 			for (int i = 1; i < ids.size(); ++i)
 				Local.exec(String.format("bash %s %s %s %s", Configuration.getPathToFile(app.stopContainerMonitoringFile), Instance.getIp(ids.get(i)), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));

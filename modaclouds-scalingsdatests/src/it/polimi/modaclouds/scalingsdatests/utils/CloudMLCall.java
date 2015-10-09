@@ -180,6 +180,9 @@ public class CloudMLCall {
 		getLogger().info("Starting the test...");
 		
 		cml.updateStatus();
+		
+		for (String s : cml.getRunningInstancesIds(usedApp.tierName))
+			getLogger().info("{}", Instance.getIp(s));
 
 //		cml.scale(usedApp.tierName, 1);
 		
