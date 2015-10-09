@@ -192,10 +192,27 @@ public class CloudMLCall {
 	
 	private static CloudMLCall instance = null;
 	
+	private Map<String, CloudMLCall.CloudML> connectedClients;
+	
 	public static CloudML getCloudML(String ip, int port) throws Exception {
 		if (instance == null)
 			instance = new CloudMLCall();
-		return instance.new CloudML(ip, port);
+		
+		String serverURI = String.format("ws://%s:%d", ip, port);
+
+        CloudML client = instance.connectedClients.get(serverURI);
+
+        if (client == null) {
+            try {
+                client = instance.new CloudML(ip, port);
+            } catch (Exception e) {
+                getLogger().error("Error while using the web socket.", e);
+                return null;
+            }
+        }
+        if (client != null)
+        	instance.connectedClients.put(serverURI, client);
+        return client;
 	}
 	
 	public class CloudML implements PropertyChangeListener {
