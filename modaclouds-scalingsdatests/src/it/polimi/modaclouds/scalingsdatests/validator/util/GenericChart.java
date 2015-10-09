@@ -26,6 +26,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.labels.CategoryItemLabelGenerator;
 import org.jfree.chart.labels.StandardCategoryItemLabelGenerator;
+import org.jfree.chart.plot.CategoryMarker;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
@@ -66,6 +67,7 @@ public class GenericChart<E> extends JPanel {
 		double position;
 		String label;
 		String hiddenLabel;
+		boolean isVertical = false;
 		
 		public Marker(double position, String label) {
 			this.position = position;
@@ -248,7 +250,12 @@ public class GenericChart<E> extends JPanel {
 				double maxMarker = Double.MIN_VALUE, minMarker = Double.MAX_VALUE;
 				
 				for (Marker m : markers) {
-					ValueMarker marker = new ValueMarker(m.position);  // position is the value on the axis
+					org.jfree.chart.plot.Marker marker;
+					if (!m.isVertical) {
+						marker = new ValueMarker(m.position);  // position is the value on the axis
+					} else {
+						marker = new CategoryMarker(m.position);
+					}
 					marker.setLabel(m.label);
 					marker.setLabelFont(font2);
 					marker.setStroke(dotted);
@@ -266,12 +273,16 @@ public class GenericChart<E> extends JPanel {
 							marker.setPaint(p);
 					}
 					
-					plot.addRangeMarker(marker);
-					
-					if (maxMarker < m.position)
-						maxMarker = m.position;
-					if (minMarker > m.position)
-						minMarker = m.position;
+					if (!m.isVertical) {
+						plot.addRangeMarker(marker);
+						
+						if (maxMarker < m.position)
+							maxMarker = m.position;
+						if (minMarker > m.position)
+							minMarker = m.position;
+					} else {
+						plot.addDomainMarker((CategoryMarker)marker);
+					}
 				}
 	
 				NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
@@ -396,12 +407,16 @@ public class GenericChart<E> extends JPanel {
 							marker.setPaint(p);
 					}
 					
-					plot.addRangeMarker(marker);
-					
-					if (maxMarker < m.position)
-						maxMarker = m.position;
-					if (minMarker > m.position)
-						minMarker = m.position;
+					if (!m.isVertical) {
+						plot.addRangeMarker(marker);
+						
+						if (maxMarker < m.position)
+							maxMarker = m.position;
+						if (minMarker > m.position)
+							minMarker = m.position;
+					} else {
+						plot.addDomainMarker(marker);
+					}
 				}
 	
 				ValueAxis rangeAxis = (ValueAxis) plot.getRangeAxis();
@@ -507,7 +522,7 @@ public class GenericChart<E> extends JPanel {
 		return graph;
 	}
 	
-	public static GenericChart<XYSeriesCollection> createGraphFromData(List<Datum> data, Marker... markers) throws NumberFormatException, IOException {
+	public static GenericChart<XYSeriesCollection> createGraphFromData(List<Datum> data, double maximum, long minTimestamp, Marker... markers) throws NumberFormatException, IOException {
 		GenericChart<XYSeriesCollection> graph = new GenericChart<XYSeriesCollection>("t", "Value");
 		graph.dataset = new XYSeriesCollection();
 		graph.defaultRange = true;
@@ -522,11 +537,15 @@ public class GenericChart<E> extends JPanel {
 		addZeros = false;
 		
 		if (data != null) {
-			for (Datum d : data)
-				graph.add(d.resourceId + ":" + d.metric, d.timestamp, d.value);
+			for (Datum d : data) {
+				graph.add(d.resourceId + ":" + d.metric, (d.timestamp - minTimestamp)/1000, d.value > maximum ? maximum : d.value);
+			}
 
 			for (Marker m : markers)
 				graph.addMarker(m.position, m.label);
+			
+			if (maximum < Double.MAX_VALUE)
+				graph.addMarker(maximum, "Maximum Value");
 		} else {
 			graph.add("none", 0, 0);
 		}
@@ -535,6 +554,22 @@ public class GenericChart<E> extends JPanel {
 		graph.updateImage();
 		
 		return graph;
+	}
+	
+	public GenericChart<E> addDataAsVerticalMarkers(List<Datum> data, double minTimestamp) {
+		if (data != null) {
+			for (Datum d : data) {
+				Marker m = new Marker((d.timestamp - minTimestamp)/1000, Double.toString(d.value));
+				m.isVertical = true;
+				m.hiddenLabel = Double.toString(d.value);
+				markers.add(m);
+			}
+		}
+		
+		updateGraph();
+		updateImage();
+		
+		return this;
 	}
 	
 }

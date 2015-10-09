@@ -24,11 +24,14 @@ public class Main {
 	
 	@Parameter(names = "-rtMarker", description = "The marker for the response times")
 	private double rtMarker = 1500;
+	
+	@Parameter(names = "-rtMaximum", description = "The maximum value for the response times to be considered")
+	private double rtMaximum = 8000;
 
 	public static final String APP_TITLE = "\nAR Validator\n";
 
 	public static void main(String[] args) {
-//		args = "-parent /Users/ft/Desktop/tmp/trash/0710150157-m3.large-500x2-httpagent-ERPS-AR-broken/mpl1/home/ubuntu/logs -window 10 -createFromSingleLog".split(" ");
+//		args = "-parent /Users/ft/Lavoro/tmp/scalingsdatests-0.1/tests/0910151214-m3.large-500x2-httpagent-ERPS-AR-broken/mpl1/home/ubuntu -window 10 -createFromSingleLog -rtMaximum 1500".split(" ");
 //		args = "-parent /Users/ft/Desktop/tmp/trash/0610151235-m3.large-500x2-httpagent-CloudML-CPU/mpl1/home/ubuntu -window 180".split(" ");
 
 		Main m = new Main();
@@ -41,7 +44,7 @@ public class Main {
 			System.exit(0);
 		}
 
-		Validator.perform(Paths.get(m.parent), m.window, m.createFromSingleLog, m.cpuMarker, m.rtMarker);
+		Validator.perform(Paths.get(m.parent), m.window, m.createFromSingleLog, m.cpuMarker, m.rtMarker, m.rtMaximum);
 	}
 
 }

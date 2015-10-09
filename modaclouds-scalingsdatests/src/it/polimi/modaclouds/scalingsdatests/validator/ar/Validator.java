@@ -5,10 +5,13 @@ import it.polimi.modaclouds.scalingsdatests.validator.util.Datum;
 import it.polimi.modaclouds.scalingsdatests.validator.util.FileHelper;
 import it.polimi.modaclouds.scalingsdatests.validator.util.GenericChart;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +25,14 @@ public class Validator {
 	
 	public static final int DEFAULT_WINDOW = 10;
 
-	public static void perform(Path parent, int window, boolean createFromSingleLog, double cpuMarker, double rtMarker) {
+	public static void perform(Path parent, int window, boolean createFromSingleLog, double cpuMarker, double rtMarker, double rtMaximum) {
 		if (parent == null || !parent.toFile().exists())
 			throw new RuntimeException("Parent folder not found! (" + parent == null ? "null" : parent.toString() + ")");
 		
 		try {
 			if (createFromSingleLog) {
+				parent = Paths.get(parent.toString(), "logs");
+				
 				logger.info("Converting the results from JSON to CSV...");
 				
 				try {
@@ -51,14 +56,62 @@ public class Validator {
 			List<Datum> cpu = Datum.getAllData(Paths.get(parent.toString(), "cpu.out"), true).get(Datum.MIXED);
 			List<Datum> rt = Datum.getAllData(Paths.get(parent.toString(), "rt.out"), true).get(Datum.MIXED);
 			
-			GenericChart.createGraphFromData(workloadPerS).save2png(parent.toString(), "wlPerS.png");
-			GenericChart.createGraphFromData(cpu, new GenericChart.Marker(cpuMarker)).save2png(parent.toString(), "cpu.png");
-			GenericChart.createGraphFromData(rt, new GenericChart.Marker(rtMarker)).save2png(parent.toString(), "rt.png");
+			Path p;
+			if (createFromSingleLog)
+				p = getFileInFolder(Paths.get(parent.getParent().toString(), "autoscalingReasoner"), "cloudMl-*.csv");
+			else
+				p = getFileInFolder(Paths.get(parent.toString(), "autoscalingReasoner"), "cloudMl-*.csv");
+			if (p == null) {
+				if (createFromSingleLog)
+					p = getFileInFolder(Paths.get(parent.getParent().toString(), "tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT"), "cloudMl-*.csv");
+				else
+					p = getFileInFolder(Paths.get(parent.toString(), "tower4clouds/manager/manager-server/target/manager-server-0.4-SNAPSHOT"), "cloudMl-*.csv");
+			}
+			
+			List<Datum> machines = null;
+			if (p != null)
+				machines = Datum.getAllData(p, Datum.Type.CLOUDML_ACTION_CSV, true).get(Datum.MIXED);
+
+			long minTimestamp = 0;
+			if (workload != null)
+				minTimestamp = workload.get(0).timestamp;
+			if (cpu != null)
+				if (minTimestamp != 0 && cpu.get(0).timestamp < minTimestamp)
+					minTimestamp = cpu.get(0).timestamp;
+			if (rt != null)
+				if (minTimestamp != 0 && rt.get(0).timestamp < minTimestamp)
+					minTimestamp = rt.get(0).timestamp;
+			if (machines != null)
+				if (minTimestamp != 0 && machines.get(0).timestamp < minTimestamp)
+					minTimestamp = machines.get(0).timestamp;
+			
+			GenericChart.createGraphFromData(workloadPerS, Double.MAX_VALUE, minTimestamp).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "wlPerS.png");
+			GenericChart.createGraphFromData(cpu, 1.0, minTimestamp, new GenericChart.Marker(cpuMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "cpu.png");
+			GenericChart.createGraphFromData(rt, rtMaximum, minTimestamp, new GenericChart.Marker(rtMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "rt.png");
+			
+			GenericChart.createGraphFromData(machines, Double.MAX_VALUE, minTimestamp).save2png(parent.toString(), "machines.png");
 			
 			logger.info("Done!");
 		} catch (Exception e) {
 			logger.error("Error while running the script.", e);
 		}
+	}
+	
+	public static Path getFileInFolder(Path folder, String fileName) {
+		final String ffileName = fileName.replaceAll("[*]", ".*");
+		
+		File[] fs = folder.toFile().listFiles(new FileFilter() {
+			
+			@Override
+			public boolean accept(File pathname) {
+				return (Pattern.matches(ffileName, pathname.getName()));
+			}
+		});
+		
+		if (fs.length > 0)
+			return fs[0].toPath();
+		else
+			return null;
 	}
 
 }

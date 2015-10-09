@@ -14,7 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Datum {
-	public static enum Type { RDF_JSON, TOWER_JSON, GRAPHITE, INFLUXDB, CSV, JMETER_CSV, TOMCAT_LOCALHOST_ACCESS_LOG };
+	public static enum Type { RDF_JSON, TOWER_JSON, GRAPHITE, INFLUXDB, CSV, JMETER_CSV, TOMCAT_LOCALHOST_ACCESS_LOG, CLOUDML_ACTION_CSV };
 	
 	public String resourceId;
 	public String metric;
@@ -85,6 +85,16 @@ public class Datum {
 			
 			metric = "Latency";
 			value = Double.parseDouble(splitted[10]);
+			break;
+		}
+		case CLOUDML_ACTION_CSV: {
+			String[] splitted = line.split(",");
+			if (splitted.length != 4)
+				throw new Exception("The given string is not a correct CSV with 5 comma-separated values.");
+			resourceId = "CloudML";
+			metric = "RunningInstances";
+			value = Double.parseDouble(splitted[3]);
+			timestamp = Long.parseLong(splitted[0]);
 			break;
 		}
 		default:
@@ -170,6 +180,11 @@ public class Datum {
 			return Type.TOMCAT_LOCALHOST_ACCESS_LOG;
 		} catch (Exception e) { }
 		
+		try {
+			new Datum(line, Type.CLOUDML_ACTION_CSV);
+			return Type.CLOUDML_ACTION_CSV;
+		} catch (Exception e) { }
+		
 		return null;
 	}
 	
@@ -245,6 +260,20 @@ public class Datum {
 							data = new ArrayList<Datum>();
 							res.put(mixed ? MIXED : el.resourceId, data);
 						}
+						data.add(el);
+						break;
+					}
+					case CLOUDML_ACTION_CSV: {
+						if (!line.contains("/RET"))
+							continue;
+						Datum el = new Datum(line, origDataType);
+						List<Datum> data = res.get(mixed ? MIXED : el.resourceId);
+						if (data == null) {
+							data = new ArrayList<Datum>();
+							res.put(mixed ? MIXED : el.resourceId, data);
+						}
+						if (data.size() > 0 && (data.get(data.size() - 1).value.equals(el.value) || (el.timestamp - data.get(data.size() - 1).timestamp < 500*1000)))
+							continue;
 						data.add(el);
 						break;
 					}
