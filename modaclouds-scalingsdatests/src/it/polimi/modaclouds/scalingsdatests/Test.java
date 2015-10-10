@@ -415,6 +415,10 @@ public class Test {
 		logger.info("Stopping CloudML instances...");
 		
 		cloudML.terminateAllInstances();
+		
+		List<String> ids = cloudML.getRunningInstancesIds(app.getParameter("NAME"));
+		for (String id : ids)
+			app.terminate(id);
 	}
 
 	public void terminateCloudMLDaemon() throws Exception {
