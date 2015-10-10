@@ -73,7 +73,7 @@ public class InitDataCollectorServlet implements ServletContextListener {
 		applicationProperties.put(Property.CLOUD_PROVIDER_ID, MONITORING_PLATFORM_PROVIDER);
 		applicationProperties.put(Property.CLOUD_PROVIDER_TYPE, "IaaS");
 		applicationProperties.put(Property.VM_ID, "HTTPAgentHelper1");
-		applicationProperties.put(Property.VM_TYPE, "Frontend");
+		applicationProperties.put(Property.VM_TYPE, "HTTPAgent");
 		
 		logger.debug("MONITORING_PLATFORM_IP = {}", MONITORING_PLATFORM_IP);
 		logger.debug("MONITORING_PLATFORM_PORT = {}", MONITORING_PLATFORM_PORT);

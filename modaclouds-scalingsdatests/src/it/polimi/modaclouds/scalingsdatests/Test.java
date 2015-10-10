@@ -684,7 +684,7 @@ public class Test {
 						metricType = ss[3];
 					} else {
 						metricClass = "VM";
-						metricType = "Frontend";
+						metricType = tierName;
 					}
 				}
 				
@@ -709,7 +709,7 @@ public class Test {
 						metricType = ss[3];
 					} else {
 						metricClass = "VM";
-						metricType = "Frontend";
+						metricType = tierName;
 					}
 				}
 				

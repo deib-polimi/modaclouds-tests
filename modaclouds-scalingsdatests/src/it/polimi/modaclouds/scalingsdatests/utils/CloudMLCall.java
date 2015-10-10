@@ -59,12 +59,12 @@ public class CloudMLCall {
 			SLF4JBridgeHandler.install();
 		}
 		
-		boolean machineAlreadyPrepared = false;
-		boolean restartCloudML = true;
-		boolean useLocalCloudML = true;
-		boolean useExternalLoadBalancer = false;
+		boolean machineAlreadyPrepared = true;
+		boolean restartCloudML = false;
+		boolean useLocalCloudML = false;
+		boolean useExternalLoadBalancer = true;
 		boolean rebootMachine = false;
-		boolean forceDeploy = true;
+		boolean forceDeploy = false;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
 		
@@ -180,15 +180,15 @@ public class CloudMLCall {
 		getLogger().info("Starting the test...");
 		
 		cml.updateStatus();
-		
-		for (String s : cml.getRunningInstancesIds(usedApp.tierName))
-			getLogger().info("{}", Instance.getIp(s));
 
-//		cml.scale(usedApp.tierName, 1);
+		cml.scale(usedApp.tierName, 1);
 		
 //		cml.scale(usedApp.tierName, 1);
 		
 //		cml.terminateAllInstances();
+		
+		for (String s : cml.getRunningInstancesIds(usedApp.tierName))
+			getLogger().info("{}", Instance.getIp(s));
 
 		getLogger().info("Test ended!");
 	}

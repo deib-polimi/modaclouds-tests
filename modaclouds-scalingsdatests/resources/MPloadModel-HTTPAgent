@@ -21,7 +21,7 @@ PREV5=`expr 1500 / $5`
 MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema\">
   <monitoringRule id=\"cpuRule\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
-      <monitoredTarget class=\"VM\" type=\"Frontend\"/>
+      <monitoredTarget class=\"VM\" type=\"HTTPAgent\"/>
     </monitoredTargets>
     <collectedMetric metricName=\"CPUUtilization\">
       <parameter name=\"samplingProbability\">1</parameter>
@@ -38,7 +38,7 @@ MODEL="<monitoringRules xmlns=\"http://www.modaclouds.eu/xsd/1.0/monitoring_rule
   </monitoringRule>
   <monitoringRule id=\"cpuStealRule\" timeStep=\"$5\" timeWindow=\"$5\">
     <monitoredTargets>
-      <monitoredTarget class=\"VM\" type=\"Frontend\"/>
+      <monitoredTarget class=\"VM\" type=\"HTTPAgent\"/>
     </monitoredTargets>
     <collectedMetric metricName=\"CPUStolen\">
       <parameter name=\"samplingProbability\">1</parameter>
