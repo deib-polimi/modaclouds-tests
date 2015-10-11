@@ -217,7 +217,7 @@
 		<dependency>
 			<groupId>it.cloud.cloud-runner</groupId>
 			<artifactId>cloud-runner</artifactId>
-			<version>0.2.5</version>
+			<version>0.2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.beust</groupId>
