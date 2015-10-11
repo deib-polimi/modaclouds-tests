@@ -2,15 +2,10 @@
 
 cd
 
-echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=http-agent-helper" >> ~/.bashrc_httpagent
-echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=HTTPAgentHelper" >> ~/.bashrc_httpagent
-echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=HTTPAgentHelper1" >> ~/.bashrc_httpagent
-echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> ~/.bashrc_httpagent
-echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> ~/.bashrc_httpagent
-source ~/.bashrc_httpagent
-
 TESTS_DIST_LOCATION="https://github.com/deib-polimi/modaclouds-tests.git"
 TESTS_DIST_BRANCH="master"
+
+source ~/.bashrc_httpagent
 
 sudo apt-get update -y
 # sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade

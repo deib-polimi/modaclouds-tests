@@ -31,6 +31,11 @@ if [ -z ${MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID+x} ]
 then
     echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID=$PROVIDER" >> ~/.bashrc_mic
 fi
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=mic-frontend-mon" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=Mic" >> ~/.bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=MIC" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> .bashrc_mic
+echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> .bashrc_mic
 
 source ~/.bashrc_mic
 

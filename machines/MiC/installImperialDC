@@ -7,11 +7,6 @@ DC_DIST_BRANCH="master"
 SIGAR_DIST_LOCATION="http://downloads.sourceforge.net/project/sigar/sigar/1.6/hyperic-sigar-1.6.4.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fsigar%2F&ts=1408674953&use_mirror=kent"
 SIGAR_FOLDER=hyperic-sigar-1.6.4
 
-echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_ID=mic-frontend-mon" >> ~/.bashrc_mic
-echo "export MODACLOUDS_TOWER4CLOUDS_INTERNAL_COMPONENT_TYPE=Mic" >> ~/.bashrc_mic
-echo "export MODACLOUDS_TOWER4CLOUDS_VM_ID=MIC" >> .bashrc_mic
-echo "export MODACLOUDS_TOWER4CLOUDS_VM_TYPE=Frontend" >> .bashrc_mic
-echo "export MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_TYPE=IaaS" >> .bashrc_mic
 source ~/.bashrc_mic
 
 sudo apt-get update -y
