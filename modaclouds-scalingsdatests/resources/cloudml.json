@@ -10,7 +10,7 @@
         {
           "eClass": "net.cloudml.core:Property",
           "name": "MaxVMs",
-          "value": "30"
+          "value": "21"
         }
       ]
     },
@@ -56,6 +56,11 @@
           "eClass": "net.cloudml.core:Property",
           "name": "env:MODACLOUDS_TOWER4CLOUDS_CLOUD_PROVIDER_ID",
           "value": "${this.provider.id}"
+        },
+        {
+          "eClass": "net.cloudml.core:Property",
+          "name": "env:MODACLOUDS_TOWER4CLOUDS_VM_ID",
+          "value": "${this.id}"
         }
       ]
     }
