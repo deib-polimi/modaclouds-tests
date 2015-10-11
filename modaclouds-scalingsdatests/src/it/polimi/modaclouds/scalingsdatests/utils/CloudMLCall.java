@@ -63,7 +63,7 @@ public class CloudMLCall {
 		boolean restartCloudML = false;
 		boolean useLocalCloudML = false;
 		boolean useExternalLoadBalancer = true;
-		boolean rebootMachine = false;
+		boolean rebootMachine = true;
 		boolean forceDeploy = false;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
@@ -181,7 +181,7 @@ public class CloudMLCall {
 		
 		cml.updateStatus();
 
-		cml.scale(usedApp.tierName, 1);
+//		cml.scale(usedApp.tierName, 1);
 		
 //		cml.scale(usedApp.tierName, 1);
 		
