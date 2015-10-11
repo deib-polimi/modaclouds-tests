@@ -70,7 +70,7 @@
         {
           "eClass": "net.cloudml.core:Property",
           "name": "env:MODACLOUDS_TOWER4CLOUDS_VM_ID",
-          "value": "${this.host.name}"
+          "value": "${this.host.id}"
         }
       ]
     }
