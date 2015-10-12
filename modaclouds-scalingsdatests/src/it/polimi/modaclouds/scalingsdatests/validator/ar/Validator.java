@@ -98,15 +98,15 @@ public class Validator {
 				if (minTimestamp != 0 && machines.get(0).timestamp < minTimestamp)
 					minTimestamp = machines.get(0).timestamp;
 			
-			GenericChart.createGraphFromData(workloadPerS, Double.MAX_VALUE, minTimestamp).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "wlPerS.png");
-			GenericChart.createGraphFromData(cpu, 1.0, minTimestamp, new GenericChart.Marker(cpuMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "cpu.png");
-			GenericChart.createGraphFromData(rt, rtMaximum, minTimestamp, new GenericChart.Marker(rtMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "rt.png");
+			GenericChart.createGraphFromData(workloadPerS, Double.MAX_VALUE, false, minTimestamp).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "wlPerS.png");
+			GenericChart.createGraphFromData(cpu, 1.0, true, minTimestamp, new GenericChart.Marker(cpuMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "cpu.png");
+			GenericChart.createGraphFromData(rt, rtMaximum, false, minTimestamp, new GenericChart.Marker(rtMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "rt.png");
 			
 			rt5min.addAll(rt);
 			
-			GenericChart.createGraphFromData(rt5min, rtMaximum, minTimestamp, new GenericChart.Marker(rtMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "rt5min.png");
+			GenericChart.createGraphFromData(rt5min, rtMaximum, false, minTimestamp, new GenericChart.Marker(rtMarker)).addDataAsVerticalMarkers(machines, minTimestamp).save2png(parent.toString(), "rt5min.png");
 			
-			GenericChart.createGraphFromData(machines, Double.MAX_VALUE, minTimestamp).save2png(parent.toString(), "machines.png");
+			GenericChart.createGraphFromData(machines, Double.MAX_VALUE, false, minTimestamp).save2png(parent.toString(), "machines.png");
 			
 			logger.info("Done!");
 		} catch (Exception e) {

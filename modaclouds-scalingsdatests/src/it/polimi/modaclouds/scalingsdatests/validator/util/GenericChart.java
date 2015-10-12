@@ -522,7 +522,7 @@ public class GenericChart<E> extends JPanel {
 		return graph;
 	}
 	
-	public static GenericChart<XYSeriesCollection> createGraphFromData(List<Datum> data, double maximum, long minTimestamp, Marker... markers) throws NumberFormatException, IOException {
+	public static GenericChart<XYSeriesCollection> createGraphFromData(List<Datum> data, double maximum, boolean forcedMaximum, long minTimestamp, Marker... markers) throws NumberFormatException, IOException {
 		GenericChart<XYSeriesCollection> graph = new GenericChart<XYSeriesCollection>("t", "Value");
 		graph.dataset = new XYSeriesCollection();
 		graph.defaultRange = false;
@@ -550,7 +550,7 @@ public class GenericChart<E> extends JPanel {
 			for (Marker m : markers)
 				graph.addMarker(m.position, m.label);
 			
-			if (aboveMaximum)
+			if (aboveMaximum || forcedMaximum)
 				graph.exactMax = maximum;
 				
 		} else {
