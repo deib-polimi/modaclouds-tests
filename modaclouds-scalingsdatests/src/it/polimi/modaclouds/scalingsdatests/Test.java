@@ -230,7 +230,7 @@ public class Test {
 				String now = String.format("%1$td%1$tm%1$ty%1$tH%1$tM-%2$s-%3$dx%4$d-%5$s%6$s-broken", date, size, getPeakFromData(data) / clients, clients, app.name, (useSDA ? "-" + demandEstimator : "") + (useCloudML ? "-CloudML" : "") + (useAutoscalingReasoner ? "-AR" : ""));
 				
 				t.localPath = "tests" + File.separator + now;
-				t.retrieveFiles(app);
+				t.retrieveResults(app, date);
 			} catch (Exception e) {
 				logger.error("Error while trying to retrieve the files after an error.", e);
 			}
@@ -1013,24 +1013,16 @@ public class Test {
 
 		logger.info("Test ended!");
 
-		logger.info("Retrieving the files from the instances...");
+		logger.info("Retrieving the files from the instances and the data from the metrics...");
 
-		retrieveFiles(app);
-
-		logger.info("Retrieving the data from the metrics...");
-
-		if (!useCloudML && !useAutoscalingReasoner)
-			this.app.retrieveMetrics(localPath, date);
-		else
-			VirtualMachine.retrieveMetrics(cloudML.getRunningInstancesIds(app.tierName), this.app, localPath, date);
-		mpl.retrieveMetrics(localPath, date);
-		clients.retrieveMetrics(localPath, date);
+		retrieveResults(app, date);
+		
 		logger.info("Done!");
 
 		return Paths.get(localPath, "mpl1", "home", mpl.getParameter("SSH_USER"));
 	}
 	
-	private void retrieveFiles(App app) throws Exception {
+	private void retrieveResults(App app, Date date) throws Exception {
 		if (!running || !initialized || localPath == null)
 			return;
 
@@ -1042,16 +1034,26 @@ public class Test {
 			}
 			
 			this.app.retrieveFiles(localPath, "/home/" + this.app.getParameter("SSH_USER"));
+			this.app.retrieveMetrics(localPath, date);
 		} else {
+			cloudML.updateStatus();
+			
 			List<String> ids = cloudML.getRunningInstancesIds(app.tierName);
 			
-			for (int i = 1; i < ids.size(); ++i)
-				Local.exec(String.format("bash %s %s %s %s", Configuration.getPathToFile(app.stopContainerMonitoringFile), Instance.getIp(ids.get(i)), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
+			int i = 1;
+			for (String id : ids)
+				Local.exec(String.format("bash %s %s %s %s", Configuration.getPathToFile(app.stopContainerMonitoringFile), Instance.getIp(id), Paths.get(localPath, app.name + i++), Configuration.getPathToFile(this.app.getParameter("KEYPAIR_NAME") + ".pem")));
 			
 			VirtualMachine.retrieveFiles(ids, this.app, localPath, "/home/" + this.app.getParameter("SSH_USER"));
+			VirtualMachine.retrieveMetrics(cloudML.getRunningInstancesIds(app.tierName), this.app, localPath, date);
 		}
+		
 		mpl.retrieveFiles(localPath, "/home/" + mpl.getParameter("SSH_USER"));
+		mpl.retrieveMetrics(localPath, date);
+		
 		clients.retrieveFiles(localPath, "/home/" + clients.getParameter("SSH_USER"));
+		clients.retrieveMetrics(localPath, date);
+		
 		if (useOwnLoadBalancer)
 			VirtualMachine.retrieveFiles(loadBalancer, lb, 1, localPath, "/home/" + lb.getParameter("SSH_USER"));
 	}

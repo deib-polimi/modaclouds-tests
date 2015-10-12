@@ -62,14 +62,14 @@ public class CloudMLCall {
 		boolean machineAlreadyPrepared = true;
 		boolean restartCloudML = false;
 		boolean useLocalCloudML = false;
-		boolean useExternalLoadBalancer = true;
-		boolean rebootMachine = true;
+		boolean useExternalLoadBalancer = false;
+		boolean rebootMachine = false;
 		boolean forceDeploy = false;
 
 		Test.App usedApp = Test.App.HTTPAGENT;
 		
-		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.medium", 1);
-		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.medium", 1);
+		VirtualMachine mpl = VirtualMachine.getVM("mpl", "m3.xlarge", 1);
+		VirtualMachine app = VirtualMachine.getVM(usedApp.name, "m3.large", 1);
 		VirtualMachine lb = VirtualMachine.getVM("lb");
 		
 		String loadBalancer;
@@ -181,14 +181,16 @@ public class CloudMLCall {
 		
 		cml.updateStatus();
 
-//		cml.scale(usedApp.tierName, 1);
+		cml.scale(usedApp.tierName, 1);
 		
 //		cml.scale(usedApp.tierName, 1);
 		
 //		cml.terminateAllInstances();
-		
-		for (String s : cml.getRunningInstancesIds(usedApp.tierName))
-			getLogger().info("{}", Instance.getIp(s));
+
+		for (String id : cml.getRunningInstancesIds(usedApp.tierName)) {
+			String ip = Instance.getIp(id);
+			getLogger().info("- {}: {}", id, ip);
+		}
 
 		getLogger().info("Test ended!");
 	}
