@@ -30,7 +30,7 @@ public class GetPageServlet extends HttpServlet {
 	
 	private static final Logger logger = LoggerFactory.getLogger(GetPageServlet.class);
 	
-	public static String BASE_PATH = "/Users/ft/Desktop/tmp/trash/"; //"/sync/model/model/CaseStudyModel/";
+	public static String BASE_PATH = "/home/vagrant/modaclouds-tests/http-agent-helper/src/main/java/it/polimi/modaclouds/cloudapp/httpagenthelper/servlet"; //"/sync/model/model/CaseStudyModel/";
 	
 	public static final String BASE_PATH_PROPERTY = "HTTP_AGENT_BASE_PATH";
 	
